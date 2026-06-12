@@ -1020,27 +1020,37 @@ document.getElementById('expModalSaveBtn').addEventListener('click', function() 
 
 // ── INIT ─────────────────────────────────────────────────
 function initApp() {
-  state = loadLocal();
-  if (isConfigured()) {
-    loadSupabaseLib().then(function() {
-      var client = getSb();
-      if (!client) { render(); return; }
-      client.from('app_state').select('*').eq('id',1).single().then(function(res) {
-        if (res.data) {
-          var s = typeof res.data.state==='string' ? JSON.parse(res.data.state) : res.data.state;
-          state = applyResets(s); saveLocal();
-        }
-        render();
-        client.channel('cq').on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state'},function(p){
-          var s = typeof p.new.state==='string' ? JSON.parse(p.new.state) : p.new.state;
-          state=applyResets(s); saveLocal(); render();
-        }).subscribe();
-      }).catch(function() { render(); });
-    }).catch(function() { render(); });
-  } else {
-    render();
-  }
+  // Always render locally first — app is never blank
+  try { state = loadLocal(); } catch(e) { state = freshState(); }
+  render();
   document.documentElement.style.setProperty('--child-bg', COLORS[activeIdx].bg);
+
+  // Then try Supabase in background
+  if (!isConfigured()) return;
+  try {
+    loadSupabaseLib().then(function() {
+      try {
+        var client = getSb();
+        if (!client) return;
+        client.from('app_state').select('state').eq('id',1).single().then(function(res) {
+          try {
+            if (res && res.data && res.data.state) {
+              var s = typeof res.data.state==='string' ? JSON.parse(res.data.state) : res.data.state;
+              if (s && s.children) { state = applyResets(s); saveLocal(); render(); }
+            }
+          } catch(e) {}
+          try {
+            client.channel('cq').on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state'},function(p){
+              try {
+                var s = typeof p.new.state==='string' ? JSON.parse(p.new.state) : p.new.state;
+                if (s && s.children) { state=applyResets(s); saveLocal(); render(); }
+              } catch(e) {}
+            }).subscribe();
+          } catch(e) {}
+        }).catch(function(){});
+      } catch(e) {}
+    }).catch(function(){});
+  } catch(e) {}
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
