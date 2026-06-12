@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ProjectPocket 🌟</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -325,26 +325,36 @@ function freshState() {
 }
 function applyResets(s) {
   var ws = weekStart(), td = todayStr();
-  if (!s || !s.children) return freshState();
+  if (!s || !s.children || !Array.isArray(s.children) || s.children.length < 2) return freshState();
   s.children.forEach(function(ch) {
-    if (!ch) return;
+    if (!ch || typeof ch !== 'object') return;
     if (ch.weekStart !== ws) { ch.weekStart=ws; ch.weekEarned=0; ch.weekPenalties=0; }
-    if (!ch.earningChores) ch.earningChores = [];
+    if (!Array.isArray(ch.earningChores)) ch.earningChores = [];
     ch.earningChores.forEach(function(c) { if (!c.lastDone) c.lastDone=''; if (c.lastDone !== td) c.done=false; });
     if (ch.lastExpectedDate !== td) { ch.expectedDone={}; ch.lastExpectedDate=td; }
     if (!ch.goalName)   ch.goalName   = 'My Savings Goal';
     if (!ch.goalTarget) ch.goalTarget = 10;
-    if (!ch.expectedTasks || !ch.expectedTasks.length) {
+    if (!Array.isArray(ch.expectedTasks) || !ch.expectedTasks.length) {
       ch.expectedTasks = DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; });
     }
-    if (!ch.weekPenalties) ch.weekPenalties = 0;
-    if (!ch.weekEarned)    ch.weekEarned    = 0;
-    if (!ch.totalSaved)    ch.totalSaved    = 0;
+    if (typeof ch.weekPenalties !== 'number') ch.weekPenalties = 0;
+    if (typeof ch.weekEarned    !== 'number') ch.weekEarned    = 0;
+    if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
   });
   return s;
 }
 function loadLocal() {
-  try { var r = localStorage.getItem('cq_v7'); return r ? applyResets(JSON.parse(r)) : freshState(); }
+  // Clear old storage versions to prevent corrupted state
+  try { ['cq_v4','cq_v5','cq_v6'].forEach(function(k){ localStorage.removeItem(k); }); } catch(e) {}
+  try {
+    var r = localStorage.getItem('cq_v7');
+    if (!r) return freshState();
+    var parsed = JSON.parse(r);
+    var result = applyResets(parsed);
+    // Final sanity check
+    if (!result || !result.children || result.children.length < 2) return freshState();
+    return result;
+  }
   catch(e) { return freshState(); }
 }
 function saveLocal() { try { localStorage.setItem('cq_v7', JSON.stringify(state)); } catch(e) {} }
@@ -876,7 +886,7 @@ function initApp() {
   } catch(e) {}
 }
 
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function(){});
 </script>
 </body>
 </html>
