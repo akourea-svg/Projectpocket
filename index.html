@@ -366,7 +366,8 @@ function freshState() {
 
 function applyResets(s) {
   var ws = weekStart(), td = todayStr();
-  s.children.forEach(function(ch) {
+  s.children = (s.children || []).filter(Boolean);
+s.children.forEach(function(ch) {
     // Weekly reset
     if (ch.weekStart !== ws) {
       ch.weekStart = ws; ch.weekEarned = 0; ch.weekPenalties = 0;
@@ -384,6 +385,9 @@ function applyResets(s) {
       ch.expectedTasks = DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; });
     }
   });
+  s.children = (s.children || []).filter(function(c) {
+  return c && typeof c === 'object' && c.weekPenalties !== undefined;
+});
   return s;
 }
 
@@ -430,7 +434,12 @@ var editMode  = false;
 var editingChore = null;
 
 function weekNet(ch) {
-  return +(Math.max(0, WEEKLY_BASE - ch.weekPenalties) + Math.min(BONUS_CAP, ch.weekEarned)).toFixed(2);
+  if (!ch) return 0;
+
+  return +(
+    Math.max(0, WEEKLY_BASE - (ch.weekPenalties || 0)) +
+    Math.min(BONUS_CAP, (ch.weekEarned || 0))
+  ).toFixed(2);
 }
 function canAddBonus(ch) { return ch.weekEarned < BONUS_CAP; }
 function bonusEarned(ch) { return Math.min(BONUS_CAP, ch.weekEarned); }
@@ -441,7 +450,8 @@ function render() { renderTabs(); renderMain(); }
 
 function renderTabs() {
   var html = '';
-  state.children.forEach(function(ch, i) {
+  (state.children || []).forEach(function(ch, i) {
+  if (!ch) return;
     var col = COLORS[i];
     html += '<div class="child-tab ' + (i===activeIdx?'active':'') + '" style="--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
       '<span class="tab-avatar">'+ch.avatar+'</span>' +
