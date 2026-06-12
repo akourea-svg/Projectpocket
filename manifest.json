@@ -1,6 +1,6 @@
 {
-  "name": "ChoreQuest",
-  "short_name": "ChoreQuest",
+  "name": "ProejctPocket",
+  "short_name": "ProejctPocket",
   "description": "Family chore tracker for Ada and Riley",
   "start_url": "/",
   "display": "standalone",
