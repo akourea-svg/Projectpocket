@@ -382,10 +382,15 @@ function save() {
   try {
     var client = getSb();
     if (!client) return;
+    // Serialise to plain JSON to avoid any object reference issues
+    var cleanState = JSON.parse(JSON.stringify(state));
     client.from('app_state')
-      .upsert({id:1, state:state, updated_at:new Date().toISOString()})
-      .catch(function(){});
-  } catch(e) {}
+      .upsert({id:1, state:cleanState, updated_at:new Date().toISOString()})
+      .then(function(res) {
+        if (res && res.error) showMsg('Sync: ' + res.error.message, '#e03131');
+      })
+      .catch(function(e) { showMsg('Sync failed: ' + e.message, '#e03131'); });
+  } catch(e) { showMsg('Save error: ' + e.message, '#e03131'); }
 }
 
 // ── APP STATE ────────────────────────────────────────────
