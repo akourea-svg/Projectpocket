@@ -21,8 +21,6 @@
 }
 html,body{min-height:100vh}
 body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(--child-bg,#f4f0fa);min-height:100vh;color:var(--text-dark);overflow-x:hidden;padding-bottom:80px;transition:background 0.3s ease}
-
-/* PIN */
 #pin-screen{position:fixed;inset:0;z-index:9999;background:#f0ecff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
 .pin-logo{font-size:3.5rem;margin-bottom:6px;line-height:1}
 .pin-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:2.2rem;color:var(--purple);margin-bottom:4px;line-height:1}
@@ -37,19 +35,11 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .pin-key.empty{background:transparent;box-shadow:none;cursor:default;pointer-events:none}
 .pin-error{margin-top:18px;color:var(--red);font-weight:700;font-style:normal;font-size:.9rem;min-height:22px;text-align:center}
 .pin-hint{margin-top:12px;font-size:.75rem;font-style:normal;color:#bbb;font-weight:600}
-@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
-
-/* HEADER */
 .app-header{background:transparent;padding:18px 20px 14px;text-align:center;border-bottom:1px solid rgba(0,0,0,.06)}
 .app-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:2rem;color:var(--purple);line-height:1}
-.app-subtitle{color:var(--text-mid);font-size:.82rem;font-weight:600;font-style:normal;margin-top:2px}
-
-/* PARENT BAR */
 .parent-bar{display:flex;justify-content:flex-end;padding:10px 14px 10px;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid rgba(0,0,0,.08);z-index:100}
 .parent-bar-btn{background:#f1f3f5;border:none;color:var(--text-mid);border-radius:8px;padding:7px 16px;font-family:'Nunito',system-ui,sans-serif;font-style:normal;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .15s}
 .parent-bar-btn.active{background:var(--purple);color:#fff}
-
-/* TABS */
 .child-tabs{display:flex;padding:14px 14px 0;gap:10px}
 .child-tab{flex:1;background:#f1f3f5;border:none;border-radius:var(--radius);padding:14px 8px;cursor:pointer;transition:background .15s,box-shadow .15s;text-align:center}
 .child-tab.active{background:var(--tab-c1,#9775fa);box-shadow:0 4px 14px rgba(0,0,0,.12)}
@@ -58,11 +48,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .child-tab.active .tab-name{color:#fff}
 .tab-week{font-size:.8rem;font-weight:800;font-style:normal;color:var(--text-mid);display:block;margin-top:1px}
 .child-tab.active .tab-week{color:rgba(255,255,255,.85)}
-
-/* MAIN */
 .main-content{padding:14px}
-
-/* WEEK CARD */
 .week-card{border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
 .week-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
 .week-label{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:rgba(255,255,255,.8);font-size:.82rem}
@@ -75,8 +61,6 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .week-row-label{font-size:.75rem;font-weight:800;font-style:normal;color:rgba(255,255,255,.8);margin-bottom:5px;margin-top:10px}
 .week-bar-ends{display:flex;justify-content:space-between;margin-top:3px}
 .week-bar-ends span{font-size:.7rem;font-weight:700;font-style:normal;color:rgba(255,255,255,.65)}
-
-/* SAVINGS JAR */
 .jar-section{background:rgba(255,255,255,.82);border-radius:var(--radius);padding:18px 16px;margin-bottom:14px;box-shadow:var(--shadow-sm);text-align:center}
 .jar-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1rem;color:var(--text-dark);margin-bottom:4px}
 .jar-goal-label{font-size:.75rem;font-weight:700;color:var(--text-mid);margin-bottom:14px}
@@ -89,14 +73,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .jar-save-btn{display:block;width:100%;background:var(--c-accent1,#9775fa);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1.1rem;cursor:pointer;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
 .jar-save-btn:active{opacity:.85}
 .jar-save-btn.armed{background:#e67700}
-.jar-save-btn.locked{background:#adb5bd;cursor:default}
-.coin-drop{position:fixed;pointer-events:none;z-index:500;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe566,#f59f00 55%,#c87800);box-shadow:0 2px 5px rgba(0,0,0,.2),inset 0 1px 2px rgba(255,255,0,.3);animation:coinRain var(--dur,1.2s) linear forwards}
+.coin-drop{position:fixed;pointer-events:none;z-index:500;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe566,#f59f00 55%,#c87800);box-shadow:0 2px 5px rgba(0,0,0,.2);animation:coinRain var(--dur,1.2s) linear forwards}
 @keyframes coinRain{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
-
-/* SECTION HEADING */
 .section-heading{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:var(--text-dark);font-size:1rem;margin-bottom:8px;padding-left:2px;display:flex;align-items:center;gap:7px}
-
-/* EXPECTED */
 .expected-section{background:rgba(255,255,255,.82);border-radius:var(--radius);padding:14px 15px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
 .expected-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
 .expected-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:var(--text-dark);font-size:1rem}
@@ -111,8 +90,6 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .expected-card.done .expected-name{text-decoration:line-through;color:var(--text-mid)}
 .expected-check{width:26px;height:26px;border-radius:50%;border:2px solid #dee2e6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:transparent;transition:all .15s;background:#fff}
 .expected-card.done .expected-check{background:var(--green);border-color:var(--green);color:#fff}
-
-/* CHORES */
 .chores-list{display:flex;flex-direction:column;gap:8px}
 .chore-card{background:rgba(255,255,255,.82);border-radius:var(--radius);padding:14px 15px;display:flex;align-items:center;gap:13px;box-shadow:var(--shadow-sm);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .15s}
 .chore-card.done{background:rgba(235,251,238,.88)}
@@ -122,7 +99,6 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .chore-info{flex:1;min-width:0}
 .chore-name{font-weight:800;font-style:normal;font-size:.95rem;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chore-card.done .chore-name{text-decoration:line-through;color:var(--text-mid)}
-.chore-value{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:.85rem;color:var(--c-accent1,#9775fa);margin-top:1px}
 .chore-checkbox{width:32px;height:32px;border-radius:50%;border:2px solid #dee2e6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .15s;background:#f8f9fa;color:transparent}
 .chore-card.done .chore-checkbox{background:var(--green);border-color:var(--green);color:#fff}
 .chore-edit-btns{display:flex;gap:5px;flex-shrink:0}
@@ -130,27 +106,21 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .icon-btn:active{transform:scale(.88)}
 .btn-edit{background:#e7f5ff}
 .btn-del{background:#fff5f5}
-
-/* DEDUCTION */
 .deduction-section{background:rgba(255,243,205,.95);border-radius:var(--radius);padding:16px 18px;margin-top:14px}
 .deduction-label{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:#664d03;font-size:1rem;margin-bottom:2px}
 .deduction-sub{font-size:.75rem;font-weight:700;font-style:normal;color:#997404;margin-bottom:12px}
 .deduction-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.deduction-amount{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1.8rem;color:#664d03}
-.deduction-btn{display:flex;align-items:center;gap:10px;background:#e67700;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
+.deduction-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
 .deduction-btn:active{opacity:.8}
 .deduction-btn:disabled{opacity:.35;cursor:default}
-.deduction-btn-icon{font-size:1.4rem;font-weight:900;font-style:normal;color:#fff;line-height:1}
+.deduction-btn-icon{font-size:1.4rem;font-weight:900;color:#fff;line-height:1}
 .deduction-btn-label{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1rem;color:#fff}
-
-/* PARENT PANEL */
 .parent-panel{background:rgba(255,255,255,.82);border-radius:var(--radius);padding:16px;margin-top:14px;box-shadow:var(--shadow-sm)}
 .parent-panel h3{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:var(--text-dark);font-size:1rem;margin-bottom:12px}
 .panel-section{background:rgba(0,0,0,.04);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:8px}
 .panel-label{color:var(--text-dark);font-size:.88rem;font-weight:700;font-style:normal;margin-bottom:8px}
 .btn-action{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1rem;cursor:pointer;margin-bottom:8px;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
 .btn-action:active{opacity:.85}
-.btn-payout{background:var(--purple);color:#fff}
 .btn-reset{background:#f1f3f5;color:var(--text-mid)}
 .btn-danger{background:#fff0f0;color:var(--red)}
 .goal-edit-row{display:flex;gap:7px}
@@ -159,10 +129,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .btn-save{background:var(--purple);color:#fff;border:none;border-radius:var(--radius-sm);padding:9px 16px;font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:.9rem;cursor:pointer;white-space:nowrap}
 .add-chore-section{background:rgba(255,255,255,.7);border-radius:var(--radius);padding:14px;margin-top:12px}
 .add-chore-section h4{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:var(--text-dark);font-size:.95rem;margin-bottom:10px}
-.form-row-3{display:grid;grid-template-columns:56px 1fr 80px;gap:7px;margin-bottom:8px}
 .btn-primary{display:block;width:100%;background:var(--purple);color:#fff;border:none;border-radius:var(--radius-sm);padding:11px;font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1rem;cursor:pointer}
-
-/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal-sheet{background:#fff;border-radius:20px;padding:22px;width:100%;max-width:440px;transform:translateY(30px);transition:transform .25s ease}
@@ -173,8 +140,6 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .modal-actions{display:flex;gap:9px;margin-top:16px}
 .btn-secondary{flex:1;background:#f1f3f5;color:var(--text-dark);border:none;border-radius:var(--radius-sm);padding:11px;font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:.95rem;cursor:pointer}
 .modal-actions .btn-primary{flex:2}
-
-/* MISC */
 .week-notice{text-align:center;color:var(--text-mid);font-size:.72rem;font-weight:600;font-style:normal;margin-top:10px}
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999;width:100%;height:100%}
 .coin-particle{position:fixed;pointer-events:none;z-index:200;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe066,#f59f00 60%,#b36d00);box-shadow:0 2px 4px rgba(0,0,0,.2);animation:coin-fly .85s ease-out forwards}
@@ -183,7 +148,6 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 </style>
 </head>
 <body>
-
 <canvas id="confetti-canvas"></canvas>
 
 <div id="pin-screen">
@@ -218,8 +182,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
   </header>
   <div class="child-tabs" id="childTabs"></div>
   <div class="main-content" id="mainContent"></div>
-  <div id="parentControls" style="display:none;padding:14px"></div>
+  <div id="parentControls" style="display:none;padding:0 14px 14px"></div>
 </div>
+
 <div class="parent-bar" id="parentBar">
   <button class="parent-bar-btn" id="editToggleBtn">⚙️ Parent</button>
 </div>
@@ -250,19 +215,19 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 
 <script>
 // ── CONFIG ───────────────────────────────────────────────
-const SUPABASE_URL      = 'https://qmeovpiwuxoewwniatmd.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtZW92cGl3dXhvZXd3bmlhdG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyODEzNjcsImV4cCI6MjA5Njg1NzM2N30.yHWc82OFVCAaE6l8zDZvDkkSeP4_aQhNvwpqTsBDM5c';
+var SUPABASE_URL      = 'https://qmeovpiwuxoewwniatmd.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtZW92cGl3dXhvZXd3bmlhdG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyODEzNjcsImV4cCI6MjA5Njg1NzM2N30.yHWc82OFVCAaE6l8zDZvDkkSeP4_aQhNvwpqTsBDM5c';
 
 // ── CONSTANTS ────────────────────────────────────────────
-const WEEKLY_BASE    = 2.00;
-const BONUS_CAP      = 5.00;
-const PENALTY_AMOUNT = 0.25;
-const BONUS_AMOUNT   = 0.50;
-const COLORS = [
+var WEEKLY_BASE    = 2.00;
+var BONUS_CAP      = 5.00;
+var PENALTY_AMOUNT = 0.25;
+var BONUS_AMOUNT   = 0.50;
+var COLORS = [
   { accent1:'#9775fa', tab1:'#9775fa', bg:'#f0ecff' },
   { accent1:'#f59f00', tab1:'#f59f00', bg:'#fffbea' }
 ];
-const DEFAULT_EXPECTED = [
+var DEFAULT_EXPECTED = [
   {id:'e1',emoji:'👟',name:'Shoes on the rack'},
   {id:'e2',emoji:'🛏️',name:'Make bed'},
   {id:'e3',emoji:'👕',name:'Clothes off the floor'},
@@ -273,10 +238,10 @@ const DEFAULT_EXPECTED = [
   {id:'e8',emoji:'🧹',name:'Tidy playroom'},
   {id:'e9',emoji:'🛏️',name:'Tidy bedroom'}
 ];
-const DEFAULT_CHORES = [
-  {id:'p1',emoji:'🍽️',name:'Empty dishwasher',value:0.50},
-  {id:'p2',emoji:'🧹',name:'Sweep kitchen',value:0.50},
-  {id:'p3',emoji:'🧽',name:'Wipe cupboards',value:0.50}
+var DEFAULT_CHORES = [
+  {id:'p1',emoji:'🍽️',name:'Empty dishwasher'},
+  {id:'p2',emoji:'🧹',name:'Sweep kitchen'},
+  {id:'p3',emoji:'🧽',name:'Wipe cupboards'}
 ];
 
 // ── HELPERS ──────────────────────────────────────────────
@@ -294,28 +259,23 @@ function showMsg(text, color) {
   clearTimeout(el._t);
   el._t = setTimeout(function() { el.style.opacity = '0'; }, 2500);
 }
-
 function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── PIN ──────────────────────────────────────────────────
-const PIN_KEY = 'cq_pin';
+var PIN_KEY = 'cq_pin';
 function getPin() { try { return localStorage.getItem(PIN_KEY) || '1234'; } catch(e) { return '1234'; } }
-
 function updatePinHint() {
   var el = document.getElementById('pinHint');
   if (!el) return;
-  var changed = false;
-  try { changed = localStorage.getItem(PIN_KEY) !== null; } catch(e) {}
-  el.textContent = changed ? '' : 'Default PIN: 1234 · Change in Parent settings';
+  try { el.textContent = localStorage.getItem(PIN_KEY) ? '' : 'Default PIN: 1234 · Change in Parent settings'; } catch(e) {}
 }
-
 var pinEntry = '';
 function pinPress(d) {
   if (pinEntry.length >= 4) return;
   pinEntry += d;
-  for (var i = 0; i < 4; i++) document.getElementById('d'+i).classList.toggle('filled', i < pinEntry.length);
+  for (var i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < pinEntry.length);
   if (pinEntry.length === 4) {
     setTimeout(function() {
       if (pinEntry === getPin()) {
@@ -325,17 +285,16 @@ function pinPress(d) {
       } else {
         document.getElementById('pinError').textContent = 'Wrong PIN — try again';
         pinEntry = '';
-        for (var i = 0; i < 4; i++) document.getElementById('d'+i).classList.remove('filled');
+        for (var i=0;i<4;i++) document.getElementById('d'+i).classList.remove('filled');
       }
     }, 150);
   }
 }
 function pinDel() {
   if (pinEntry.length > 0) pinEntry = pinEntry.slice(0,-1);
-  for (var i = 0; i < 4; i++) document.getElementById('d'+i).classList.toggle('filled', i < pinEntry.length);
+  for (var i=0;i<4;i++) document.getElementById('d'+i).classList.toggle('filled', i < pinEntry.length);
   document.getElementById('pinError').textContent = '';
 }
-
 updatePinHint();
 
 // ── DATE ─────────────────────────────────────────────────
@@ -346,6 +305,8 @@ function weekStart() {
   var s = new Date(d); s.setDate(d.getDate() - diff);
   return s.toISOString().slice(0,10);
 }
+var _testSaturday = false;
+function isSaturday() { return _testSaturday || new Date().getDay() === 6; }
 
 // ── STATE ────────────────────────────────────────────────
 function makeChild(id, name, avatar, offset) {
@@ -353,62 +314,50 @@ function makeChild(id, name, avatar, offset) {
     totalSaved:0, goalName:'My Savings Goal', goalTarget:10,
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
     earningChores:DEFAULT_CHORES.map(function(c,i) {
-      return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, value:c.value, done:false, lastDone:''};
+      return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, done:false, lastDone:''};
     }),
     expectedTasks:DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; }),
     expectedDone:{}, lastExpectedDate:''
   };
 }
-
 function freshState() {
   return {children:[makeChild('c1','Ada','🦁',1), makeChild('c2','Riley','🐷',4)]};
 }
-
 function applyResets(s) {
   var ws = weekStart(), td = todayStr();
-  s.children = (s.children || []).filter(Boolean);
-s.children.forEach(function(ch) {
-    // Weekly reset
-    if (ch.weekStart !== ws) {
-      ch.weekStart = ws; ch.weekEarned = 0; ch.weekPenalties = 0;
-    }
-    // Daily reset for earning chores
-    ch.earningChores.forEach(function(c) {
-      if (!c.lastDone) c.lastDone = '';
-      if (c.lastDone !== td) { c.done = false; }
-    });
-    // Daily reset for expected tasks
-    if (ch.lastExpectedDate !== td) { ch.expectedDone = {}; ch.lastExpectedDate = td; }
-    if (!ch.goalName)    ch.goalName    = 'My Savings Goal';
-    if (!ch.goalTarget)  ch.goalTarget  = 10;
+  if (!s || !s.children) return freshState();
+  s.children.forEach(function(ch) {
+    if (!ch) return;
+    if (ch.weekStart !== ws) { ch.weekStart=ws; ch.weekEarned=0; ch.weekPenalties=0; }
+    if (!ch.earningChores) ch.earningChores = [];
+    ch.earningChores.forEach(function(c) { if (!c.lastDone) c.lastDone=''; if (c.lastDone !== td) c.done=false; });
+    if (ch.lastExpectedDate !== td) { ch.expectedDone={}; ch.lastExpectedDate=td; }
+    if (!ch.goalName)   ch.goalName   = 'My Savings Goal';
+    if (!ch.goalTarget) ch.goalTarget = 10;
     if (!ch.expectedTasks || !ch.expectedTasks.length) {
       ch.expectedTasks = DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; });
     }
+    if (!ch.weekPenalties) ch.weekPenalties = 0;
+    if (!ch.weekEarned)    ch.weekEarned    = 0;
+    if (!ch.totalSaved)    ch.totalSaved    = 0;
   });
-  s.children = (s.children || []).filter(function(c) {
-  return c && typeof c === 'object' && c.weekPenalties !== undefined;
-});
   return s;
 }
-
 function loadLocal() {
-  try {
-    var r = localStorage.getItem('cq_v6');
-    return r ? applyResets(JSON.parse(r)) : freshState();
-  } catch(e) { return freshState(); }
+  try { var r = localStorage.getItem('cq_v7'); return r ? applyResets(JSON.parse(r)) : freshState(); }
+  catch(e) { return freshState(); }
 }
-function saveLocal() { try { localStorage.setItem('cq_v6', JSON.stringify(state)); } catch(e) {} }
+function saveLocal() { try { localStorage.setItem('cq_v7', JSON.stringify(state)); } catch(e) {} }
 
 // ── SUPABASE ─────────────────────────────────────────────
 var _sb = null;
 function getSb() {
   if (_sb) return _sb;
-  if (typeof supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+  if (typeof supabase !== 'undefined' && SUPABASE_URL.indexOf('supabase.co') > -1) {
     _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return _sb;
 }
-function isConfigured() { return SUPABASE_URL !== 'YOUR_SUPABASE_URL'; }
 function loadSupabaseLib() {
   return new Promise(function(res, rej) {
     if (typeof supabase !== 'undefined') { res(); return; }
@@ -420,7 +369,6 @@ function loadSupabaseLib() {
 }
 function save() {
   saveLocal();
-  if (!isConfigured()) return;
   try {
     var client = getSb();
     if (client) client.from('app_state').upsert({id:1, state:state, updated_at:new Date().toISOString()});
@@ -428,83 +376,74 @@ function save() {
 }
 
 // ── APP STATE ────────────────────────────────────────────
-var state     = freshState();
+var state    = freshState();
 var activeIdx = 0;
 var editMode  = false;
 var editingChore = null;
+var editingExpTask = null;
 
 function weekNet(ch) {
   if (!ch) return 0;
-
-  return +(
-    Math.max(0, WEEKLY_BASE - (ch.weekPenalties || 0)) +
-    Math.min(BONUS_CAP, (ch.weekEarned || 0))
-  ).toFixed(2);
+  return +(Math.max(0, WEEKLY_BASE - (ch.weekPenalties||0)) + Math.min(BONUS_CAP, (ch.weekEarned||0))).toFixed(2);
 }
-function canAddBonus(ch) { return ch.weekEarned < BONUS_CAP; }
-function bonusEarned(ch) { return Math.min(BONUS_CAP, ch.weekEarned); }
-function expCount(ch)    { return (ch.expectedTasks||[]).filter(function(e) { return ch.expectedDone[e.id]; }).length; }
+function bonusEarned(ch) { return Math.min(BONUS_CAP, ch.weekEarned||0); }
+function canAddBonus(ch) { return (ch.weekEarned||0) < BONUS_CAP; }
+function expCount(ch) { return (ch.expectedTasks||[]).filter(function(e) { return ch.expectedDone[e.id]; }).length; }
 
 // ── RENDER ───────────────────────────────────────────────
-function render() { renderTabs(); renderMain(); }
+function render() {
+  renderTabs();
+  renderMain();
+}
 
 function renderTabs() {
   var html = '';
-  (state.children || []).forEach(function(ch, i) {
-  if (!ch) return;
+  state.children.forEach(function(ch, i) {
+    if (!ch) return;
     var col = COLORS[i];
-    html += '<div class="child-tab ' + (i===activeIdx?'active':'') + '" style="--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
+    html += '<div class="child-tab '+(i===activeIdx?'active':'')+'" style="--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
       '<span class="tab-avatar">'+ch.avatar+'</span>' +
       '<span class="tab-name">'+ch.name+'</span>' +
       '<span class="tab-week">£'+weekNet(ch).toFixed(2)+' this week</span>' +
       '</div>';
   });
-  var tabs = document.getElementById('childTabs');
-  tabs.innerHTML = html;
+  document.getElementById('childTabs').innerHTML = html;
 }
 
 function jarSVG(pct, accent) {
   var p = Math.min(100, Math.max(0, pct));
-  // The fillable area inside the jar is y=45 to y=118 (height=73)
   var fillH = Math.round(73 * p / 100);
   var fillY = 118 - fillH;
   return '<svg viewBox="0 0 110 145" width="110" height="145" xmlns="http://www.w3.org/2000/svg">' +
-    '<defs>' +
-    '<clipPath id="jc"><path d="M25,45 L25,118 Q25,125 55,125 Q85,125 85,118 L85,45 Z"/></clipPath>' +
-    '<linearGradient id="jfill" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="' + accent + '" stop-opacity=".7"/><stop offset="100%" stop-color="' + accent + '" stop-opacity=".9"/></linearGradient>' +
-    '</defs>' +
-    // Fill block clipped to jar shape
-    '<rect x="25" y="' + fillY + '" width="60" height="' + fillH + '" fill="url(#jfill)" clip-path="url(#jc)"/>' +
-    // Jar body outline
+    '<defs><clipPath id="jc"><path d="M25,45 L25,118 Q25,125 55,125 Q85,125 85,118 L85,45 Z"/></clipPath>' +
+    '<linearGradient id="jfill" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="'+accent+'" stop-opacity=".7"/><stop offset="100%" stop-color="'+accent+'" stop-opacity=".9"/></linearGradient></defs>' +
+    '<rect x="25" y="'+fillY+'" width="60" height="'+fillH+'" fill="url(#jfill)" clip-path="url(#jc)"/>' +
     '<path d="M25,45 L25,118 Q25,126 55,126 Q85,126 85,118 L85,45 Z" fill="none" stroke="#bbb" stroke-width="2.5"/>' +
-    // Neck
     '<path d="M35,45 L35,30 Q35,26 40,26 L70,26 Q75,26 75,30 L75,45" fill="none" stroke="#bbb" stroke-width="2.5"/>' +
-    // Lid
-    '<rect x="29" y="18" width="52" height="11" rx="5.5" fill="' + accent + '" opacity=".75"/>' +
-    // Shine on jar
+    '<rect x="29" y="18" width="52" height="11" rx="5.5" fill="'+accent+'" opacity=".75"/>' +
     '<path d="M32,55 Q34,47 39,52" stroke="rgba(255,255,255,.55)" stroke-width="2" fill="none" stroke-linecap="round"/>' +
-    // Full label
-    (p >= 100 ? '<text x="55" y="90" font-size="11" font-weight="bold" text-anchor="middle" fill="' + accent + '">Full! 🎉</text>' : '') +
+    (p>=100?'<text x="55" y="90" font-size="11" font-weight="bold" text-anchor="middle" fill="'+accent+'">Full! 🎉</text>':'')+
     '</svg>';
 }
 
 function renderMain() {
   var ch  = state.children[activeIdx];
+  if (!ch) return;
   var col = COLORS[activeIdx];
   var net = weekNet(ch);
   var bon = bonusEarned(ch);
-  var base = Math.max(0, +(WEEKLY_BASE - ch.weekPenalties).toFixed(2));
+  var base = Math.max(0, +(WEEKLY_BASE - (ch.weekPenalties||0)).toFixed(2));
   var basePct  = Math.round(base / WEEKLY_BASE * 100);
   var bonusPct = Math.round(bon  / BONUS_CAP  * 100);
-  var savedPct = Math.min(100, Math.round(ch.totalSaved / ch.goalTarget * 100));
-  var expC = expCount(ch), expT = ch.expectedTasks.length;
-  var canDeduct = ch.weekPenalties < WEEKLY_BASE;
+  var savedPct = Math.min(100, Math.round((ch.totalSaved||0) / ch.goalTarget * 100));
+  var expC = expCount(ch), expT = (ch.expectedTasks||[]).length;
+  var canDeduct = (ch.weekPenalties||0) < WEEKLY_BASE;
   var td = todayStr();
 
   document.getElementById('mainContent').style.setProperty('--c-accent1', col.accent1);
   document.documentElement.style.setProperty('--child-bg', col.bg);
 
-  var expectedHTML = ch.expectedTasks.map(function(e) {
+  var expectedHTML = (ch.expectedTasks||[]).map(function(e) {
     var done = !!ch.expectedDone[e.id];
     return '<div class="expected-card'+(done?' done':'')+'" data-child="'+ch.id+'" data-eid="'+e.id+'">' +
       '<div class="expected-emoji">'+e.emoji+'</div>' +
@@ -512,14 +451,13 @@ function renderMain() {
       (editMode
         ? '<div style="display:flex;gap:5px;flex-shrink:0">' +
           '<button class="icon-btn btn-edit" data-child="'+ch.id+'" data-eid="'+e.id+'" data-action="editexp">✏️</button>' +
-          '<button class="icon-btn btn-del"  data-child="'+ch.id+'" data-eid="'+e.id+'" data-action="delexp">🗑️</button>' +
-          '</div>'
+          '<button class="icon-btn btn-del" data-child="'+ch.id+'" data-eid="'+e.id+'" data-action="delexp">🗑️</button></div>'
         : '<div class="expected-check">'+(done?'✓':'')+'</div>') +
       '</div>';
   }).join('');
 
   var bonusMaxed = bon >= BONUS_CAP && !editMode;
-  var earningHTML = ch.earningChores.map(function(c) {
+  var earningHTML = (ch.earningChores||[]).map(function(c) {
     var doneToday = c.done && c.lastDone === td;
     var locked = bonusMaxed && !doneToday;
     return '<div class="chore-card'+(doneToday?' done':'')+(locked?' done-locked':'')+'" data-child="'+ch.id+'" data-cid="'+c.id+'">' +
@@ -528,64 +466,17 @@ function renderMain() {
       (editMode
         ? '<div class="chore-edit-btns">' +
           '<button class="icon-btn btn-edit" data-child="'+ch.id+'" data-cid="'+c.id+'" data-action="edit">✏️</button>' +
-          '<button class="icon-btn btn-del"  data-child="'+ch.id+'" data-cid="'+c.id+'" data-action="del">🗑️</button></div>'
+          '<button class="icon-btn btn-del" data-child="'+ch.id+'" data-cid="'+c.id+'" data-action="del">🗑️</button></div>'
         : '<div class="chore-checkbox">'+(doneToday?'✓':'')+'</div>') +
       '</div>';
   }).join('');
 
-  var parentHTML = (
-    '<div class="add-chore-section">' +
-    '<h4>➕ Add Daily Quest for '+ch.name+'</h4>' +
-    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
-    '<input class="form-input" id="newExpEmoji" maxlength="4" value="⭐" style="text-align:center;font-size:1.3rem">' +
-    '<input class="form-input" id="newExpName" placeholder="Task name…">' +
-    '</div>' +
-    '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Task ✨</button>' +
-    '<h4>➕ Add Special Quest for '+ch.name+'</h4>' +
-    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
-    '<input class="form-input" id="newEmoji" maxlength="4" value="🧹" style="text-align:center;font-size:1.3rem">' +
-    '<input class="form-input" id="newName" placeholder="Quest name…">' +
-    '</div><button class="btn-primary" id="addChoreBtn">Add Quest ✨</button></div>' +
-
-    '<div class="parent-panel"><h3>👨‍👩‍👧 Parent Controls — '+ch.name+'</h3>' +
-    '<div class="panel-section"><div class="panel-label">🎯 Savings Goal</div>' +
-    '<div class="goal-edit-row">' +
-    '<input class="form-input" id="goalName_'+ch.id+'" value="'+esc(ch.goalName)+'">' +
-    '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
-    '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
-
-    '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
-    '<button class="btn-action btn-reset" id="resetDayBtn">🔄 Reset today\'s Daily Quests</button>' +
-    '<button class="btn-action btn-danger" id="resetAllBtn">🗑️ Reset ALL data to zero</button>' +
-
-    '<button class="btn-action btn-reset" id="testSatBtn">🗓️ ' + (_testSaturday ? 'Test mode ON — tap to turn off' : 'Test Saturday mode') + '</button>' +
-
-    '<div class="panel-section" style="margin-top:8px">' +
-    '<div class="panel-label">🔑 Change PIN</div>' +
-    '<input class="form-input" id="pinNew" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:7px">' +
-    '<input class="form-input" id="pinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm new PIN" style="margin-bottom:7px">' +
-    '<div id="pinChangeMsg" style="font-size:.8rem;font-weight:700;min-height:18px;margin-bottom:7px"></div>' +
-    '<button class="btn-save" id="changePinBtn" style="width:100%">Update PIN</button></div></div>'
-  );
-
-  // Render parent controls in dedicated div
-  var pc = document.getElementById('parentControls');
-  if (pc) {
-    if (editMode) {
-      pc.style.display = 'block';
-      pc.innerHTML = parentHTML;
-      bindParentEvents(ch);
-    } else {
-      pc.style.display = 'none';
-      pc.innerHTML = '';
-    }
-  }
-
+  // Main content
   document.getElementById('mainContent').innerHTML =
     '<div class="week-card" style="background:'+col.accent1+'">' +
     '<div class="week-card-top">' +
     '<div><div class="week-label">This week</div><div class="week-amount">£'+net.toFixed(2)+'</div></div>' +
-    '<div class="week-right"><div class="week-saved-label">Total saved</div><div class="week-saved-val">£'+ch.totalSaved.toFixed(2)+'</div></div>' +
+    '<div class="week-right"><div class="week-saved-label">Total saved</div><div class="week-saved-val">£'+(ch.totalSaved||0).toFixed(2)+'</div></div>' +
     '</div>' +
     '<div class="week-row-label">Base pocket money</div>' +
     '<div class="week-bar-track"><div class="week-bar-fill" style="width:'+basePct+'%"></div></div>' +
@@ -594,86 +485,150 @@ function renderMain() {
     '<div class="week-bar-track"><div class="week-bar-fill" style="width:'+bonusPct+'%"></div></div>' +
     '<div class="week-bar-ends"><span>£'+bon.toFixed(2)+'</span><span>up to £'+BONUS_CAP.toFixed(2)+'</span></div>' +
     '</div>' +
-
-    // SAVINGS JAR
-    '<div class="jar-section" id="jarSection">' +
+    '<div class="jar-section">' +
     '<div class="jar-title">🏺 '+esc(ch.goalName)+'</div>' +
     '<div class="jar-goal-label">Saving towards £'+ch.goalTarget.toFixed(2)+' · '+savedPct+'% there!</div>' +
     '<div class="jar-wrap">' +
-    '<div class="jar-svg-wrap" id="jarSvgWrap">'+jarSVG(savedPct, col.accent1)+'</div>' +
-    '<div class="jar-amounts">' +
-    '<div class="jar-saved">£'+ch.totalSaved.toFixed(2)+'</div>' +
+    '<div class="jar-svg-wrap">'+jarSVG(savedPct, col.accent1)+'</div>' +
+    '<div class="jar-amounts"><div class="jar-saved">£'+(ch.totalSaved||0).toFixed(2)+'</div>' +
     '<div class="jar-target">of £'+ch.goalTarget.toFixed(2)+'</div>' +
-    '<div class="jar-pct">'+savedPct+'%</div>' +
-    '</div></div>' +
-    (net > 0
+    '<div class="jar-pct">'+savedPct+'%</div></div></div>' +
+    (net > 0 && isSaturday()
       ? '<button class="jar-save-btn" id="jarSaveBtn">💰 Save this week\'s £'+net.toFixed(2)+'!</button>'
-      : '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">Nothing to save yet this week</div>') +
+      : (net > 0 ? '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">💰 £'+net.toFixed(2)+' ready to save on Saturday!</div>' : '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">Nothing to save yet this week</div>')) +
     '</div>' +
-
     '<div class="expected-section">' +
     '<div class="expected-header"><div class="expected-title">⭐ Daily Quests</div><div class="expected-badge">'+expC+' / '+expT+'</div></div>' +
     '<div class="expected-subtitle">Part of being in the family — tick off each day!</div>' +
     '<div class="expected-list" id="expectedList">'+expectedHTML+'</div></div>' +
-
     '<div class="section-heading">⚡ Special Quests</div>' +
     '<div class="chores-list" id="choresList">'+earningHTML+'</div>' +
-
     '<div class="deduction-section">' +
     '<div class="deduction-label">Parent Controls</div>' +
-    '<div class="deduction-sub">Deductions: '+(ch.weekPenalties > 0 ? '−£'+ch.weekPenalties.toFixed(2) : '£0.00')+' · Bonus: +£'+Math.min(BONUS_CAP,ch.weekEarned).toFixed(2)+'</div>' +
+    '<div class="deduction-sub">Deductions: '+(ch.weekPenalties>0?'−£'+(ch.weekPenalties||0).toFixed(2):'£0.00')+' · Bonus: +£'+bon.toFixed(2)+'</div>' +
     '<div class="deduction-row">' +
-    '<button class="deduction-btn" id="deductBtn" style="background:#868e96"'+(canDeduct?'':' disabled')+'><span class="deduction-btn-icon">−</span><span class="deduction-btn-label">Deduct 25p</span></button>' +
-    '<button class="deduction-btn" id="bonusBtn" style="background:#2f9e44"'+(canAddBonus(ch)?'':' disabled')+'><span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
+    '<button class="deduction-btn" id="deductBtn" style="background:#868e96"'+(canDeduct?'':' disabled')+'>' +
+    '<span class="deduction-btn-icon">−</span><span class="deduction-btn-label">Deduct 25p</span></button>' +
+    '<button class="deduction-btn" id="bonusBtn" style="background:#2f9e44"'+(canAddBonus(ch)?'':' disabled')+'>' +
+    '<span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
     '</div></div>' +
-
     '<p class="week-notice">Daily Quests & Special Quests reset daily · Pocket money resets every Saturday 🗓️</p>';
 
-}
+  // Parent controls
+  var pc = document.getElementById('parentControls');
+  if (editMode) {
+    pc.style.display = 'block';
+    pc.innerHTML =
+      '<div class="add-chore-section">' +
+      '<h4>➕ Add Daily Quest for '+ch.name+'</h4>' +
+      '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+      '<input class="form-input" id="newExpEmoji" maxlength="4" value="⭐" style="text-align:center;font-size:1.3rem">' +
+      '<input class="form-input" id="newExpName" placeholder="Quest name…"></div>' +
+      '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Daily Quest ✨</button>' +
+      '<h4>➕ Add Special Quest for '+ch.name+'</h4>' +
+      '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+      '<input class="form-input" id="newEmoji" maxlength="4" value="🧹" style="text-align:center;font-size:1.3rem">' +
+      '<input class="form-input" id="newName" placeholder="Quest name…"></div>' +
+      '<button class="btn-primary" id="addChoreBtn" style="margin-bottom:4px">Add Special Quest ✨</button></div>' +
+      '<div class="parent-panel"><h3>👨‍👩‍👧 Parent Controls — '+ch.name+'</h3>' +
+      '<div class="panel-section"><div class="panel-label">🎯 Savings Goal</div>' +
+      '<div class="goal-edit-row">' +
+      '<input class="form-input" id="goalName_'+ch.id+'" value="'+esc(ch.goalName)+'">' +
+      '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
+      '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
+      '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
+      '<button class="btn-action btn-reset" id="resetDayBtn">🔄 Reset today\'s Daily Quests</button>' +
+      '<button class="btn-action btn-danger" id="resetAllBtn">🗑️ Reset ALL data to zero</button>' +
+      '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'Test mode ON — tap to turn off':'Test Saturday mode')+'</button>' +
+      '<div class="panel-section" style="margin-top:8px"><div class="panel-label">🔑 Change PIN</div>' +
+      '<input class="form-input" id="pinNew" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:7px">' +
+      '<input class="form-input" id="pinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm new PIN" style="margin-bottom:7px">' +
+      '<div id="pinChangeMsg" style="font-size:.8rem;font-weight:700;min-height:18px;margin-bottom:7px"></div>' +
+      '<button class="btn-save" id="changePinBtn" style="width:100%">Update PIN</button></div></div>';
 
-// ── BIND EVENTS ──────────────────────────────────────────
-function bindEvents(ch) {
-  // Expected tasks
+    // Bind parent control events
+    bindBtn('addExpBtn',      function() { addExpectedTask(ch.id); });
+    bindBtn('addChoreBtn',    function() { addChore(ch.id); });
+    bindBtn('saveGoalBtn',    function() { saveGoal(ch.id); });
+    bindBtn('testSatBtn',     function() { _testSaturday = !_testSaturday; render(); });
+    setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties=0; save(); render(); });
+    setupDoubleTab('resetDayBtn',    function() { ch.expectedDone={}; save(); render(); });
+    setupDoubleTab('resetAllBtn',    function() {
+      ch.totalSaved=0; ch.weekEarned=0; ch.weekPenalties=0;
+      ch.weekStart=weekStart();
+      ch.earningChores.forEach(function(c){c.done=false;c.lastDone='';});
+      ch.expectedDone={}; ch.lastExpectedDate='';
+      save(); render();
+    });
+    bindBtn('changePinBtn', function() {
+      var next = document.getElementById('pinNew').value.trim();
+      var conf = document.getElementById('pinConfirm').value.trim();
+      var msg  = document.getElementById('pinChangeMsg');
+      if (!next || next.length!==4 || !/^\d{4}$/.test(next)) { msg.style.color='var(--red)'; msg.textContent='PIN must be exactly 4 digits'; return; }
+      if (next!==conf) { msg.style.color='var(--red)'; msg.textContent='PINs do not match'; return; }
+      try { localStorage.setItem(PIN_KEY, next); } catch(e) {}
+      msg.style.color='var(--green)'; msg.textContent='PIN updated!';
+      document.getElementById('pinNew').value='';
+      document.getElementById('pinConfirm').value='';
+      updatePinHint();
+    });
+  } else {
+    pc.style.display = 'none';
+    pc.innerHTML = '';
+  }
+
+  // Bind main content events (fresh each render — these elements are recreated)
+  bindBtn('deductBtn', function() { addPenalty(ch.id); });
+  bindBtn('bonusBtn',  function() { addBonus(ch.id); });
+  bindBtn('jarSaveBtn', function() {
+    var jsb = document.getElementById('jarSaveBtn');
+    if (!jsb) return;
+    if (jsb.dataset.armed === '1') {
+      jsb.dataset.armed = '0'; jsb.classList.remove('armed');
+      doSaveToJar(ch.id);
+    } else {
+      jsb.dataset.armed = '1'; jsb.textContent = '✅ Tap again to confirm!'; jsb.classList.add('armed');
+      setTimeout(function() {
+        if (jsb.dataset.armed==='1') { jsb.dataset.armed='0'; jsb.classList.remove('armed'); jsb.textContent='💰 Save this week\'s £'+weekNet(ch).toFixed(2)+'!'; }
+      }, 3000);
+    }
+  });
+
+  // Delegate expected list clicks
   var el = document.getElementById('expectedList');
   if (el) el.addEventListener('click', function(e) {
-    var actionBtn = e.target.closest('[data-action="editexp"],[data-action="delexp"]');
-    if (actionBtn) {
+    var ab = e.target.closest('[data-action="editexp"],[data-action="delexp"]');
+    if (ab) {
       e.stopPropagation();
-      var child = state.children.find(function(c) { return c.id === actionBtn.dataset.child; });
-      if (actionBtn.dataset.action === 'editexp') {
-        var task = child.expectedTasks.find(function(t) { return t.id === actionBtn.dataset.eid; });
-        openExpModal(child.id, task);
-        return;
-      }
-      if (actionBtn.dataset.action === 'delexp') {
-        if (actionBtn.dataset.armed === '1') {
-          actionBtn.dataset.armed = '0';
-          child.expectedTasks = child.expectedTasks.filter(function(t) { return t.id !== actionBtn.dataset.eid; });
-          delete child.expectedDone[actionBtn.dataset.eid];
+      var child = state.children.find(function(c){return c.id===ab.dataset.child;});
+      if (ab.dataset.action==='editexp') { openExpModal(child.id, child.expectedTasks.find(function(t){return t.id===ab.dataset.eid;})); return; }
+      if (ab.dataset.action==='delexp') {
+        if (ab.dataset.armed==='1') {
+          ab.dataset.armed='0';
+          child.expectedTasks=child.expectedTasks.filter(function(t){return t.id!==ab.dataset.eid;});
+          delete child.expectedDone[ab.dataset.eid];
           save(); render();
-        } else {
-          actionBtn.dataset.armed = '1'; actionBtn.textContent = '✓?';
-          setTimeout(function() { if(actionBtn.dataset.armed==='1'){actionBtn.dataset.armed='0';actionBtn.textContent='🗑️';} }, 2500);
-        }
+        } else { ab.dataset.armed='1'; ab.textContent='✓?'; setTimeout(function(){if(ab.dataset.armed==='1'){ab.dataset.armed='0';ab.textContent='🗑️';}},2500); }
       }
       return;
     }
     var card = e.target.closest('.expected-card');
     if (!card || editMode) return;
-    var child = state.children.find(function(c) { return c.id === card.dataset.child; });
+    var child = state.children.find(function(c){return c.id===card.dataset.child;});
+    if (!child) return;
     child.expectedDone[card.dataset.eid] = !child.expectedDone[card.dataset.eid];
     child.lastExpectedDate = todayStr();
     save(); playTick(); render();
   });
 
-  // Chores
+  // Delegate chore list clicks
   var cl = document.getElementById('choresList');
   if (cl) cl.addEventListener('click', function(e) {
-    var btn = e.target.closest('[data-action]');
+    var btn = e.target.closest('[data-action="edit"],[data-action="del"]');
     if (btn) {
       e.stopPropagation();
-      if (btn.dataset.action === 'edit') openModal(btn.dataset.child, btn.dataset.cid);
-      if (btn.dataset.action === 'del')  deleteChore(btn.dataset.child, btn.dataset.cid);
+      if (btn.dataset.action==='edit') openModal(btn.dataset.child, btn.dataset.cid);
+      if (btn.dataset.action==='del')  deleteChore(btn.dataset.child, btn.dataset.cid);
       return;
     }
     if (editMode) return;
@@ -681,86 +636,12 @@ function bindEvents(ch) {
     if (!card || card.classList.contains('done-locked')) return;
     toggleChore(card.dataset.child, card.dataset.cid, e);
   });
-
-  // Deduction
-  var db = document.getElementById('deductBtn');
-  if (db) db.addEventListener('click', function() { addPenalty(ch.id); });
-  // Bonus
-  var bb = document.getElementById('bonusBtn');
-  if (bb) bb.addEventListener('click', function() { addBonus(ch.id); });
-
-  // Jar save button
-  var jsb = document.getElementById('jarSaveBtn');
-  if (jsb) {
-    jsb.addEventListener('click', function() {
-      if (jsb.dataset.armed === '1') {
-        jsb.dataset.armed = '0';
-        doSaveToJar(ch.id);
-      } else {
-        jsb.dataset.armed = '1';
-        jsb.textContent = '✅ Tap again to confirm!';
-        jsb.classList.add('armed');
-        setTimeout(function() {
-          if (jsb.dataset.armed === '1') {
-            jsb.dataset.armed = '0';
-            jsb.classList.remove('armed');
-            var net = weekNet(ch);
-            jsb.textContent = 'Save this week\'s £'+net.toFixed(2)+'!';
-          }
-        }, 3000);
-      }
-    });
-  }
-
 }
 
-function bindParentEvents(ch) {
-  // Add expected task
-  var ae = document.getElementById('addExpBtn');
-  if (ae) ae.addEventListener('click', function() { addExpectedTask(ch.id); });
-
-  // Add chore
-  var ac = document.getElementById('addChoreBtn');
-  if (ac) ac.addEventListener('click', function() { addChore(ch.id); });
-
-  // Save goal
-  var sg = document.getElementById('saveGoalBtn');
-  if (sg) sg.addEventListener('click', function() { saveGoal(ch.id); });
-
-  // Reset buttons — double tap
-  setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties = 0; save(); render(); });
-  setupDoubleTab('resetDayBtn',    function() { ch.expectedDone = {}; save(); render(); });
-  setupDoubleTab('resetAllBtn',    function() {
-    ch.totalSaved=0; ch.weekEarned=0; ch.weekPenalties=0;
-    ch.weekStart=weekStart();
-    ch.earningChores.forEach(function(c) { c.done=false; c.lastDone=''; });
-    ch.expectedDone={}; ch.lastExpectedDate='';
-    save(); render();
-  });
-
-  // Test Saturday mode
-  var tsb = document.getElementById('testSatBtn');
-  if (tsb) tsb.addEventListener('click', function() {
-    _testSaturday = !_testSaturday;
-    render();
-  });
-
-  // Change PIN
-  var cp = document.getElementById('changePinBtn');
-  if (cp) cp.addEventListener('click', function() {
-    var next = document.getElementById('pinNew').value.trim();
-    var conf = document.getElementById('pinConfirm').value.trim();
-    var msg  = document.getElementById('pinChangeMsg');
-    if (!next || next.length !== 4 || !/^\d{4}$/.test(next)) {
-      msg.style.color='var(--red)'; msg.textContent='PIN must be exactly 4 digits'; return;
-    }
-    if (next !== conf) { msg.style.color='var(--red)'; msg.textContent='PINs do not match'; return; }
-    try { localStorage.setItem(PIN_KEY, next); } catch(e) {}
-    msg.style.color='var(--green)'; msg.textContent='PIN updated!';
-    document.getElementById('pinNew').value='';
-    document.getElementById('pinConfirm').value='';
-    updatePinHint();
-  });
+// ── HELPERS ──────────────────────────────────────────────
+function bindBtn(id, fn) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('click', fn);
 }
 
 function setupDoubleTab(id, action) {
@@ -768,14 +649,9 @@ function setupDoubleTab(id, action) {
   if (!btn) return;
   var orig = btn.textContent;
   btn.addEventListener('click', function() {
-    if (btn.dataset.armed === '1') {
-      btn.dataset.armed = '0'; btn.textContent = orig; action();
-    } else {
-      btn.dataset.armed = '1'; btn.textContent = '✅ Tap again to confirm';
-      setTimeout(function() {
-        if (btn.dataset.armed === '1') { btn.dataset.armed='0'; btn.textContent=orig; }
-      }, 3000);
-    }
+    if (btn.dataset.armed==='1') { btn.dataset.armed='0'; btn.textContent=orig; action(); }
+    else { btn.dataset.armed='1'; btn.textContent='✅ Tap again to confirm';
+      setTimeout(function(){if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent=orig;}},3000); }
   });
 }
 
@@ -788,96 +664,78 @@ function switchChild(i) {
 
 document.getElementById('editToggleBtn').addEventListener('click', function() {
   editMode = !editMode;
-  document.getElementById('editToggleBtn').textContent = editMode ? '✅ Done' : '⚙️ Parent';
-  document.getElementById('editToggleBtn').classList.toggle('active', editMode);
+  this.textContent = editMode ? '✅ Done' : '⚙️ Parent';
+  this.classList.toggle('active', editMode);
   render();
 });
-// Also bind parent bar (outside #app)
-document.getElementById('parentBar').addEventListener('click', function(e) {
-  var btn = e.target.closest('#editToggleBtn');
-  if (!btn) return;
-  // Already handled above
+
+document.getElementById('childTabs').addEventListener('click', function(e) {
+  var tab = e.target.closest('.child-tab');
+  if (tab) switchChild(parseInt(tab.dataset.idx));
 });
 
 function toggleChore(childId, choreId, e) {
-  var ch    = state.children.find(function(c) { return c.id === childId; });
-  var chore = ch.earningChores.find(function(c) { return c.id === choreId; });
+  var ch    = state.children.find(function(c){return c.id===childId;});
+  var chore = (ch.earningChores||[]).find(function(c){return c.id===choreId;});
   if (!chore) return;
   var td = todayStr();
   if (!chore.done || chore.lastDone !== td) {
-    chore.done = true; chore.lastDone = td;
+    chore.done=true; chore.lastDone=td;
     save(); spawnCoins(e); playTick(); render();
   } else {
-    chore.done = false; chore.lastDone = '';
+    chore.done=false; chore.lastDone='';
     save(); render();
   }
 }
 
 function addPenalty(childId) {
-  var ch = state.children.find(function(c) { return c.id === childId; });
-  if (ch.weekPenalties >= WEEKLY_BASE) return;
-  ch.weekPenalties = +(ch.weekPenalties + PENALTY_AMOUNT).toFixed(2);
+  var ch = state.children.find(function(c){return c.id===childId;});
+  if ((ch.weekPenalties||0) >= WEEKLY_BASE) return;
+  ch.weekPenalties = +((ch.weekPenalties||0) + PENALTY_AMOUNT).toFixed(2);
   save(); render();
 }
 
 function addBonus(childId) {
-  var ch = state.children.find(function(c) { return c.id === childId; });
-  if (ch.weekEarned >= BONUS_CAP) return;
-  ch.weekEarned = +(ch.weekEarned + BONUS_AMOUNT).toFixed(2);
+  var ch = state.children.find(function(c){return c.id===childId;});
+  if ((ch.weekEarned||0) >= BONUS_CAP) return;
+  ch.weekEarned = +((ch.weekEarned||0) + BONUS_AMOUNT).toFixed(2);
   save(); render();
 }
 
-var _testSaturday = false;
-function isSaturday() {
-  if (_testSaturday) return true;
-  var now = new Date();
-  return now.getDay() === 6;
-}
-
 function doSaveToJar(childId) {
-  var ch  = state.children.find(function(c) { return c.id === childId; });
+  var ch  = state.children.find(function(c){return c.id===childId;});
   var net = weekNet(ch);
-  if (net <= 0) { showMsg('Nothing to save yet this week!', '#e03131'); return; }
-  if (!isSaturday()) {
-    showMsg('Savings day is Saturday! Come back then 📅', '#e67700'); return;
-  }
-  // Rain gold coins across the full screen
+  if (net <= 0) { showMsg('Nothing to save yet!', '#e03131'); return; }
+  if (!isSaturday()) { showMsg('Savings day is Saturday! Come back then 📅', '#e67700'); return; }
   var numCoins = 30;
-  for (var i = 0; i < numCoins; i++) {
+  for (var i=0;i<numCoins;i++) {
     (function(idx) {
       setTimeout(function() {
         var coin = document.createElement('div');
         coin.className = 'coin-drop';
-        var dur = (0.8 + Math.random() * 0.8).toFixed(2) + 's';
-        coin.style.left = Math.random() * 100 + 'vw';
-        coin.style.top  = '-24px';
-        coin.style.setProperty('--dur', dur);
+        coin.style.left = Math.random()*100+'vw';
+        coin.style.top = '-24px';
+        coin.style.setProperty('--dur', (0.8+Math.random()*0.8).toFixed(2)+'s');
         document.body.appendChild(coin);
-        setTimeout(function() { coin.remove(); }, 1800);
-      }, idx * 60);
+        setTimeout(function(){coin.remove();}, 1800);
+      }, idx*60);
     })(i);
   }
-  // Hide button immediately
-  var saveBtn = document.getElementById('jarSaveBtn');
-  if (saveBtn) { saveBtn.style.opacity = '0'; saveBtn.style.pointerEvents = 'none'; }
-
-  // Commit after animation
   setTimeout(function() {
-    ch.totalSaved    = +(ch.totalSaved + net).toFixed(2);
-    ch.weekEarned    = 0; ch.weekPenalties = 0;
-    ch.weekStart     = weekStart();
-    ch.earningChores.forEach(function(c) { c.done=false; c.lastDone=''; });
-    ch.expectedDone  = {};
+    ch.totalSaved = +((ch.totalSaved||0) + net).toFixed(2);
+    ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=weekStart();
+    ch.earningChores.forEach(function(c){c.done=false;c.lastDone='';});
+    ch.expectedDone={};
     save(); render();
     if (ch.totalSaved >= ch.goalTarget) setTimeout(launchConfetti, 400);
-  }, numCoins * 60 + 900);
+  }, numCoins*60+900);
 }
 
 function addExpectedTask(childId) {
   var emoji = document.getElementById('newExpEmoji').value.trim() || '⭐';
   var name  = document.getElementById('newExpName').value.trim();
-  if (!name) { showMsg('Enter a task name', '#e03131'); return; }
-  var ch = state.children.find(function(c) { return c.id === childId; });
+  if (!name) { showMsg('Enter a quest name', '#e03131'); return; }
+  var ch = state.children.find(function(c){return c.id===childId;});
   ch.expectedTasks.push({id:'e'+Date.now(), emoji:emoji, name:name});
   save(); render();
 }
@@ -886,61 +744,48 @@ function addChore(childId) {
   var emoji = document.getElementById('newEmoji').value.trim() || '🧹';
   var name  = document.getElementById('newName').value.trim();
   if (!name) { showMsg('Enter a quest name', '#e03131'); return; }
-  var ch = state.children.find(function(c) { return c.id === childId; });
-  ch.earningChores.push({id:'p'+Date.now(), emoji:emoji, name:name, value:0, done:false, lastDone:''});
+  var ch = state.children.find(function(c){return c.id===childId;});
+  ch.earningChores.push({id:'p'+Date.now(), emoji:emoji, name:name, done:false, lastDone:''});
   save(); render();
 }
 
 function deleteChore(childId, choreId) {
   var btn = document.querySelector('[data-cid="'+choreId+'"][data-action="del"]');
   if (btn) {
-    if (btn.dataset.armed === '1') {
-      btn.dataset.armed = '0'; btn.textContent = '🗑️';
-    } else {
-      btn.dataset.armed = '1'; btn.textContent = '✓?';
-      setTimeout(function() { if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent='🗑️';} }, 2500);
-      return;
-    }
+    if (btn.dataset.armed==='1') { btn.dataset.armed='0'; btn.textContent='🗑️'; }
+    else { btn.dataset.armed='1'; btn.textContent='✓?'; setTimeout(function(){if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent='🗑️';}},2500); return; }
   }
-  var ch    = state.children.find(function(c) { return c.id === childId; });
-  var chore = ch.earningChores.find(function(c) { return c.id === choreId; });
-  if (chore && chore.done && chore.lastDone === todayStr()) {
-    ch.weekEarned = Math.max(0, +(ch.weekEarned - chore.value).toFixed(2));
-  }
-  ch.earningChores = ch.earningChores.filter(function(c) { return c.id !== choreId; });
+  var ch = state.children.find(function(c){return c.id===childId;});
+  ch.earningChores = ch.earningChores.filter(function(c){return c.id!==choreId;});
   save(); render();
 }
 
 function saveGoal(childId) {
-  var ch   = state.children.find(function(c) { return c.id === childId; });
+  var ch  = state.children.find(function(c){return c.id===childId;});
   var name = document.getElementById('goalName_'+childId).value.trim();
   var amt  = parseFloat(document.getElementById('goalAmt_'+childId).value);
   if (!name) { showMsg('Enter a goal name', '#e03131'); return; }
-  if (isNaN(amt) || amt <= 0) { showMsg('Enter a valid amount', '#e03131'); return; }
-  ch.goalName = name; ch.goalTarget = Math.round(amt*100)/100;
+  if (isNaN(amt)||amt<=0) { showMsg('Enter a valid amount', '#e03131'); return; }
+  ch.goalName=name; ch.goalTarget=Math.round(amt*100)/100;
   save(); render();
 }
 
-// ── MODAL ────────────────────────────────────────────────
+// ── MODALS ───────────────────────────────────────────────
 function openModal(childId, choreId) {
-  var ch    = state.children.find(function(c) { return c.id === childId; });
-  var chore = ch.earningChores.find(function(c) { return c.id === choreId; });
+  var ch    = state.children.find(function(c){return c.id===childId;});
+  var chore = ch.earningChores.find(function(c){return c.id===choreId;});
   editingChore = {childId:childId, choreId:choreId};
   document.getElementById('modalEmoji').value = chore.emoji;
   document.getElementById('modalName').value  = chore.name;
-
   document.getElementById('modalOverlay').classList.add('open');
 }
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  editingChore = null;
-}
-document.getElementById('modalOverlay').addEventListener('click', function(e) { if (e.target===e.currentTarget) closeModal(); });
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); editingChore=null; }
+document.getElementById('modalOverlay').addEventListener('click', function(e){if(e.target===e.currentTarget)closeModal();});
 document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
 document.getElementById('modalSaveBtn').addEventListener('click', function() {
   if (!editingChore) return;
-  var ch    = state.children.find(function(c) { return c.id === editingChore.childId; });
-  var chore = ch.earningChores.find(function(c) { return c.id === editingChore.choreId; });
+  var ch    = state.children.find(function(c){return c.id===editingChore.childId;});
+  var chore = ch.earningChores.find(function(c){return c.id===editingChore.choreId;});
   var emoji = document.getElementById('modalEmoji').value.trim() || chore.emoji;
   var name  = document.getElementById('modalName').value.trim();
   if (!name) { showMsg('Name required', '#e03131'); return; }
@@ -948,15 +793,33 @@ document.getElementById('modalSaveBtn').addEventListener('click', function() {
   save(); closeModal(); render();
 });
 
+function openExpModal(childId, task) {
+  editingExpTask = {childId:childId, taskId:task.id};
+  document.getElementById('expModalEmoji').value = task.emoji;
+  document.getElementById('expModalName').value  = task.name;
+  document.getElementById('expModalOverlay').classList.add('open');
+}
+function closeExpModal() { document.getElementById('expModalOverlay').classList.remove('open'); editingExpTask=null; }
+document.getElementById('expModalOverlay').addEventListener('click', function(e){if(e.target===e.currentTarget)closeExpModal();});
+document.getElementById('expModalCancelBtn').addEventListener('click', closeExpModal);
+document.getElementById('expModalSaveBtn').addEventListener('click', function() {
+  if (!editingExpTask) return;
+  var ch   = state.children.find(function(c){return c.id===editingExpTask.childId;});
+  var task = ch.expectedTasks.find(function(t){return t.id===editingExpTask.taskId;});
+  var emoji = document.getElementById('expModalEmoji').value.trim() || task.emoji;
+  var name  = document.getElementById('expModalName').value.trim();
+  if (!name) { showMsg('Name required', '#e03131'); return; }
+  task.emoji=emoji; task.name=name;
+  save(); closeExpModal(); render();
+});
+
 // ── ANIMATIONS ───────────────────────────────────────────
 function spawnCoins(e) {
-  var emojis = ['🪙','⭐','✨','💛'];
-  var x = e.clientX || innerWidth/2, y = e.clientY || innerHeight/2;
+  var x = (e&&e.clientX)||innerWidth/2, y = (e&&e.clientY)||innerHeight/2;
   for (var i=0;i<7;i++) {
     (function(idx) {
       var el = document.createElement('div');
       el.className = 'coin-particle';
-      el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
       var a = (Math.PI*2*idx/7)-Math.PI/2, d = 55+Math.random()*50;
       el.style.setProperty('--dx', Math.cos(a)*d+'px');
       el.style.setProperty('--dy', Math.sin(a)*d+'px');
@@ -966,87 +829,27 @@ function spawnCoins(e) {
     })(i);
   }
 }
-var _cf = null;
+var _cf=null;
 function launchConfetti() {
-  var canvas = document.getElementById('confetti-canvas');
-  var ctx = canvas.getContext('2d');
-  canvas.width=innerWidth; canvas.height=innerHeight;
-  var COLS=['#ff6b6b','#ffd43b','#40c057','#ff922b','#339af0','#9775fa','#20c997'];
-  var ps=[];
-  for(var i=0;i<120;i++) ps.push({x:Math.random()*canvas.width,y:-10-Math.random()*100,w:6+Math.random()*8,h:10+Math.random()*6,color:COLS[Math.floor(Math.random()*COLS.length)],vx:(Math.random()-.5)*3,vy:2+Math.random()*3,rot:Math.random()*Math.PI*2,rv:(Math.random()-.5)*.2,alpha:1});
-  var f=0;
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ps.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.rot+=p.rv;if(f>90)p.alpha=Math.max(0,p.alpha-.015);ctx.save();ctx.globalAlpha=p.alpha;ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
-    f++;
-    if(ps.some(function(p){return p.alpha>0;})) _cf=requestAnimationFrame(draw);
-    else ctx.clearRect(0,0,canvas.width,canvas.height);
-  }
-  if(_cf) cancelAnimationFrame(_cf);
-  draw();
+  var cv=document.getElementById('confetti-canvas'),ctx=cv.getContext('2d');
+  cv.width=innerWidth;cv.height=innerHeight;
+  var COLS=['#ff6b6b','#ffd43b','#40c057','#ff922b','#339af0','#9775fa','#20c997'],ps=[],f=0;
+  for(var i=0;i<120;i++) ps.push({x:Math.random()*cv.width,y:-10-Math.random()*100,w:6+Math.random()*8,h:10+Math.random()*6,color:COLS[Math.floor(Math.random()*COLS.length)],vx:(Math.random()-.5)*3,vy:2+Math.random()*3,rot:Math.random()*Math.PI*2,rv:(Math.random()-.5)*.2,alpha:1});
+  function draw(){ctx.clearRect(0,0,cv.width,cv.height);ps.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.rot+=p.rv;if(f>90)p.alpha=Math.max(0,p.alpha-.015);ctx.save();ctx.globalAlpha=p.alpha;ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});f++;if(ps.some(function(p){return p.alpha>0;})){ _cf=requestAnimationFrame(draw);}else ctx.clearRect(0,0,cv.width,cv.height);}
+  if(_cf)cancelAnimationFrame(_cf);draw();
 }
 var _ac=null;
 function playTick(){
-  try{
-    if(!_ac) _ac=new(window.AudioContext||window.webkitAudioContext)();
-    var o=_ac.createOscillator(),g=_ac.createGain();
-    o.connect(g);g.connect(_ac.destination);o.type='sine';
-    o.frequency.setValueAtTime(880,_ac.currentTime);
-    o.frequency.exponentialRampToValueAtTime(1200,_ac.currentTime+.1);
-    g.gain.setValueAtTime(.12,_ac.currentTime);
-    g.gain.exponentialRampToValueAtTime(.001,_ac.currentTime+.3);
-    o.start(_ac.currentTime);o.stop(_ac.currentTime+.3);
-  }catch(e){}
+  try{if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();var o=_ac.createOscillator(),g=_ac.createGain();o.connect(g);g.connect(_ac.destination);o.type='sine';o.frequency.setValueAtTime(880,_ac.currentTime);o.frequency.exponentialRampToValueAtTime(1200,_ac.currentTime+.1);g.gain.setValueAtTime(.12,_ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,_ac.currentTime+.3);o.start(_ac.currentTime);o.stop(_ac.currentTime+.3);}catch(e){}
 }
-
-// ── EXPECTED TASK MODAL ──────────────────────────────────
-var editingExpTask = null;
-
-function openExpModal(childId, task) {
-  editingExpTask = {childId: childId, taskId: task.id};
-  document.getElementById('expModalEmoji').value = task.emoji;
-  document.getElementById('expModalName').value  = task.name;
-  document.getElementById('expModalOverlay').classList.add('open');
-}
-
-function closeExpModal() {
-  document.getElementById('expModalOverlay').classList.remove('open');
-  editingExpTask = null;
-}
-
-document.getElementById('expModalOverlay').addEventListener('click', function(e) {
-  if (e.target === e.currentTarget) closeExpModal();
-});
-document.getElementById('expModalCancelBtn').addEventListener('click', closeExpModal);
-document.getElementById('expModalSaveBtn').addEventListener('click', function() {
-  if (!editingExpTask) return;
-  var ch   = state.children.find(function(c) { return c.id === editingExpTask.childId; });
-  var task = ch.expectedTasks.find(function(t) { return t.id === editingExpTask.taskId; });
-  var emoji = document.getElementById('expModalEmoji').value.trim() || task.emoji;
-  var name  = document.getElementById('expModalName').value.trim();
-  if (!name) { showMsg('Name required', '#e03131'); return; }
-  task.emoji = emoji;
-  task.name  = name;
-  save(); closeExpModal(); render();
-});
 
 // ── INIT ─────────────────────────────────────────────────
 function initApp() {
-  setupDelegation();
-  // Always render locally first — app is never blank
   try { state = loadLocal(); } catch(e) { state = freshState(); }
-  try {
-    render();
-  } catch(e) {
-    document.getElementById('mainContent').innerHTML =
-      '<div style="padding:20px;color:red;font-weight:700;font-size:0.9rem">' +
-      'Error: ' + e.message + '<br><br>' + e.stack.split('\n').slice(0,3).join('<br>') +
-      '</div>';
-  }
+  render();
   document.documentElement.style.setProperty('--child-bg', COLORS[activeIdx].bg);
 
-  // Then try Supabase in background
-  if (!isConfigured()) return;
+  // Supabase in background
   try {
     loadSupabaseLib().then(function() {
       try {
@@ -1054,16 +857,16 @@ function initApp() {
         if (!client) return;
         client.from('app_state').select('state').eq('id',1).single().then(function(res) {
           try {
-            if (res && res.data && res.data.state) {
-              var s = typeof res.data.state==='string' ? JSON.parse(res.data.state) : res.data.state;
-              if (s && s.children) { state = applyResets(s); saveLocal(); render(); }
+            if (res&&res.data&&res.data.state) {
+              var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
+              if (s&&s.children) { state=applyResets(s); saveLocal(); render(); }
             }
           } catch(e) {}
           try {
             client.channel('cq').on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state'},function(p){
               try {
-                var s = typeof p.new.state==='string' ? JSON.parse(p.new.state) : p.new.state;
-                if (s && s.children) { state=applyResets(s); saveLocal(); render(); }
+                var s = typeof p.new.state==='string'?JSON.parse(p.new.state):p.new.state;
+                if (s&&s.children) { state=applyResets(s); saveLocal(); render(); }
               } catch(e) {}
             }).subscribe();
           } catch(e) {}
