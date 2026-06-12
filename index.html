@@ -381,8 +381,18 @@ function save() {
   saveLocal();
   try {
     var client = getSb();
-    if (client) client.from('app_state').upsert({id:1, state:state, updated_at:new Date().toISOString()});
-  } catch(e) {}
+    if (!client) { showMsg('⚠️ Not connected to sync', '#e67700'); return; }
+    client.from('app_state')
+      .upsert({id:1, state:state, updated_at:new Date().toISOString()})
+      .then(function(res) {
+        if (res && res.error) {
+          showMsg('⚠️ Sync error: ' + res.error.message, '#e03131');
+        } else {
+          showMsg('✅ Synced', '#2f9e44');
+        }
+      })
+      .catch(function(e) { showMsg('⚠️ Sync failed: ' + e.message, '#e03131'); });
+  } catch(e) { showMsg('⚠️ Sync error: ' + e.message, '#e03131'); }
 }
 
 // ── APP STATE ────────────────────────────────────────────
