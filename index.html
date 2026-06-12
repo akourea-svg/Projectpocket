@@ -45,7 +45,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .app-subtitle{color:var(--text-mid);font-size:.82rem;font-weight:600;font-style:normal;margin-top:2px}
 
 /* PARENT BAR */
-.parent-bar{display:flex;justify-content:flex-end;padding:10px 14px 0}
+.parent-bar{display:flex;justify-content:flex-end;padding:10px 14px 10px;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid rgba(0,0,0,.08);z-index:100}
 .parent-bar-btn{background:#f1f3f5;border:none;color:var(--text-mid);border-radius:8px;padding:7px 16px;font-family:'Nunito',system-ui,sans-serif;font-style:normal;font-size:.8rem;font-weight:800;cursor:pointer;transition:all .15s}
 .parent-bar-btn.active{background:var(--purple);color:#fff}
 
@@ -135,7 +135,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .deduction-section{background:rgba(255,243,205,.95);border-radius:var(--radius);padding:16px 18px;margin-top:14px}
 .deduction-label{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:#664d03;font-size:1rem;margin-bottom:2px}
 .deduction-sub{font-size:.75rem;font-weight:700;font-style:normal;color:#997404;margin-bottom:12px}
-.deduction-row{display:flex;align-items:center;justify-content:space-between}
+.deduction-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .deduction-amount{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1.8rem;color:#664d03}
 .deduction-btn{display:flex;align-items:center;gap:10px;background:#e67700;border:none;border-radius:12px;padding:12px 20px;cursor:pointer;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
 .deduction-btn:active{opacity:.8}
@@ -216,19 +216,19 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
   <header class="app-header">
     <div class="app-title">🌟 ProjectPocket</div>
   </header>
-  <div class="parent-bar">
-    <button class="parent-bar-btn" id="editToggleBtn">⚙️ Parent</button>
-  </div>
   <div class="child-tabs" id="childTabs"></div>
   <div class="main-content" id="mainContent"></div>
+  <div id="parentControls" style="display:none;padding:14px"></div>
+</div>
+<div class="parent-bar" id="parentBar">
+  <button class="parent-bar-btn" id="editToggleBtn">⚙️ Parent</button>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-sheet">
-    <div class="modal-title">✏️ Edit Earning Chore</div>
+    <div class="modal-title">✏️ Edit Special Quest</div>
     <div class="modal-field"><label>Emoji</label><input class="form-input" id="modalEmoji" maxlength="4"></div>
     <div class="modal-field"><label>Name</label><input class="form-input" id="modalName"></div>
-    <div class="modal-field"><label>Value (£)</label><input class="form-input" id="modalValue" type="number" step="0.10" min="0.10" max="10"></div>
     <div class="modal-actions">
       <button class="btn-secondary" id="modalCancelBtn">Cancel</button>
       <button class="btn-primary" id="modalSaveBtn">Save</button>
@@ -238,7 +238,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 
 <div class="modal-overlay" id="expModalOverlay">
   <div class="modal-sheet">
-    <div class="modal-title">✏️ Edit Expected Task</div>
+    <div class="modal-title">✏️ Edit Daily Quest</div>
     <div class="modal-field"><label>Emoji</label><input class="form-input" id="expModalEmoji" maxlength="4"></div>
     <div class="modal-field"><label>Name</label><input class="form-input" id="expModalName"></div>
     <div class="modal-actions">
@@ -254,9 +254,10 @@ const SUPABASE_URL      = 'sb_publishable_lAICF9INmyqxGJqPFiTGVA_QIKZAXiZ';
 const SUPABASE_ANON_KEY = 'sb_secret_6d5zmmdch_VuEvMR9nI3-Q_OnRPk5oJ';
 
 // ── CONSTANTS ────────────────────────────────────────────
-const WEEKLY_BASE    = 5.00;
-const BONUS_CAP      = 1.50;
+const WEEKLY_BASE    = 2.00;
+const BONUS_CAP      = 5.00;
 const PENALTY_AMOUNT = 0.25;
+const BONUS_AMOUNT   = 0.50;
 const COLORS = [
   { accent1:'#9775fa', tab1:'#9775fa', bg:'#f0ecff' },
   { accent1:'#f59f00', tab1:'#f59f00', bg:'#fffbea' }
@@ -388,11 +389,11 @@ function applyResets(s) {
 
 function loadLocal() {
   try {
-    var r = localStorage.getItem('cq_v5');
+    var r = localStorage.getItem('cq_v6');
     return r ? applyResets(JSON.parse(r)) : freshState();
   } catch(e) { return freshState(); }
 }
-function saveLocal() { try { localStorage.setItem('cq_v5', JSON.stringify(state)); } catch(e) {} }
+function saveLocal() { try { localStorage.setItem('cq_v6', JSON.stringify(state)); } catch(e) {} }
 
 // ── SUPABASE ─────────────────────────────────────────────
 var _sb = null;
@@ -431,6 +432,7 @@ var editingChore = null;
 function weekNet(ch) {
   return +(Math.max(0, WEEKLY_BASE - ch.weekPenalties) + Math.min(BONUS_CAP, ch.weekEarned)).toFixed(2);
 }
+function canAddBonus(ch) { return ch.weekEarned < BONUS_CAP; }
 function bonusEarned(ch) { return Math.min(BONUS_CAP, ch.weekEarned); }
 function expCount(ch)    { return (ch.expectedTasks||[]).filter(function(e) { return ch.expectedDone[e.id]; }).length; }
 
@@ -515,7 +517,7 @@ function renderMain() {
     var locked = bonusMaxed && !doneToday;
     return '<div class="chore-card'+(doneToday?' done':'')+(locked?' done-locked':'')+'" data-child="'+ch.id+'" data-cid="'+c.id+'">' +
       '<div class="chore-emoji">'+c.emoji+'</div>' +
-      '<div class="chore-info"><div class="chore-name">'+esc(c.name)+'</div><div class="chore-value">💰 £'+c.value.toFixed(2)+'</div></div>' +
+      '<div class="chore-info"><div class="chore-name">'+esc(c.name)+'</div></div>' +
       (editMode
         ? '<div class="chore-edit-btns">' +
           '<button class="icon-btn btn-edit" data-child="'+ch.id+'" data-cid="'+c.id+'" data-action="edit">✏️</button>' +
@@ -524,20 +526,19 @@ function renderMain() {
       '</div>';
   }).join('');
 
-  var parentHTML = editMode ? (
+  var parentHTML = (
     '<div class="add-chore-section">' +
-    '<h4>➕ Add Expected Task for '+ch.name+'</h4>' +
+    '<h4>➕ Add Daily Quest for '+ch.name+'</h4>' +
     '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
     '<input class="form-input" id="newExpEmoji" maxlength="4" value="⭐" style="text-align:center;font-size:1.3rem">' +
     '<input class="form-input" id="newExpName" placeholder="Task name…">' +
     '</div>' +
     '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Task ✨</button>' +
-    '<h4>➕ Add Earning Chore for '+ch.name+'</h4>' +
-    '<div class="form-row-3">' +
+    '<h4>➕ Add Special Quest for '+ch.name+'</h4>' +
+    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
     '<input class="form-input" id="newEmoji" maxlength="4" value="🧹" style="text-align:center;font-size:1.3rem">' +
-    '<input class="form-input" id="newName" placeholder="Chore name…">' +
-    '<input class="form-input" id="newVal" type="number" step="0.10" min="0.10" max="10" value="0.50">' +
-    '</div><button class="btn-primary" id="addChoreBtn">Add Chore ✨</button></div>' +
+    '<input class="form-input" id="newName" placeholder="Quest name…">' +
+    '</div><button class="btn-primary" id="addChoreBtn">Add Quest ✨</button></div>' +
 
     '<div class="parent-panel"><h3>👨‍👩‍👧 Parent Controls — '+ch.name+'</h3>' +
     '<div class="panel-section"><div class="panel-label">🎯 Savings Goal</div>' +
@@ -547,7 +548,7 @@ function renderMain() {
     '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
 
     '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
-    '<button class="btn-action btn-reset" id="resetDayBtn">🔄 Reset today\'s tasks</button>' +
+    '<button class="btn-action btn-reset" id="resetDayBtn">🔄 Reset today\'s Daily Quests</button>' +
     '<button class="btn-action btn-danger" id="resetAllBtn">🗑️ Reset ALL data to zero</button>' +
 
     '<button class="btn-action btn-reset" id="testSatBtn">🗓️ ' + (_testSaturday ? 'Test mode ON — tap to turn off' : 'Test Saturday mode') + '</button>' +
@@ -558,7 +559,20 @@ function renderMain() {
     '<input class="form-input" id="pinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm new PIN" style="margin-bottom:7px">' +
     '<div id="pinChangeMsg" style="font-size:.8rem;font-weight:700;min-height:18px;margin-bottom:7px"></div>' +
     '<button class="btn-save" id="changePinBtn" style="width:100%">Update PIN</button></div></div>'
-  ) : '';
+  );
+
+  // Render parent controls in dedicated div
+  var pc = document.getElementById('parentControls');
+  if (pc) {
+    if (editMode) {
+      pc.style.display = 'block';
+      pc.innerHTML = parentHTML;
+      bindParentEvents(ch);
+    } else {
+      pc.style.display = 'none';
+      pc.innerHTML = '';
+    }
+  }
 
   document.getElementById('mainContent').innerHTML =
     '<div class="week-card" style="background:'+col.accent1+'">' +
@@ -566,12 +580,12 @@ function renderMain() {
     '<div><div class="week-label">This week</div><div class="week-amount">£'+net.toFixed(2)+'</div></div>' +
     '<div class="week-right"><div class="week-saved-label">Total saved</div><div class="week-saved-val">£'+ch.totalSaved.toFixed(2)+'</div></div>' +
     '</div>' +
-    '<div class="week-row-label">Pocket money</div>' +
+    '<div class="week-row-label">Base pocket money</div>' +
     '<div class="week-bar-track"><div class="week-bar-fill" style="width:'+basePct+'%"></div></div>' +
-    '<div class="week-bar-ends"><span>£'+base.toFixed(2)+'</span><span>£'+WEEKLY_BASE.toFixed(2)+'</span></div>' +
-    '<div class="week-row-label">Bonus earnings</div>' +
+    '<div class="week-bar-ends"><span>£'+base.toFixed(2)+'</span><span>£'+WEEKLY_BASE.toFixed(2)+' guaranteed</span></div>' +
+    '<div class="week-row-label">Bonus earned</div>' +
     '<div class="week-bar-track"><div class="week-bar-fill" style="width:'+bonusPct+'%"></div></div>' +
-    '<div class="week-bar-ends"><span>£'+bon.toFixed(2)+'</span><span>£'+BONUS_CAP.toFixed(2)+'</span></div>' +
+    '<div class="week-bar-ends"><span>£'+bon.toFixed(2)+'</span><span>up to £'+BONUS_CAP.toFixed(2)+'</span></div>' +
     '</div>' +
 
     // SAVINGS JAR
@@ -591,23 +605,22 @@ function renderMain() {
     '</div>' +
 
     '<div class="expected-section">' +
-    '<div class="expected-header"><div class="expected-title">⭐ Expected Tasks</div><div class="expected-badge">'+expC+' / '+expT+'</div></div>' +
+    '<div class="expected-header"><div class="expected-title">⭐ Daily Quests</div><div class="expected-badge">'+expC+' / '+expT+'</div></div>' +
     '<div class="expected-subtitle">Part of being in the family — tick off each day!</div>' +
     '<div class="expected-list" id="expectedList">'+expectedHTML+'</div></div>' +
 
-    '<div class="section-heading">💰 Earning Chores</div>' +
+    '<div class="section-heading">⚡ Special Quests</div>' +
     '<div class="chores-list" id="choresList">'+earningHTML+'</div>' +
 
     '<div class="deduction-section">' +
-    '<div class="deduction-label">Daily Deduction</div>' +
-    '<div class="deduction-sub">'+(ch.weekPenalties > 0 ? '−£'+ch.weekPenalties.toFixed(2)+' deducted this week' : 'No deductions this week')+'</div>' +
+    '<div class="deduction-label">Parent Controls</div>' +
+    '<div class="deduction-sub">Deductions: '+(ch.weekPenalties > 0 ? '−£'+ch.weekPenalties.toFixed(2) : '£0.00')+' · Bonus: +£'+Math.min(BONUS_CAP,ch.weekEarned).toFixed(2)+'</div>' +
     '<div class="deduction-row">' +
-    '<div class="deduction-amount" style="color:'+(ch.weekPenalties>0?'#c0392b':'#664d03')+'">'+(ch.weekPenalties>0?'−£'+ch.weekPenalties.toFixed(2):'£0.00')+'</div>' +
-    '<button class="deduction-btn" id="deductBtn"'+(canDeduct?'':' disabled')+'>' +
-    '<span class="deduction-btn-icon">−</span><span class="deduction-btn-label">Deduct 25p</span></button></div></div>' +
+    '<button class="deduction-btn" id="deductBtn" style="background:#868e96"'+(canDeduct?'':' disabled')+'><span class="deduction-btn-icon">−</span><span class="deduction-btn-label">Deduct 25p</span></button>' +
+    '<button class="deduction-btn" id="bonusBtn" style="background:#2f9e44"'+(canAddBonus(ch)?'':' disabled')+'><span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
+    '</div></div>' +
 
-    parentHTML +
-    '<p class="week-notice">Expected tasks & earning chores reset daily · Pocket money resets every Saturday 🗓️</p>';
+    '<p class="week-notice">Daily Quests & Special Quests reset daily · Pocket money resets every Saturday 🗓️</p>';
 
   bindEvents(ch);
 }
@@ -666,6 +679,9 @@ function bindEvents(ch) {
   // Deduction
   var db = document.getElementById('deductBtn');
   if (db) db.addEventListener('click', function() { addPenalty(ch.id); });
+  // Bonus
+  var bb = document.getElementById('bonusBtn');
+  if (bb) bb.addEventListener('click', function() { addBonus(ch.id); });
 
   // Jar save button
   var jsb = document.getElementById('jarSaveBtn');
@@ -690,8 +706,9 @@ function bindEvents(ch) {
     });
   }
 
-  if (!editMode) return;
+}
 
+function bindParentEvents(ch) {
   // Add expected task
   var ae = document.getElementById('addExpBtn');
   if (ae) ae.addEventListener('click', function() { addExpectedTask(ch.id); });
@@ -777,12 +794,9 @@ function toggleChore(childId, choreId, e) {
   var td = todayStr();
   if (!chore.done || chore.lastDone !== td) {
     chore.done = true; chore.lastDone = td;
-    ch.weekEarned = +(ch.weekEarned + chore.value).toFixed(2);
     save(); spawnCoins(e); playTick(); render();
-    if (bonusEarned(ch) >= BONUS_CAP) setTimeout(launchConfetti, 300);
   } else {
     chore.done = false; chore.lastDone = '';
-    ch.weekEarned = Math.max(0, +(ch.weekEarned - chore.value).toFixed(2));
     save(); render();
   }
 }
@@ -791,6 +805,13 @@ function addPenalty(childId) {
   var ch = state.children.find(function(c) { return c.id === childId; });
   if (ch.weekPenalties >= WEEKLY_BASE) return;
   ch.weekPenalties = +(ch.weekPenalties + PENALTY_AMOUNT).toFixed(2);
+  save(); render();
+}
+
+function addBonus(childId) {
+  var ch = state.children.find(function(c) { return c.id === childId; });
+  if (ch.weekEarned >= BONUS_CAP) return;
+  ch.weekEarned = +(ch.weekEarned + BONUS_AMOUNT).toFixed(2);
   save(); render();
 }
 
@@ -852,11 +873,9 @@ function addExpectedTask(childId) {
 function addChore(childId) {
   var emoji = document.getElementById('newEmoji').value.trim() || '🧹';
   var name  = document.getElementById('newName').value.trim();
-  var val   = parseFloat(document.getElementById('newVal').value);
-  if (!name) { showMsg('Enter a chore name', '#e03131'); return; }
-  if (isNaN(val) || val <= 0) { showMsg('Enter a valid value', '#e03131'); return; }
+  if (!name) { showMsg('Enter a quest name', '#e03131'); return; }
   var ch = state.children.find(function(c) { return c.id === childId; });
-  ch.earningChores.push({id:'p'+Date.now(), emoji:emoji, name:name, value:Math.round(val*100)/100, done:false, lastDone:''});
+  ch.earningChores.push({id:'p'+Date.now(), emoji:emoji, name:name, value:0, done:false, lastDone:''});
   save(); render();
 }
 
@@ -897,7 +916,7 @@ function openModal(childId, choreId) {
   editingChore = {childId:childId, choreId:choreId};
   document.getElementById('modalEmoji').value = chore.emoji;
   document.getElementById('modalName').value  = chore.name;
-  document.getElementById('modalValue').value = chore.value.toFixed(2);
+
   document.getElementById('modalOverlay').classList.add('open');
 }
 function closeModal() {
@@ -912,10 +931,8 @@ document.getElementById('modalSaveBtn').addEventListener('click', function() {
   var chore = ch.earningChores.find(function(c) { return c.id === editingChore.choreId; });
   var emoji = document.getElementById('modalEmoji').value.trim() || chore.emoji;
   var name  = document.getElementById('modalName').value.trim();
-  var val   = parseFloat(document.getElementById('modalValue').value);
   if (!name) { showMsg('Name required', '#e03131'); return; }
-  if (isNaN(val) || val <= 0) { showMsg('Valid value required', '#e03131'); return; }
-  chore.emoji=emoji; chore.name=name; chore.value=Math.round(val*100)/100;
+  chore.emoji=emoji; chore.name=name;
   save(); closeModal(); render();
 });
 
