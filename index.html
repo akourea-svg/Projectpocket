@@ -451,9 +451,6 @@ function renderTabs() {
   });
   var tabs = document.getElementById('childTabs');
   tabs.innerHTML = html;
-  tabs.querySelectorAll('.child-tab').forEach(function(el) {
-    el.addEventListener('click', function() { switchChild(parseInt(el.dataset.idx)); });
-  });
 }
 
 function jarSVG(pct, accent) {
@@ -622,7 +619,6 @@ function renderMain() {
 
     '<p class="week-notice">Daily Quests & Special Quests reset daily · Pocket money resets every Saturday 🗓️</p>';
 
-  bindEvents(ch);
 }
 
 // ── BIND EVENTS ──────────────────────────────────────────
@@ -785,6 +781,12 @@ document.getElementById('editToggleBtn').addEventListener('click', function() {
   document.getElementById('editToggleBtn').textContent = editMode ? '✅ Done' : '⚙️ Parent';
   document.getElementById('editToggleBtn').classList.toggle('active', editMode);
   render();
+});
+// Also bind parent bar (outside #app)
+document.getElementById('parentBar').addEventListener('click', function(e) {
+  var btn = e.target.closest('#editToggleBtn');
+  if (!btn) return;
+  // Already handled above
 });
 
 function toggleChore(childId, choreId, e) {
@@ -1020,6 +1022,7 @@ document.getElementById('expModalSaveBtn').addEventListener('click', function() 
 
 // ── INIT ─────────────────────────────────────────────────
 function initApp() {
+  setupDelegation();
   // Always render locally first — app is never blank
   try { state = loadLocal(); } catch(e) { state = freshState(); }
   try {
