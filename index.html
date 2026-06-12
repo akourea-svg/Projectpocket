@@ -350,7 +350,7 @@ function weekStart() {
 // ── STATE ────────────────────────────────────────────────
 function makeChild(id, name, avatar, offset) {
   return {id:id, name:name, avatar:avatar,
-    totalSaved:0, goalName:'My Savings Goal', goalTarget:20,
+    totalSaved:0, goalName:'My Savings Goal', goalTarget:10,
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
     earningChores:DEFAULT_CHORES.map(function(c,i) {
       return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, value:c.value, done:false, lastDone:''};
@@ -379,7 +379,7 @@ function applyResets(s) {
     // Daily reset for expected tasks
     if (ch.lastExpectedDate !== td) { ch.expectedDone = {}; ch.lastExpectedDate = td; }
     if (!ch.goalName)    ch.goalName    = 'My Savings Goal';
-    if (!ch.goalTarget)  ch.goalTarget  = 20;
+    if (!ch.goalTarget)  ch.goalTarget  = 10;
     if (!ch.expectedTasks || !ch.expectedTasks.length) {
       ch.expectedTasks = DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; });
     }
@@ -726,7 +726,7 @@ function bindParentEvents(ch) {
   setupDoubleTab('resetDayBtn',    function() { ch.expectedDone = {}; save(); render(); });
   setupDoubleTab('resetAllBtn',    function() {
     ch.totalSaved=0; ch.weekEarned=0; ch.weekPenalties=0;
-    ch.weekStart=weekStart(); ch.goalName='My Savings Goal'; ch.goalTarget=20;
+    ch.weekStart=weekStart();
     ch.earningChores.forEach(function(c) { c.done=false; c.lastDone=''; });
     ch.expectedDone={}; ch.lastExpectedDate='';
     save(); render();
