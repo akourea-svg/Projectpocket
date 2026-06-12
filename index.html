@@ -382,8 +382,10 @@ function save() {
   try {
     var client = getSb();
     if (!client) { showMsg('⚠️ Not connected to sync', '#e67700'); return; }
+    var ts = new Date().toISOString();
+    state._updatedAt = ts;
     client.from('app_state')
-      .upsert({id:1, state:state, updated_at:new Date().toISOString()})
+      .upsert({id:1, state:state, updated_at:ts})
       .then(function(res) {
         if (res && res.error) {
           showMsg('⚠️ Sync error: ' + res.error.message, '#e03131');
@@ -883,13 +885,16 @@ function initApp() {
             }
           } catch(e) {}
           try {
-            client.channel('cq').on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state'},function(p){
+            var channelId = 'cq-' + Math.random().toString(36).slice(2);
+            client.channel(channelId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state'},function(p){
               try {
                 var s = typeof p.new.state==='string'?JSON.parse(p.new.state):p.new.state;
                 if (s&&s.children) { state=applyResets(s); saveLocal(); render(); }
               } catch(e) {}
             }).subscribe();
           } catch(e) {}
+
+
         }).catch(function(){});
       } catch(e) {}
     }).catch(function(){});
