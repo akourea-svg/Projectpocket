@@ -381,20 +381,15 @@ function save() {
   saveLocal();
   try {
     var client = getSb();
-    if (!client) { showMsg('⚠️ Not connected to sync', '#e67700'); return; }
+    if (!client) return;
+    // Strip internal fields before sending to Supabase
+    var payload = JSON.parse(JSON.stringify(state));
+    delete payload._updatedAt;
     var ts = new Date().toISOString();
-    state._updatedAt = ts;
     client.from('app_state')
-      .upsert({id:1, state:state, updated_at:ts})
-      .then(function(res) {
-        if (res && res.error) {
-          showMsg('⚠️ Sync error: ' + res.error.message, '#e03131');
-        } else {
-          showMsg('✅ Synced', '#2f9e44');
-        }
-      })
-      .catch(function(e) { showMsg('⚠️ Sync failed: ' + e.message, '#e03131'); });
-  } catch(e) { showMsg('⚠️ Sync error: ' + e.message, '#e03131'); }
+      .upsert({id:1, state:payload, updated_at:ts})
+      .catch(function(){});
+  } catch(e) {}
 }
 
 // ── APP STATE ────────────────────────────────────────────
