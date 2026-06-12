@@ -1022,7 +1022,14 @@ document.getElementById('expModalSaveBtn').addEventListener('click', function() 
 function initApp() {
   // Always render locally first — app is never blank
   try { state = loadLocal(); } catch(e) { state = freshState(); }
-  render();
+  try {
+    render();
+  } catch(e) {
+    document.getElementById('mainContent').innerHTML =
+      '<div style="padding:20px;color:red;font-weight:700;font-size:0.9rem">' +
+      'Error: ' + e.message + '<br><br>' + e.stack.split('\n').slice(0,3).join('<br>') +
+      '</div>';
+  }
   document.documentElement.style.setProperty('--child-bg', COLORS[activeIdx].bg);
 
   // Then try Supabase in background
