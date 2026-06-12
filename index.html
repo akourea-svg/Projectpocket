@@ -382,12 +382,8 @@ function save() {
   try {
     var client = getSb();
     if (!client) return;
-    // Strip internal fields before sending to Supabase
-    var payload = JSON.parse(JSON.stringify(state));
-    delete payload._updatedAt;
-    var ts = new Date().toISOString();
     client.from('app_state')
-      .upsert({id:1, state:payload, updated_at:ts})
+      .upsert({id:1, state:state, updated_at:new Date().toISOString()})
       .catch(function(){});
   } catch(e) {}
 }
