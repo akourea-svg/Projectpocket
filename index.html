@@ -110,8 +110,8 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .deduction-label{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;color:#664d03;font-size:1rem;margin-bottom:2px}
 .deduction-sub{font-size:.75rem;font-weight:700;font-style:normal;color:#997404;margin-bottom:12px}
 .deduction-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.deduction-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
-.deduction-btn:active{opacity:.8}
+.deduction-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:12px;padding:12px 18px;cursor:pointer;transition:transform .12s,box-shadow .12s,filter .12s;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 0 rgba(0,0,0,0.15)}
+.deduction-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,0.15);filter:brightness(.92)}
 .deduction-btn:disabled{opacity:.35;cursor:default}
 .deduction-btn-icon{font-size:1.4rem;font-weight:900;color:#fff;line-height:1}
 .deduction-btn-label{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1rem;color:#fff}
@@ -658,19 +658,9 @@ function renderMain() {
     '<div class="expected-list" id="expectedList">'+expectedHTML+'</div></div>' +
     '<div class="section-heading">⚡ Special Quests</div>' +
     '<div class="chores-list" id="choresList">'+earningHTML+'</div>' +
-    '<div class="deduction-section">' +
-    '<div class="deduction-label">Parent Controls</div>' +
-    '<div class="deduction-sub">Deductions: '+(ch.weekPenalties>0?'−£'+(ch.weekPenalties||0).toFixed(2):'£0.00')+' · Bonus: +£'+bon.toFixed(2)+'</div>' +
-    '<div class="deduction-row">' +
-    '<button class="deduction-btn" id="deductBtn" style="background:#868e96"'+(canDeduct?'':' disabled')+'>' +
-    '<span class="deduction-btn-icon">−</span><span class="deduction-btn-label">Deduct 25p</span></button>' +
-    '<button class="deduction-btn" id="bonusBtn" style="background:#2f9e44"'+(canAddBonus(ch)?'':' disabled')+'>' +
-    '<span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
-    '</div></div>' +
-    '<p class="week-notice">Daily Quests & Special Quests reset daily · Pocket money resets every Saturday 🗓️</p>' +
 
     // STREAK
-    '<div class="streak-section">' +
+    '<div class="streak-section" style="margin-top:14px">' +
     '<div class="streak-inner">' +
     '<div class="streak-flame">🔥</div>' +
     '<div class="streak-info">' +
@@ -692,7 +682,18 @@ function renderMain() {
       '<span>'+Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length+' days active</span>' +
       '<span>'+Math.round(Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length/28*100)+'% (28d)</span>' +
       '</div>' : '') +
-    '</div>';
+    '</div>' +
+
+    // DEDUCTION SECTION — after chart
+    '<div class="deduction-section">' +
+    '<div class="deduction-label">Parent Controls</div>' +
+    '<div class="deduction-sub">Deductions: '+(ch.weekPenalties>0?'−£'+(ch.weekPenalties||0).toFixed(2):'£0.00')+' · Bonus: +£'+bon.toFixed(2)+'</div>' +
+    '<div class="deduction-row">' +
+    '<button class="deduction-btn" id="deductBtn" style="background:#868e96"'+(canDeduct?'':' disabled')+'>' +
+    '<span class="deduction-btn-icon">−</span><span class="deduction-btn-label">Deduct 25p</span></button>' +
+    '<button class="deduction-btn" id="bonusBtn" style="background:#2f9e44"'+(canAddBonus(ch)?'':' disabled')+'>' +
+    '<span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
+    '</div></div>';
 
   // Parent controls
   var pc = document.getElementById('parentControls');
@@ -717,7 +718,6 @@ function renderMain() {
       '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
       '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
       '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
-      '<button class="btn-action btn-reset" id="resetDayBtn">🔄 Reset today\'s Daily Quests</button>' +
       '<button class="btn-action btn-reset" id="resetQuestsBtn">🔄 Reset quest lists to defaults</button>' +
       '<button class="btn-action btn-danger" id="resetAllBtn">🗑️ Reset ALL data to zero</button>' +
       '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'Test mode ON — tap to turn off':'Test Saturday mode')+'</button>' +
@@ -753,7 +753,6 @@ function renderMain() {
       save(); render();
     });
     setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties=0; save(); render(); });
-    setupDoubleTab('resetDayBtn',    function() { ch.expectedDone={}; save(); render(); });
     setupDoubleTab('resetAllBtn',    function() {
       ch.totalSaved=0; ch.weekEarned=0; ch.weekPenalties=0;
       ch.weekStart=weekStart();
@@ -779,8 +778,16 @@ function renderMain() {
   }
 
   // Bind main content events (fresh each render — these elements are recreated)
-  bindBtn('deductBtn', function() { addPenalty(ch.id); });
-  bindBtn('bonusBtn',  function() { addBonus(ch.id); });
+  bindBtn('deductBtn', function() {
+    var btn = document.getElementById('deductBtn');
+    if (btn) { btn.style.filter='brightness(.75)'; setTimeout(function(){btn.style.filter='';},200); }
+    addPenalty(ch.id);
+  });
+  bindBtn('bonusBtn', function() {
+    var btn = document.getElementById('bonusBtn');
+    if (btn) { btn.style.filter='brightness(.75)'; setTimeout(function(){btn.style.filter='';},200); }
+    addBonus(ch.id);
+  });
   bindBtn('jarSaveBtn', function() {
     var jsb = document.getElementById('jarSaveBtn');
     if (!jsb) return;
