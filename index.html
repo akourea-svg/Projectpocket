@@ -718,6 +718,7 @@ function renderMain() {
       '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
       '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
       '<button class="btn-action btn-reset" id="resetDayBtn">🔄 Reset today\'s Daily Quests</button>' +
+      '<button class="btn-action btn-reset" id="resetQuestsBtn">🔄 Reset quest lists to defaults</button>' +
       '<button class="btn-action btn-danger" id="resetAllBtn">🗑️ Reset ALL data to zero</button>' +
       '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'Test mode ON — tap to turn off':'Test Saturday mode')+'</button>' +
       '<div class="panel-section" style="margin-top:8px"><div class="panel-label">🔑 Change PIN</div>' +
@@ -745,6 +746,11 @@ function renderMain() {
         }
       }
       render();
+    });
+    setupDoubleTab('resetQuestsBtn', function() {
+      ch.expectedTasks = DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; });
+      ch.earningChores = DEFAULT_CHORES.map(function(c,i) { return {id:'p'+(Date.now()+i), emoji:c.emoji, name:c.name, done:false, lastDone:''}; });
+      save(); render();
     });
     setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties=0; save(); render(); });
     setupDoubleTab('resetDayBtn',    function() { ch.expectedDone={}; save(); render(); });
