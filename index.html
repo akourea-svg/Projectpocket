@@ -152,10 +152,13 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .chart-sub{font-size:.75rem;font-weight:600;color:var(--text-mid)}
 .chart-timeline{display:flex;gap:2px;overflow-x:auto;align-items:flex-end;padding-bottom:4px;min-height:80px}
 .tl-col{display:flex;flex-direction:column;align-items:center;min-width:18px;flex-shrink:0}
-.tl-bar-wrap{flex:1;display:flex;align-items:flex-end;height:52px}
-.tl-bar{width:14px;border-radius:4px 4px 0 0;background:#f1f3f5;height:20px;transition:height .3s ease}
-.tl-bar-active{background:var(--c-accent1,#9775fa);height:52px}
+.tl-bar-wrap{flex:1;display:flex;align-items:flex-end;height:52px;width:14px}
+.tl-bar{width:14px;border-radius:4px 4px 0 0;background:#f1f3f5;height:16px}
 .tl-bar-today{outline:2px solid var(--text-dark);outline-offset:1px;border-radius:4px 4px 0 0}
+.tl-stack{display:flex;flex-direction:column;width:14px;border-radius:4px 4px 0 0;overflow:hidden;height:52px}
+.tl-seg{flex:1}
+.tl-seg-daily{background:var(--c-accent1,#9775fa)}
+.tl-seg-special{background:var(--green)}
 .tl-label{font-size:.5rem;font-weight:700;color:var(--text-mid);text-align:center;margin-top:3px;line-height:1.3;min-height:24px}
 .tl-label span{font-weight:600;color:#bbb}
 .chart-stats{display:flex;justify-content:space-between;margin-top:8px;font-size:.72rem;font-weight:700;color:var(--text-mid)}
@@ -333,15 +336,11 @@ function makeChild(id, name, avatar, offset) {
     totalSaved:0, goalName:'My Savings Goal', goalTarget:10,
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
     weekSaved:false,
-    activityLog:(function() {
-      var log = {};
-      var d = new Date();
-      for (var i=1; i<=3; i++) {
-        var dd = new Date(d); dd.setDate(d.getDate()-i);
-        log[dd.toISOString().slice(0,10)] = true;
-      }
-      return log;
-    })(), // {YYYY-MM-DD: true} for days with any completion
+    activityLog:{
+      '2025-06-12':{daily:true, special:false},
+      '2025-06-13':{daily:true, special:false},
+      '2025-06-14':{daily:true, special:false}
+    }, // {YYYY-MM-DD: {daily:bool, special:bool}}
     earningChores:DEFAULT_CHORES.map(function(c,i) {
       return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, done:false, lastDone:''};
     }),
@@ -376,13 +375,24 @@ function applyResets(s) {
     // Backfill activityLog from existing chore data
     var td2 = todayStr();
     if (ch.earningChores) ch.earningChores.forEach(function(chore) {
-      if (chore.lastDone && chore.lastDone !== '') ch.activityLog[chore.lastDone] = true;
+      if (chore.lastDone && chore.lastDone !== '') {
+        var key = chore.lastDone;
+        if (!ch.activityLog[key] || ch.activityLog[key] === true) ch.activityLog[key] = {daily:false, special:false};
+        if (typeof ch.activityLog[key] === 'object') ch.activityLog[key].special = true;
+      }
     });
     // If expected tasks done today, mark today
     if (ch.lastExpectedDate === td2 && ch.expectedDone) {
       var anyExp = Object.keys(ch.expectedDone).some(function(k){return ch.expectedDone[k];});
-      if (anyExp) ch.activityLog[td2] = true;
+      if (anyExp) {
+        if (!ch.activityLog[td2] || ch.activityLog[td2] === true) ch.activityLog[td2] = {daily:false, special:false};
+        if (typeof ch.activityLog[td2] === 'object') ch.activityLog[td2].daily = true;
+      }
     }
+    // Migrate old boolean format to new object format
+    Object.keys(ch.activityLog).forEach(function(key) {
+      if (ch.activityLog[key] === true) ch.activityLog[key] = {daily:true, special:false};
+    });
   });
   return s;
 }
@@ -449,32 +459,41 @@ var editMode  = false;
 var editingChore = null;
 var editingExpTask = null;
 
-// Record today as active
-function recordActivity(ch) {
+// Record today as active — type is 'daily' or 'special'
+function recordActivity(ch, type) {
   if (!ch.activityLog) ch.activityLog = {};
-  ch.activityLog[todayStr()] = true;
+  var td = todayStr();
+  if (typeof ch.activityLog[td] !== 'object' || ch.activityLog[td] === true) {
+    ch.activityLog[td] = {daily:false, special:false};
+  }
+  if (type === 'daily')   ch.activityLog[td].daily   = true;
+  if (type === 'special') ch.activityLog[td].special = true;
 }
 
 // Calculate current streak
+function isActiveDay(log, key) {
+  var v = log[key];
+  if (!v) return false;
+  if (v === true) return true;
+  return v.daily || v.special;
+}
 function calcStreak(ch) {
   if (!ch.activityLog) return 0;
   var streak = 0;
   var d = new Date();
-  // Start from yesterday (today might not be done yet)
   d.setDate(d.getDate() - 1);
   while (true) {
     var key = d.toISOString().slice(0,10);
-    if (!ch.activityLog[key]) break;
+    if (!isActiveDay(ch.activityLog, key)) break;
     streak++;
     d.setDate(d.getDate() - 1);
     if (streak > 365) break;
   }
-  // If they've done something today, count today too
-  if (ch.activityLog[todayStr()]) streak++;
+  if (isActiveDay(ch.activityLog, todayStr())) streak++;
   return streak;
 }
 
-// Generate chart HTML — horizontal timeline
+// Generate chart HTML — horizontal timeline, today on left, stacked bars
 function activityChartHTML(ch, days) {
   if (!ch.activityLog) ch.activityLog = {};
   var today = new Date();
@@ -483,38 +502,37 @@ function activityChartHTML(ch, days) {
   var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   var html = '<div class="chart-timeline">';
-  for (var i = days-1; i >= 0; i--) {
+  // Today first (index 0), oldest last
+  for (var i = 0; i < days; i++) {
     var d = new Date(today);
     d.setDate(today.getDate() - i);
     var key = d.toISOString().slice(0,10);
-    var active = !!ch.activityLog[key];
+    var v = ch.activityLog[key];
+    var hasDaily   = v && (v === true || v.daily);
+    var hasSpecial = v && (v !== true && v.special);
+    var active = hasDaily || hasSpecial;
     var isToday = i === 0;
     var dayLabel = isToday ? 'Today' : DAY_SHORT[d.getDay()];
-    var showDate = (d.getDate() === 1 || i === days-1 || isToday || d.getDay() === 1);
+    var showDate = isToday || d.getDay() === 1 || d.getDate() === 1;
+
     html += '<div class="tl-col">';
     html += '<div class="tl-bar-wrap">';
-    html += '<div class="tl-bar'+(active?' tl-bar-active':'')+(isToday?' tl-bar-today':'')+'"></div>';
+    if (active) {
+      // Stacked: special on bottom, daily on top
+      html += '<div class="tl-stack">';
+      if (hasSpecial) html += '<div class="tl-seg tl-seg-special"></div>';
+      if (hasDaily)   html += '<div class="tl-seg tl-seg-daily"></div>';
+      html += '</div>';
+    } else {
+      html += '<div class="tl-bar'+(isToday?' tl-bar-today':'')+'"></div>';
+    }
     html += '</div>';
     html += '<div class="tl-label">'+(showDate ? dayLabel+'<br><span>'+d.getDate()+' '+MONTH_SHORT[d.getMonth()]+'</span>' : '')+'</div>';
     html += '</div>';
   }
   html += '</div>';
-
-  // Summary stats
-  var totalDays = days;
-  var activeDays = 0;
-  for (var j = 0; j < days; j++) {
-    var dd = new Date(today); dd.setDate(today.getDate()-j);
-    if (ch.activityLog[dd.toISOString().slice(0,10)]) activeDays++;
-  }
-  var pct = Math.round(activeDays/totalDays*100);
-  html += '<div class="chart-stats">' +
-    '<span>'+activeDays+' of '+totalDays+' days active</span>' +
-    '<span>'+pct+'% completion</span>' +
-    '</div>';
   return html;
 }
-
 
 function weekNet(ch) {
   if (!ch) return 0;
@@ -664,9 +682,16 @@ function renderMain() {
     '<div class="chart-section">' +
     '<div class="chart-header">' +
     '<div class="chart-title">📅 Activity</div>' +
-    '<div class="chart-sub">Last 28 days</div>' +
+    '<div style="display:flex;gap:10px;align-items:center">' +
+    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:var(--c-accent1,#9775fa)"></div><span style="font-size:.65rem;font-weight:700;color:var(--text-mid)">Daily</span></div>' +
+    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:var(--green)"></div><span style="font-size:.65rem;font-weight:700;color:var(--text-mid)">Special</span></div>' +
+    '</div>' +
     '</div>' +
     activityChartHTML(ch, 28) +
+    (editMode ? '<div class="chart-stats">' +
+      '<span>'+Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length+' days active</span>' +
+      '<span>'+Math.round(Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length/28*100)+'% (28d)</span>' +
+      '</div>' : '') +
     '</div>';
 
   // Parent controls
@@ -788,7 +813,7 @@ function renderMain() {
     if (!child) return;
     child.expectedDone[card.dataset.eid] = !child.expectedDone[card.dataset.eid];
     child.lastExpectedDate = todayStr();
-    if (child.expectedDone[card.dataset.eid]) recordActivity(child);
+    if (child.expectedDone[card.dataset.eid]) recordActivity(child, 'daily');
     save(); playTick(); render();
   });
 
@@ -852,7 +877,7 @@ function toggleChore(childId, choreId, e) {
   var td = todayStr();
   if (!chore.done || chore.lastDone !== td) {
     chore.done=true; chore.lastDone=td;
-    recordActivity(ch);
+    recordActivity(ch, 'special');
     save(); spawnCoins(e); playTick(); render();
   } else {
     chore.done=false; chore.lastDone='';
