@@ -141,6 +141,24 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .btn-secondary{flex:1;background:#f1f3f5;color:var(--text-dark);border:none;border-radius:var(--radius-sm);padding:11px;font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:.95rem;cursor:pointer}
 .modal-actions .btn-primary{flex:2}
 .week-notice{text-align:center;color:var(--text-mid);font-size:.72rem;font-weight:600;font-style:normal;margin-top:10px}
+.streak-section{background:rgba(255,255,255,.82);border-radius:var(--radius);padding:14px 16px;margin-top:14px;box-shadow:var(--shadow-sm)}
+.streak-inner{display:flex;align-items:center;gap:14px}
+.streak-flame{font-size:2.4rem;line-height:1}
+.streak-count{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-size:1.6rem;color:var(--c-accent1,#9775fa);line-height:1}
+.streak-label{font-size:.75rem;font-weight:600;color:var(--text-mid);margin-top:2px}
+.chart-section{background:rgba(255,255,255,.82);border-radius:var(--radius);padding:14px 16px;margin-top:14px;box-shadow:var(--shadow-sm)}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.chart-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-size:1rem;color:var(--text-dark)}
+.chart-sub{font-size:.75rem;font-weight:600;color:var(--text-mid)}
+.chart-grid{overflow-x:auto}
+.chart-day-labels{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.chart-day-labels span{font-size:.65rem;font-weight:700;color:var(--text-mid);text-align:center}
+.chart-weeks{display:flex;gap:3px}
+.chart-week{display:flex;flex-direction:column;gap:3px}
+.chart-cell{width:28px;height:28px;border-radius:5px;background:#f1f3f5}
+.chart-cell-active{background:var(--c-accent1,#9775fa)}
+.chart-cell-today{outline:2px solid var(--text-dark);outline-offset:1px}
+.chart-cell-empty{background:transparent}
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999;width:100%;height:100%}
 .coin-particle{position:fixed;pointer-events:none;z-index:200;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe066,#f59f00 60%,#b36d00);box-shadow:0 2px 4px rgba(0,0,0,.2);animation:coin-fly .85s ease-out forwards}
 @keyframes coin-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.1);opacity:0}}
@@ -233,15 +251,15 @@ var DEFAULT_EXPECTED = [
   {id:'e3',emoji:'👕',name:'Clothes off the floor'},
   {id:'e4',emoji:'👚',name:'Clothes put away'},
   {id:'e5',emoji:'🍽️',name:'Dishes to the sink'},
-  {id:'e6',emoji:'🧸',name:'Toys in playroom'},
+  {id:'e6',emoji:'🧸',name:'Put away toys'},
   {id:'e7',emoji:'🗑️',name:'Rubbish in bin'},
-  {id:'e8',emoji:'🧹',name:'Tidy playroom'},
-  {id:'e9',emoji:'🛏️',name:'Tidy bedroom'}
 ];
 var DEFAULT_CHORES = [
   {id:'p1',emoji:'🍽️',name:'Empty dishwasher'},
   {id:'p2',emoji:'🧹',name:'Sweep kitchen'},
-  {id:'p3',emoji:'🧽',name:'Wipe cupboards'}
+  {id:'p3',emoji:'🧽',name:'Wipe cupboards'},
+  {id:'p4',emoji:'🧸',name:'Tidy playroom'},
+  {id:'p5',emoji:'🛏️',name:'Tidy bedroom'}
 ];
 
 // ── HELPERS ──────────────────────────────────────────────
@@ -306,6 +324,7 @@ function weekStart() {
   return s.toISOString().slice(0,10);
 }
 var _testSaturday = false;
+var _testSnapshot = null;
 function isSaturday() { return _testSaturday || new Date().getDay() === 6; }
 
 // ── STATE ────────────────────────────────────────────────
@@ -313,6 +332,8 @@ function makeChild(id, name, avatar, offset) {
   return {id:id, name:name, avatar:avatar,
     totalSaved:0, goalName:'My Savings Goal', goalTarget:10,
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
+    weekSaved:false,
+    activityLog:{}, // {YYYY-MM-DD: true} for days with any completion
     earningChores:DEFAULT_CHORES.map(function(c,i) {
       return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, done:false, lastDone:''};
     }),
@@ -340,6 +361,10 @@ function applyResets(s) {
     if (typeof ch.weekPenalties !== 'number') ch.weekPenalties = 0;
     if (typeof ch.weekEarned    !== 'number') ch.weekEarned    = 0;
     if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
+    if (typeof ch.weekSaved     !== 'boolean') ch.weekSaved     = false;
+    if (typeof ch.activityLog   !== 'object' || !ch.activityLog) ch.activityLog = {};
+    // Reset weekSaved on new week
+    if (ch.weekStart !== weekStart()) ch.weekSaved = false;
   });
   return s;
 }
@@ -387,9 +412,15 @@ function save() {
     client.from('app_state')
       .upsert({id:1, state:cleanState, updated_at:new Date().toISOString()})
       .then(function(res) {
-        if (res && res.error) showMsg('Sync: ' + res.error.message, '#e03131');
+        if (res && res.error && res.error.message && res.error.message.indexOf('DataCloneError') === -1) {
+          showMsg('Sync: ' + res.error.message, '#e03131');
+        }
       })
-      .catch(function(e) { showMsg('Sync failed: ' + e.message, '#e03131'); });
+      .catch(function(e) {
+        if (e && e.message && e.message.indexOf('DataCloneError') === -1) {
+          showMsg('Sync failed: ' + e.message, '#e03131');
+        }
+      });
   } catch(e) { showMsg('Save error: ' + e.message, '#e03131'); }
 }
 
@@ -399,6 +430,73 @@ var activeIdx = 0;
 var editMode  = false;
 var editingChore = null;
 var editingExpTask = null;
+
+// Record today as active
+function recordActivity(ch) {
+  if (!ch.activityLog) ch.activityLog = {};
+  ch.activityLog[todayStr()] = true;
+}
+
+// Calculate current streak
+function calcStreak(ch) {
+  if (!ch.activityLog) return 0;
+  var streak = 0;
+  var d = new Date();
+  // Start from yesterday (today might not be done yet)
+  d.setDate(d.getDate() - 1);
+  while (true) {
+    var key = d.toISOString().slice(0,10);
+    if (!ch.activityLog[key]) break;
+    streak++;
+    d.setDate(d.getDate() - 1);
+    if (streak > 365) break;
+  }
+  // If they've done something today, count today too
+  if (ch.activityLog[todayStr()]) streak++;
+  return streak;
+}
+
+// Generate chart HTML — last N days
+function activityChartHTML(ch, days) {
+  if (!ch.activityLog) ch.activityLog = {};
+  var today = new Date();
+  var cells = '';
+  var weeks = [];
+  var week = [];
+  // Go back 'days' days and build grid
+  for (var i = days-1; i >= 0; i--) {
+    var d = new Date(today);
+    d.setDate(today.getDate() - i);
+    var key = d.toISOString().slice(0,10);
+    var active = !!ch.activityLog[key];
+    var isToday = (key === todayStr());
+    var dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    week.push({key:key, active:active, isToday:isToday, dayName:dayName, date:d.getDate(), month:d.getMonth()+1});
+    if (week.length === 7) { weeks.push(week); week = []; }
+  }
+  if (week.length > 0) weeks.push(week);
+
+  var html = '<div class="chart-grid">';
+  // Day labels top
+  html += '<div class="chart-day-labels"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>';
+  html += '<div class="chart-weeks">';
+  weeks.forEach(function(wk) {
+    html += '<div class="chart-week">';
+    // Pad if week doesn't start on Monday
+    var firstDay = new Date(wk[0].key).getDay(); // 0=Sun
+    var pad = firstDay === 0 ? 6 : firstDay - 1; // Mon=0
+    if (weeks.indexOf(wk) === 0) {
+      for (var p=0; p<pad; p++) html += '<div class="chart-cell chart-cell-empty"></div>';
+    }
+    wk.forEach(function(day) {
+      var cls = 'chart-cell' + (day.active?' chart-cell-active':'') + (day.isToday?' chart-cell-today':'');
+      html += '<div class="'+cls+'" title="'+day.key+'"></div>';
+    });
+    html += '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
 
 function weekNet(ch) {
   if (!ch) return 0;
@@ -511,9 +609,12 @@ function renderMain() {
     '<div class="jar-amounts"><div class="jar-saved">£'+(ch.totalSaved||0).toFixed(2)+'</div>' +
     '<div class="jar-target">of £'+ch.goalTarget.toFixed(2)+'</div>' +
     '<div class="jar-pct">'+savedPct+'%</div></div></div>' +
-    (net > 0 && isSaturday()
+    (ch.weekSaved && isSaturday()
+      ? '<div style="color:var(--green);font-size:.85rem;font-weight:700;padding:8px 0">✅ All saved this week — great job!</div>'
+      : net > 0 && isSaturday()
       ? '<button class="jar-save-btn" id="jarSaveBtn">💰 Save this week\'s £'+net.toFixed(2)+'!</button>'
-      : (net > 0 ? '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">💰 £'+net.toFixed(2)+' ready to save on Saturday!</div>' : '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">Nothing to save yet this week</div>')) +
+      : net > 0 ? '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">💰 £'+net.toFixed(2)+' ready to save on Saturday!</div>'
+      : '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">Nothing to save yet this week</div>') +
     '</div>' +
     '<div class="expected-section">' +
     '<div class="expected-header"><div class="expected-title">⭐ Daily Quests</div><div class="expected-badge">'+expC+' / '+expT+'</div></div>' +
@@ -530,7 +631,25 @@ function renderMain() {
     '<button class="deduction-btn" id="bonusBtn" style="background:#2f9e44"'+(canAddBonus(ch)?'':' disabled')+'>' +
     '<span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
     '</div></div>' +
-    '<p class="week-notice">Daily Quests & Special Quests reset daily · Pocket money resets every Saturday 🗓️</p>';
+    '<p class="week-notice">Daily Quests & Special Quests reset daily · Pocket money resets every Saturday 🗓️</p>' +
+
+    // STREAK
+    '<div class="streak-section">' +
+    '<div class="streak-inner">' +
+    '<div class="streak-flame">🔥</div>' +
+    '<div class="streak-info">' +
+    '<div class="streak-count">'+calcStreak(ch)+' day streak</div>' +
+    '<div class="streak-label">consecutive days with a quest completed</div>' +
+    '</div></div></div>' +
+
+    // ACTIVITY CHART
+    '<div class="chart-section">' +
+    '<div class="chart-header">' +
+    '<div class="chart-title">📅 Activity</div>' +
+    '<div class="chart-sub">Last 28 days</div>' +
+    '</div>' +
+    activityChartHTML(ch, 28) +
+    '</div>';
 
   // Parent controls
   var pc = document.getElementById('parentControls');
@@ -568,7 +687,22 @@ function renderMain() {
     bindBtn('addExpBtn',      function() { addExpectedTask(ch.id); });
     bindBtn('addChoreBtn',    function() { addChore(ch.id); });
     bindBtn('saveGoalBtn',    function() { saveGoal(ch.id); });
-    bindBtn('testSatBtn',     function() { _testSaturday = !_testSaturday; render(); });
+    bindBtn('testSatBtn', function() {
+      if (!_testSaturday) {
+        // Enabling test mode — snapshot current state
+        _testSnapshot = JSON.parse(JSON.stringify(state));
+        _testSaturday = true;
+      } else {
+        // Disabling test mode — restore snapshot
+        _testSaturday = false;
+        if (_testSnapshot) {
+          state = applyResets(JSON.parse(JSON.stringify(_testSnapshot)));
+          _testSnapshot = null;
+          saveLocal();
+        }
+      }
+      render();
+    });
     setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties=0; save(); render(); });
     setupDoubleTab('resetDayBtn',    function() { ch.expectedDone={}; save(); render(); });
     setupDoubleTab('resetAllBtn',    function() {
@@ -636,6 +770,7 @@ function renderMain() {
     if (!child) return;
     child.expectedDone[card.dataset.eid] = !child.expectedDone[card.dataset.eid];
     child.lastExpectedDate = todayStr();
+    if (child.expectedDone[card.dataset.eid]) recordActivity(child);
     save(); playTick(); render();
   });
 
@@ -699,6 +834,7 @@ function toggleChore(childId, choreId, e) {
   var td = todayStr();
   if (!chore.done || chore.lastDone !== td) {
     chore.done=true; chore.lastDone=td;
+    recordActivity(ch);
     save(); spawnCoins(e); playTick(); render();
   } else {
     chore.done=false; chore.lastDone='';
@@ -742,6 +878,7 @@ function doSaveToJar(childId) {
   setTimeout(function() {
     ch.totalSaved = +((ch.totalSaved||0) + net).toFixed(2);
     ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=weekStart();
+    ch.weekSaved=true;
     ch.earningChores.forEach(function(c){c.done=false;c.lastDone='';});
     ch.expectedDone={};
     save(); render();
@@ -898,6 +1035,24 @@ function initApp() {
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function(){});
+
+// Re-fetch from Supabase when app comes back into focus (iOS suspends WebSockets)
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    try {
+      var client = getSb();
+      if (!client) return;
+      client.from('app_state').select('state').eq('id',1).single().then(function(res) {
+        try {
+          if (res&&res.data&&res.data.state) {
+            var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
+            if (s&&s.children) { state=applyResets(s); saveLocal(); render(); }
+          }
+        } catch(e) {}
+      }).catch(function(){});
+    } catch(e) {}
+  }
+});
 </script>
 </body>
 </html>
