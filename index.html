@@ -374,9 +374,10 @@ function applyResets(s) {
     if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.activityLog !== 'object' || !ch.activityLog) ch.activityLog = {};
-    // Ensure these dates are always marked (won't overwrite any existing data)
-    if (!ch.activityLog['2025-06-13']) ch.activityLog['2025-06-13'] = {daily:true, special:true};
-    if (!ch.activityLog['2025-06-14']) ch.activityLog['2025-06-14'] = {daily:true, special:false};
+    // Always set these specific historical dates
+    ch.activityLog['2025-06-13'] = {daily:true, special:true};
+    ch.activityLog['2025-06-14'] = {daily:true, special:false};
+    ch.activityLog['2025-06-15'] = {daily:true, special:false};
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
     // Backfill activityLog from existing chore data — only if chore is marked done
