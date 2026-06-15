@@ -374,10 +374,7 @@ function applyResets(s) {
     if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.activityLog !== 'object' || !ch.activityLog) ch.activityLog = {};
-    // Always set these specific historical dates
-    ch.activityLog['2025-06-13'] = {daily:true, special:true};
-    ch.activityLog['2025-06-14'] = {daily:true, special:false};
-    ch.activityLog['2025-06-15'] = {daily:true, special:false};
+
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
     // Backfill activityLog from existing chore data — only if chore is marked done
@@ -404,6 +401,17 @@ function applyResets(s) {
   });
   return s;
 }
+function forceHistoricalDates(s) {
+  if (!s || !s.children) return s;
+  s.children.forEach(function(ch) {
+    if (!ch.activityLog) ch.activityLog = {};
+    ch.activityLog['2025-06-13'] = {daily:true,  special:true};
+    ch.activityLog['2025-06-14'] = {daily:true,  special:false};
+    ch.activityLog['2025-06-15'] = {daily:true,  special:false};
+  });
+  return s;
+}
+
 function loadLocal() {
   // Clear old storage versions to prevent corrupted state
   try { ['cq_v4','cq_v5','cq_v6'].forEach(function(k){ localStorage.removeItem(k); }); } catch(e) {}
@@ -1259,7 +1267,7 @@ function initApp() {
                       });
                     }
                   });
-                  state=applyResets(s); saveLocal(); render();
+                  state=forceHistoricalDates(applyResets(s)); saveLocal(); render();
                 }
               } catch(e) {}
             }).subscribe();
