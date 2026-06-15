@@ -374,18 +374,15 @@ function applyResets(s) {
     if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.activityLog !== 'object' || !ch.activityLog) ch.activityLog = {};
-    // One-time seed: if activityLog is empty, pre-fill June 13-15 2025
-    if (Object.keys(ch.activityLog).length === 0) {
-      ch.activityLog['2025-06-13'] = {daily:true, special:false};
-      ch.activityLog['2025-06-14'] = {daily:true, special:false};
-      ch.activityLog['2025-06-15'] = {daily:true, special:false};
-    }
+    // Ensure these dates are always marked (won't overwrite any existing data)
+    if (!ch.activityLog['2025-06-13']) ch.activityLog['2025-06-13'] = {daily:true, special:true};
+    if (!ch.activityLog['2025-06-14']) ch.activityLog['2025-06-14'] = {daily:true, special:false};
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
-    // Backfill activityLog from existing chore data
+    // Backfill activityLog from existing chore data — only if chore is marked done
     var td2 = todayStr();
     if (ch.earningChores) ch.earningChores.forEach(function(chore) {
-      if (chore.lastDone && chore.lastDone !== '') {
+      if (chore.done && chore.lastDone && chore.lastDone !== '' && chore.lastDone === td2) {
         var key = chore.lastDone;
         if (!ch.activityLog[key] || ch.activityLog[key] === true) ch.activityLog[key] = {daily:false, special:false};
         if (typeof ch.activityLog[key] === 'object') ch.activityLog[key].special = true;
@@ -1246,7 +1243,23 @@ function initApp() {
             client.channel(channelId).on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_state'},function(p){
               try {
                 var s = typeof p.new.state==='string'?JSON.parse(p.new.state):p.new.state;
-                if (s&&s.children) { state=applyResets(s); saveLocal(); render(); }
+                if (s&&s.children) {
+                  // Merge activityLogs so neither phone loses history
+                  s.children.forEach(function(remCh, i) {
+                    var locCh = state.children[i];
+                    if (locCh && locCh.activityLog && remCh) {
+                      Object.keys(locCh.activityLog).forEach(function(k) {
+                        if (!remCh.activityLog) remCh.activityLog = {};
+                        if (!remCh.activityLog[k]) remCh.activityLog[k] = locCh.activityLog[k];
+                        else if (typeof remCh.activityLog[k] === 'object' && typeof locCh.activityLog[k] === 'object') {
+                          remCh.activityLog[k].daily   = remCh.activityLog[k].daily   || locCh.activityLog[k].daily;
+                          remCh.activityLog[k].special = remCh.activityLog[k].special || locCh.activityLog[k].special;
+                        }
+                      });
+                    }
+                  });
+                  state=applyResets(s); saveLocal(); render();
+                }
               } catch(e) {}
             }).subscribe();
           } catch(e) {}
