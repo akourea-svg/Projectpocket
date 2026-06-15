@@ -341,9 +341,9 @@ function makeChild(id, name, avatar, offset) {
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
     weekSaved:false,
     activityLog:{
-      '2025-06-12':{daily:true, special:false},
       '2025-06-13':{daily:true, special:false},
-      '2025-06-14':{daily:true, special:false}
+      '2025-06-14':{daily:true, special:false},
+      '2025-06-15':{daily:true, special:false}
     }, // {YYYY-MM-DD: {daily:bool, special:bool}}
     earningChores:DEFAULT_CHORES.map(function(c,i) {
       return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, done:false, lastDone:''};
@@ -374,6 +374,12 @@ function applyResets(s) {
     if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.activityLog !== 'object' || !ch.activityLog) ch.activityLog = {};
+    // One-time seed: if activityLog is empty, pre-fill June 13-15 2025
+    if (Object.keys(ch.activityLog).length === 0) {
+      ch.activityLog['2025-06-13'] = {daily:true, special:false};
+      ch.activityLog['2025-06-14'] = {daily:true, special:false};
+      ch.activityLog['2025-06-15'] = {daily:true, special:false};
+    }
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
     // Backfill activityLog from existing chore data
@@ -506,8 +512,8 @@ function activityChartHTML(ch, days) {
   var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   var html = '<div class="chart-timeline">';
-  // Today first (index 0), oldest last
-  for (var i = 0; i < days; i++) {
+  // Oldest on left, today on right
+  for (var i = days - 1; i >= 0; i--) {
     var d = new Date(today);
     d.setDate(today.getDate() - i);
     var key = d.toISOString().slice(0,10);
@@ -515,7 +521,7 @@ function activityChartHTML(ch, days) {
     var hasDaily   = v && (v === true || v.daily);
     var hasSpecial = v && (v !== true && v.special);
     var active = hasDaily || hasSpecial;
-    var isToday = i === 0;
+    var isToday = i === 0; // i counts down so 0 = today
     var dayLabel = isToday ? 'Today' : DAY_SHORT[d.getDay()];
     var showDate = isToday || d.getDay() === 1 || d.getDate() === 1;
 
@@ -773,7 +779,7 @@ function renderMain() {
     '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:var(--green)"></div><span style="font-size:.65rem;font-weight:700;color:var(--text-mid)">Special</span></div>' +
     '</div>' +
     '</div>' +
-    activityChartHTML(ch, 28) +
+    activityChartHTML(ch, 28) + '<script>setTimeout(function(){var t=document.querySelector(".chart-timeline");if(t)t.scrollLeft=t.scrollWidth;},50);<\/script>' +
     (editMode ? '<div class="chart-stats">' +
       '<span>'+Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length+' days active</span>' +
       '<span>'+Math.round(Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length/28*100)+'% (28d)</span>' +
