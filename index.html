@@ -62,8 +62,6 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 
 /* ── WEEK / THIS WEEK CARD ── */
 .week-card{border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px rgba(0,0,0,.15);position:relative;overflow:hidden}
-.week-card::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.1);top:-50px;right:-40px}
-.week-card::after{content:'';position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(0,0,0,.08);bottom:-40px;left:-20px}
 .week-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
 .week-label{font-family:'Fredoka One',Arial,sans-serif;color:rgba(255,255,255,.8);font-size:.82rem}
 .week-amount{font-family:'Fredoka One',Arial,sans-serif;font-size:3.2rem;color:#fff;line-height:1;text-shadow:0 3px 12px rgba(0,0,0,.2)}
@@ -859,9 +857,9 @@ function renderMain() {
   // Main content
   // Week card emoji and message based on earnings
   var weekEmoji, weekMsg;
-  if (net >= WEEKLY_BASE + BONUS_CAP * 0.8) { weekEmoji = '🚀'; weekMsg = 'Incredible week!'; }
-  else if (net >= WEEKLY_BASE + BONUS_CAP * 0.4) { weekEmoji = '⭐'; weekMsg = 'Amazing work!'; }
-  else if (net > WEEKLY_BASE) { weekEmoji = '💪'; weekMsg = 'Keep going!'; }
+  if (net >= WEEKLY_BASE + BONUS_CAP * 0.8) { weekEmoji = '🤩'; weekMsg = 'Incredible week!'; }
+  else if (net >= WEEKLY_BASE + BONUS_CAP * 0.4) { weekEmoji = '🚀'; weekMsg = 'Amazing work!'; }
+  else if (net > WEEKLY_BASE) { weekEmoji = '🚀'; weekMsg = 'Keep going!'; }
   else if (ch.weekPenalties > 0) { weekEmoji = '😬'; weekMsg = 'Room to improve!'; }
   else { weekEmoji = '🌟'; weekMsg = 'Keep going!'; }
 
@@ -887,7 +885,7 @@ function renderMain() {
     '</div>' +
 
     // THIS WEEK PANEL
-    '<div class="week-card" style="background:'+col.accent1+';margin-bottom:14px">' +
+    '<div class="week-card" style="background:'+(activeIdx===0 ? 'linear-gradient(135deg, #9775fa 0%, #e066cc 40%, #ff7043 100%)' : 'linear-gradient(135deg, #f59f00 0%, #ff6b9d 40%, #9775fa 100%)')+';margin-bottom:14px">' +
     '<div style="display:flex;align-items:center;justify-content:space-between">' +
     '<div>' +
     '<div class="week-label">This week</div>' +
