@@ -151,7 +151,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .chart-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-size:1rem;color:var(--text-dark)}
 .chart-sub{font-size:.75rem;font-weight:600;color:var(--text-mid)}
 
-#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999;width:100%;height:100%}
+#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9995;width:100%;height:100%}
 .coin-particle{position:fixed;pointer-events:none;z-index:200;width:24px;height:24px;display:flex;align-items:center;justify-content:center;animation:coin-fly .85s ease-out forwards;transform-origin:center}
 @keyframes coin-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.1);opacity:0}}
 @keyframes avatarBounce{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.9)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
@@ -338,7 +338,9 @@ function makeChild(id, name, avatar, offset) {
   };
 }
 function freshState() {
-  return seedWeeklyLog({children:[makeChild('c1','Ada','🦁',1), makeChild('c2','Riley','🐷',4)]});
+  var s = seedWeeklyLog({children:[makeChild('c1','Ada','🦁',1), makeChild('c2','Riley','🐷',4)]});
+  s.children[0].totalSaved = 2.50; // Ada's saved amount
+  return s;
 }
 function applyResets(s) {
   var ws = weekStart(), td = todayStr();
@@ -356,7 +358,9 @@ function applyResets(s) {
     }
     if (typeof ch.weekPenalties !== 'number') ch.weekPenalties = 0;
     if (typeof ch.weekEarned    !== 'number') ch.weekEarned    = 0;
-    if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
+    if (typeof ch.totalSaved !== 'number') ch.totalSaved = 0;
+    // Restore Ada's minimum saved amount if wiped
+    if (ch.id === 'c1' && ch.totalSaved === 0) ch.totalSaved = 2.50;
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
     // Reset weekSaved on new week
@@ -880,7 +884,14 @@ function renderMain() {
       '<input class="form-input" id="goalName_'+ch.id+'" value="'+esc(ch.goalName)+'">' +
       '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
       '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
-      '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
+      '<div class="panel-section" style="margin-bottom:8px">' +
+    '<div class="panel-label">💰 Adjust Savings</div>' +
+    '<div style="display:flex;gap:7px;margin-bottom:0">' +
+    '<input class="form-input" id="savingsAdjAmt" type="number" step="0.50" min="0.01" placeholder="£ amount">' +
+    '<button class="btn-save" id="savingsAddBtn">+ Add</button>' +
+    '<button class="btn-save" id="savingsSubBtn" style="background:#868e96">- Remove</button>' +
+    '</div></div>' +
+    '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
       '<button class="btn-action btn-reset" id="resetQuestsBtn">🔄 Reset quest lists to defaults</button>' +
       '<button class="btn-action btn-danger" id="resetAllBtn">🗑️ Reset ALL data to zero</button>' +
       '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'Test mode ON — tap to turn off':'Test Saturday mode')+'</button>' +
@@ -916,6 +927,20 @@ function renderMain() {
       ch.expectedTasks = DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; });
       ch.earningChores = DEFAULT_CHORES.map(function(c,i) { return {id:'p'+(Date.now()+i), emoji:c.emoji, name:c.name, done:false, lastDone:''}; });
       save(); render();
+    });
+    bindBtn('savingsAddBtn', function() {
+      var amt = parseFloat(document.getElementById('savingsAdjAmt').value);
+      if (isNaN(amt) || amt <= 0) { showMsg('Enter a valid amount', '#e03131'); return; }
+      ch.totalSaved = +((ch.totalSaved||0) + amt).toFixed(2);
+      document.getElementById('savingsAdjAmt').value = '';
+      save(); render(); showMsg('£'+amt.toFixed(2)+' added to savings', '#2f9e44');
+    });
+    bindBtn('savingsSubBtn', function() {
+      var amt = parseFloat(document.getElementById('savingsAdjAmt').value);
+      if (isNaN(amt) || amt <= 0) { showMsg('Enter a valid amount', '#e03131'); return; }
+      ch.totalSaved = Math.max(0, +((ch.totalSaved||0) - amt).toFixed(2));
+      document.getElementById('savingsAdjAmt').value = '';
+      save(); render(); showMsg('£'+amt.toFixed(2)+' removed from savings', '#868e96');
     });
     setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties=0; save(); render(); });
     setupDoubleTab('resetAllBtn',    function() {
@@ -1090,6 +1115,59 @@ function addBonus(childId) {
   save(); render();
 }
 
+function showJarFullCelebration(ch) {
+  // Confetti burst
+  launchConfetti();
+
+  // Show goal complete overlay with new goal options
+  var overlay = document.getElementById('jarFullOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'jarFullOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.8);padding:30px;opacity:0;transition:opacity .3s;pointer-events:none';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML =
+    '<div id="jarFullInner" style="background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:340px;text-align:center;transform:scale(.8);transition:transform .4s cubic-bezier(.34,1.56,.64,1)">' +
+    '<div style="font-size:3rem;margin-bottom:8px">🎉</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.8rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
+    '<div style="font-size:.9rem;font-weight:700;color:#868e96;margin-bottom:20px">'+ch.name+' saved \u00a3'+ch.totalSaved.toFixed(2)+'! What is the next goal?</div>' +
+    '<button id="jarGoal10" style="display:block;width:100%;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Fredoka One,Arial,sans-serif;font-size:1.1rem;cursor:pointer;margin-bottom:10px">🎯 Save another £10</button>' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+    '<input id="jarGoalCustom" type="number" min="1" step="1" placeholder="My own amount £" style="flex:1;padding:12px;border:2px solid #dee2e6;border-radius:12px;font-size:1rem;font-weight:700;text-align:center;outline:none">' +
+    '<button id="jarGoalCustomBtn" style="background:#f59f00;color:#fff;border:none;border-radius:12px;padding:14px 16px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer">Set!</button>' +
+    '</div></div>';
+
+  overlay.style.pointerEvents = 'all';
+  requestAnimationFrame(function() {
+    overlay.style.opacity = '1';
+    var inner = document.getElementById('jarFullInner');
+    if (inner) inner.style.transform = 'scale(1)';
+  });
+
+  function setNewGoal(amount, name) {
+    ch.totalSaved = 0; // Reset jar
+    ch.goalTarget = amount;
+    ch.goalName   = name || 'My Savings Goal';
+    save(); render();
+    overlay.style.opacity = '0';
+    setTimeout(function() {
+      overlay.style.pointerEvents = 'none';
+      overlay.innerHTML = '';
+    }, 300);
+    showMsg('New goal: £'+amount+'! Go '+ch.name+'! 🌟', '#2f9e44');
+  }
+
+  document.getElementById('jarGoal10').addEventListener('click', function() {
+    setNewGoal(10, 'My Savings Goal');
+  });
+  document.getElementById('jarGoalCustomBtn').addEventListener('click', function() {
+    var val = parseFloat(document.getElementById('jarGoalCustom').value);
+    if (isNaN(val) || val < 1) { showMsg('Enter a valid amount', '#e03131'); return; }
+    setNewGoal(Math.round(val*100)/100, 'My Savings Goal');
+  });
+}
+
 function doSaveToJar(childId) {
   var ch  = state.children.find(function(c){return c.id===childId;});
   var net = weekNet(ch);
@@ -1128,7 +1206,10 @@ function doSaveToJar(childId) {
         setTimeout(function() { startWaveAnimation(col2.accent1); }, 30);
       }
     }, 50);
-    if (ch.totalSaved >= ch.goalTarget) setTimeout(launchConfetti, 400);
+    // Check if jar is now full
+    if (ch.totalSaved >= ch.goalTarget) {
+      setTimeout(function() { showJarFullCelebration(ch); }, 400);
+    }
   }, numCoins*60+900);
 }
 
