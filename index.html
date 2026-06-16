@@ -20,10 +20,8 @@
   --shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 6px rgba(0,0,0,0.06);
 }
 html,body{min-height:100vh}
-body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background-color:var(--child-bg,#f0ecff);min-height:100vh;color:var(--text-dark);overflow-x:hidden;padding-bottom:80px;transition:background-color 0.3s ease}
-.bg-pattern{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:1}
-.main-content,.child-tabs,.app-header{position:relative;z-index:1}
-#parentControls{position:relative;z-index:1}
+body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background-color:var(--child-bg,#f0ecff);background-image:radial-gradient(var(--pattern-dot,rgba(151,117,250,0.12)) 1.5px, transparent 1.5px);background-size:22px 22px;min-height:100vh;color:var(--text-dark);overflow-x:hidden;padding-bottom:80px;transition:background-color 0.3s ease}
+
 #pin-screen{position:fixed;inset:0;z-index:9999;background:#f0ecff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
 .pin-logo{font-size:3.5rem;margin-bottom:6px;line-height:1}
 .pin-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:2.2rem;color:var(--purple);margin-bottom:4px;line-height:1}
@@ -50,8 +48,8 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background-colo
 .tab-name{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-style:normal;font-weight:normal;font-size:1rem;color:var(--text-mid);margin-top:3px;display:block}
 .child-tab.active .tab-name{color:#fff}
 .child-tab.active .tab-avatar{transform:scale(1.2)}
-.tab-week{font-size:.78rem;font-weight:800;font-style:normal;color:var(--text-mid);display:block;margin-top:3px;background:rgba(0,0,0,.06);border-radius:20px;padding:2px 8px;display:inline-block}
-.child-tab.active .tab-week{color:rgba(255,255,255,.9);background:rgba(255,255,255,.2)}
+
+
 .main-content{padding:14px}
 .week-card{border-radius:var(--radius);padding:18px;margin-bottom:14px;box-shadow:var(--shadow)}
 .week-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
@@ -196,7 +194,6 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background-colo
 </div>
 
 <div id="app" style="display:none">
-  <div class="bg-pattern" id="bgPattern"></div>
   <header class="app-header">
     <div class="app-title">🌟 ProjectPocket</div>
   </header>
@@ -244,8 +241,8 @@ var BONUS_CAP      = 5.00;
 var PENALTY_AMOUNT = 0.25;
 var BONUS_AMOUNT   = 0.50;
 var COLORS = [
-  { accent1:'#9775fa', tab1:'#9775fa', bg:'#f0ecff' },
-  { accent1:'#f59f00', tab1:'#f59f00', bg:'#fffbea' }
+  { accent1:'#9775fa', tab1:'#9775fa', bg:'#f0ecff', dot:'rgba(151,117,250,0.12)' },
+  { accent1:'#f59f00', tab1:'#f59f00', bg:'#fffbea', dot:'rgba(245,159,0,0.15)' }
 ];
 var DEFAULT_EXPECTED = [
   {id:'e1',emoji:'👟',name:'Shoes on the rack'},
@@ -776,7 +773,7 @@ function renderTabs() {
     html += '<div class="child-tab '+(i===activeIdx?'active':'')+'" style="--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
       '<span class="tab-avatar">'+ch.avatar+'</span>' +
       '<span class="tab-name">'+ch.name+'</span>' +
-      '<span class="tab-week">£'+weekNet(ch).toFixed(2)+' this week</span>' +
+
       '</div>';
   });
   document.getElementById('childTabs').innerHTML = html;
