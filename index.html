@@ -14,7 +14,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --purple:#9775fa;--yellow:#ffd43b;--green:#40c057;--red:#ff4757;--orange:#ff922b;
+  --purple:#9775fa;--yellow:#ffd43b;--green:#40c057;--red:#ff4757;--orange:#ff922b;--special:#2ec4b6;
   --text-dark:#212529;--text-mid:#868e96;
   --radius:16px;--radius-sm:10px;
   --shadow:0 2px 12px rgba(0,0,0,0.08);--shadow-sm:0 1px 6px rgba(0,0,0,0.06);
@@ -150,18 +150,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;background:var(
 .chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .chart-title{font-family:'Fredoka One','Arial Rounded MT Bold',Arial,sans-serif;font-size:1rem;color:var(--text-dark)}
 .chart-sub{font-size:.75rem;font-weight:600;color:var(--text-mid)}
-.chart-timeline{display:flex;gap:2px;overflow-x:auto;align-items:flex-end;padding-bottom:4px;min-height:80px}
-.tl-col{display:flex;flex-direction:column;align-items:center;min-width:18px;flex-shrink:0}
-.tl-bar-wrap{flex:1;display:flex;align-items:flex-end;height:52px;width:14px}
-.tl-bar{width:14px;border-radius:4px 4px 0 0;background:#f1f3f5;height:16px}
-.tl-bar-today{outline:2px solid var(--text-dark);outline-offset:1px;border-radius:4px 4px 0 0}
-.tl-stack{display:flex;flex-direction:column;width:14px;border-radius:4px 4px 0 0;overflow:hidden;height:52px}
-.tl-seg{flex:1}
-.tl-seg-daily{background:var(--c-accent1,#9775fa)}
-.tl-seg-special{background:var(--green)}
-.tl-label{font-size:.5rem;font-weight:700;color:var(--text-mid);text-align:center;margin-top:3px;line-height:1.3;min-height:24px}
-.tl-label span{font-weight:600;color:#bbb}
-.chart-stats{display:flex;justify-content:space-between;margin-top:8px;font-size:.72rem;font-weight:700;color:var(--text-mid)}
+
 #confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:999;width:100%;height:100%}
 .coin-particle{position:fixed;pointer-events:none;z-index:200;width:24px;height:24px;display:flex;align-items:center;justify-content:center;animation:coin-fly .85s ease-out forwards;transform-origin:center}
 @keyframes coin-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.1);opacity:0}}
@@ -340,11 +329,7 @@ function makeChild(id, name, avatar, offset) {
     totalSaved:0, goalName:'My Savings Goal', goalTarget:10,
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
     weekSaved:false,
-    activityLog:{
-      '2025-06-13':{daily:true, special:false},
-      '2025-06-14':{daily:true, special:false},
-      '2025-06-15':{daily:true, special:false}
-    }, // {YYYY-MM-DD: {daily:bool, special:bool}}
+    weeklyLog:{}, // {'2026-W25': {daily:2, special:1, days:3}} — keyed by ISO week
     earningChores:DEFAULT_CHORES.map(function(c,i) {
       return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, done:false, lastDone:''};
     }),
@@ -353,7 +338,7 @@ function makeChild(id, name, avatar, offset) {
   };
 }
 function freshState() {
-  return {children:[makeChild('c1','Ada','🦁',1), makeChild('c2','Riley','🐷',4)]};
+  return seedWeeklyLog({children:[makeChild('c1','Ada','🦁',1), makeChild('c2','Riley','🐷',4)]});
 }
 function applyResets(s) {
   var ws = weekStart(), td = todayStr();
@@ -373,41 +358,59 @@ function applyResets(s) {
     if (typeof ch.weekEarned    !== 'number') ch.weekEarned    = 0;
     if (typeof ch.totalSaved    !== 'number') ch.totalSaved    = 0;
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
-    if (typeof ch.activityLog !== 'object' || !ch.activityLog) ch.activityLog = {};
-
+    if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
-    // Backfill activityLog from existing chore data — only if chore is marked done
-    var td2 = todayStr();
-    if (ch.earningChores) ch.earningChores.forEach(function(chore) {
-      if (chore.done && chore.lastDone && chore.lastDone !== '' && chore.lastDone === td2) {
-        var key = chore.lastDone;
-        if (!ch.activityLog[key] || ch.activityLog[key] === true) ch.activityLog[key] = {daily:false, special:false};
-        if (typeof ch.activityLog[key] === 'object') ch.activityLog[key].special = true;
-      }
-    });
-    // If expected tasks done today, mark today
-    if (ch.lastExpectedDate === td2 && ch.expectedDone) {
-      var anyExp = Object.keys(ch.expectedDone).some(function(k){return ch.expectedDone[k];});
-      if (anyExp) {
-        if (!ch.activityLog[td2] || ch.activityLog[td2] === true) ch.activityLog[td2] = {daily:false, special:false};
-        if (typeof ch.activityLog[td2] === 'object') ch.activityLog[td2].daily = true;
-      }
-    }
-    // Migrate old boolean format to new object format
-    Object.keys(ch.activityLog).forEach(function(key) {
-      if (ch.activityLog[key] === true) ch.activityLog[key] = {daily:true, special:false};
-    });
+    // Clean up old activityLog if present
+    delete ch.activityLog;
+    // Always force seed historical data
+    // Force seed historical completed days — genuine past activity only
+    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}};
+    if (!ch.weeklyLog['2026-W25']) ch.weeklyLog['2026-W25'] = {daily:0, special:0, days:0, daysSeen:{}};
+    ch.weeklyLog['2026-W25'].daysSeen['2026-06-15'] = true;
+    ch.weeklyLog['2026-W25'].days = Object.keys(ch.weeklyLog['2026-W25'].daysSeen).length;
   });
   return s;
 }
-function forceHistoricalDates(s) {
+// Get ISO week key e.g. '2026-W25'
+function isoWeek(dateStr) {
+  var d = new Date(dateStr);
+  d.setHours(0,0,0,0);
+  // Thursday in current week determines year
+  var thursday = new Date(d);
+  thursday.setDate(d.getDate() - ((d.getDay()+6)%7) + 3);
+  var firstThursday = new Date(thursday.getFullYear(),0,4);
+  firstThursday.setDate(firstThursday.getDate() - ((firstThursday.getDay()+6)%7) + 3);
+  var week = Math.round((thursday - firstThursday) / 604800000) + 1;
+  return thursday.getFullYear() + '-W' + (week < 10 ? '0'+week : week);
+}
+
+function recordWeeklyActivity(ch, type) {
+  var wk = isoWeek(todayStr());
+  if (!ch.weeklyLog) ch.weeklyLog = {};
+  if (!ch.weeklyLog[wk]) ch.weeklyLog[wk] = {daily:0, special:0, days:0, daysSeen:{}};
+  var entry = ch.weeklyLog[wk];
+  // Track unique days
+  var td = todayStr();
+  if (!entry.daysSeen) entry.daysSeen = {};
+  if (!entry.daysSeen[td]) {
+    entry.daysSeen[td] = true;
+    entry.days = Object.keys(entry.daysSeen).length;
+  }
+  if (type === 'daily')   entry.daily++;
+  if (type === 'special') entry.special++;
+}
+
+function seedWeeklyLog(s) {
   if (!s || !s.children) return s;
   s.children.forEach(function(ch) {
-    if (!ch.activityLog) ch.activityLog = {};
-    ch.activityLog['2025-06-13'] = {daily:true,  special:true};
-    ch.activityLog['2025-06-14'] = {daily:true,  special:false};
-    ch.activityLog['2025-06-15'] = {daily:true,  special:false};
+    if (!ch) return;
+    if (!ch.weeklyLog) ch.weeklyLog = {};
+    // Always force seed historical weeks — force overwrite regardless of existing data
+    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}};
+
+    // Remove old activityLog
+    delete ch.activityLog;
   });
   return s;
 }
@@ -419,7 +422,7 @@ function loadLocal() {
     var r = localStorage.getItem('cq_v7');
     if (!r) return freshState();
     var parsed = JSON.parse(r);
-    var result = applyResets(parsed);
+    var result = seedWeeklyLog(applyResets(parsed));
     // Final sanity check
     if (!result || !result.children || result.children.length < 2) return freshState();
     return result;
@@ -475,136 +478,171 @@ var editMode  = false;
 var editingChore = null;
 var editingExpTask = null;
 
-// Record today as active — type is 'daily' or 'special'
-function recordActivity(ch, type) {
-  if (!ch.activityLog) ch.activityLog = {};
-  var td = todayStr();
-  if (typeof ch.activityLog[td] !== 'object' || ch.activityLog[td] === true) {
-    ch.activityLog[td] = {daily:false, special:false};
-  }
-  if (type === 'daily')   ch.activityLog[td].daily   = true;
-  if (type === 'special') ch.activityLog[td].special = true;
-}
+// recordActivity now delegates to recordWeeklyActivity
+function recordActivity(ch, type) { recordWeeklyActivity(ch, type); }
 
-// Calculate current streak
-function isActiveDay(log, key) {
-  var v = log[key];
-  if (!v) return false;
-  if (v === true) return true;
-  return v.daily || v.special;
-}
+// Streak: count consecutive days with any activity using daysSeen across all weeks
 function calcStreak(ch) {
-  if (!ch.activityLog) return 0;
+  if (!ch.weeklyLog) return 0;
+  // Build a set of all active days from daysSeen
+  var activeDays = {};
+  Object.keys(ch.weeklyLog).forEach(function(wk) {
+    var entry = ch.weeklyLog[wk];
+    if (entry && entry.daysSeen) {
+      Object.keys(entry.daysSeen).forEach(function(d) { activeDays[d] = true; });
+    }
+  });
   var streak = 0;
   var d = new Date();
+  // Count from yesterday back
   d.setDate(d.getDate() - 1);
-  while (true) {
+  while (streak < 365) {
     var key = d.toISOString().slice(0,10);
-    if (!isActiveDay(ch.activityLog, key)) break;
+    if (!activeDays[key]) break;
     streak++;
     d.setDate(d.getDate() - 1);
-    if (streak > 365) break;
   }
-  if (isActiveDay(ch.activityLog, todayStr())) streak++;
+  // Count today if active
+  if (activeDays[todayStr()]) streak++;
   return streak;
 }
 
-// Generate chart HTML — horizontal timeline, today on left, stacked bars
-function activityChartHTML(ch, days) {
-  if (!ch.activityLog) ch.activityLog = {};
+// This week daily view — Mon to Sun, showing today and past days
+function thisWeekHTML(ch) {
+  if (!ch || !ch.weeklyLog) return '';
   var today = new Date();
-  today.setHours(0,0,0,0);
-  var DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  today.setHours(12,0,0,0);
+  var todayKey = todayStr();
 
-  var html = '<div class="chart-timeline">';
-  // Oldest on left, today on right
-  for (var i = days - 1; i >= 0; i--) {
-    var d = new Date(today);
-    d.setDate(today.getDate() - i);
-    var key = d.toISOString().slice(0,10);
-    var v = ch.activityLog[key];
-    var hasDaily   = v && (v === true || v.daily);
-    var hasSpecial = v && (v !== true && v.special);
-    var active = hasDaily || hasSpecial;
-    var isToday = i === 0; // i counts down so 0 = today
-    var dayLabel = isToday ? 'Today' : DAY_SHORT[d.getDay()];
-    var showDate = isToday || d.getDay() === 1 || d.getDate() === 1;
+  // Get Sunday of this display week
+  var sun = new Date(today);
+  sun.setDate(today.getDate() - today.getDay());
 
-    html += '<div class="tl-col">';
-    html += '<div class="tl-bar-wrap">';
-    if (active) {
-      // Stacked: special on bottom, daily on top
-      html += '<div class="tl-stack">';
-      if (hasSpecial) html += '<div class="tl-seg tl-seg-special"></div>';
-      if (hasDaily)   html += '<div class="tl-seg tl-seg-daily"></div>';
-      html += '</div>';
-    } else {
-      html += '<div class="tl-bar'+(isToday?' tl-bar-today':'')+'"></div>';
+  // Merge daysSeen from ALL weeks that overlap this Sun-Sat display window
+  var daysSeen = {};
+  Object.keys(ch.weeklyLog).forEach(function(wk) {
+    var entry = ch.weeklyLog[wk];
+    if (entry && entry.daysSeen) {
+      Object.keys(entry.daysSeen).forEach(function(d) {
+        daysSeen[d] = true;
+      });
     }
-    html += '</div>';
-    html += '<div class="tl-label">'+(showDate ? dayLabel+'<br><span>'+d.getDate()+' '+MONTH_SHORT[d.getMonth()]+'</span>' : '')+'</div>';
-    html += '</div>';
+  });
+
+  var DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var MON_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">';
+
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(sun);
+    d.setDate(sun.getDate() + i);
+    var key = d.toISOString().slice(0,10);
+    var isToday = key === todayKey;
+    var isFuture = d > today;
+    var active = !!daysSeen[key];
+    var accent = active ? 'var(--c-accent1,#9775fa)' : (isFuture ? 'transparent' : '#f1f3f5');
+    var border = isFuture ? '2px dashed #dee2e6' : (isToday ? '2px solid var(--c-accent1,#9775fa)' : '2px solid transparent');
+    var textColor = active ? '#fff' : (isFuture ? '#dee2e6' : 'var(--text-mid)');
+
+    html += '<div style="text-align:center">' +
+      '<div style="font-size:.6rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">' + DAY_SHORT[i] + '</div>' +
+      '<div style="width:100%;aspect-ratio:1;border-radius:8px;background:'+accent+';border:'+border+';display:flex;align-items:center;justify-content:center">' +
+      '<span style="font-size:.65rem;font-weight:800;color:'+textColor+'">' + (isToday ? '•' : (active ? '✓' : '')) + '</span>' +
+      '</div>' +
+      '<div style="font-size:.55rem;color:var(--text-mid);margin-top:2px">' + d.getDate() + '</div>' +
+      '</div>';
   }
   html += '</div>';
   return html;
 }
 
-function weekNet(ch) {
-  if (!ch) return 0;
-  return +(Math.max(0, WEEKLY_BASE - (ch.weekPenalties||0)) + Math.min(BONUS_CAP, (ch.weekEarned||0))).toFixed(2);
-}
-function bonusEarned(ch) { return Math.min(BONUS_CAP, ch.weekEarned||0); }
-function canAddBonus(ch) { return (ch.weekEarned||0) < BONUS_CAP; }
-function expCount(ch) { return (ch.expectedTasks||[]).filter(function(e) { return ch.expectedDone[e.id]; }).length; }
+// Weekly bar chart — shows last N weeks
+function weeklyChartHTML(ch, numWeeks) {
+  if (!ch || !ch.weeklyLog) return '';
+  var today = new Date();
+  today.setHours(12,0,0,0);
+  var accent = 'var(--c-accent1,#9775fa)';
+  var special = 'var(--special,#5b9bd5)';
 
-// ── RENDER ───────────────────────────────────────────────
-function render() {
-  renderTabs();
-  renderMain();
-}
+  // Build list of weeks oldest to newest
+  var weeks = [];
+  for (var i = numWeeks-1; i >= 0; i--) {
+    var d = new Date(today);
+    d.setDate(today.getDate() - i*7);
+    var wk = isoWeek(d.toISOString().slice(0,10));
+    // Get monday of that week for label
+    var mon = new Date(d);
+    mon.setDate(d.getDate() - ((d.getDay()+6)%7));
+    var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var label = mon.getDate() + ' ' + MON[mon.getMonth()];
+    var isCurrent = (i === 0);
+    var entry = ch.weeklyLog[wk] || {daily:0, special:0, days:0};
+    weeks.push({wk:wk, label:label, isCurrent:isCurrent, days:entry.days||0, daily:entry.daily||0, special:entry.special||0});
+  }
 
-function renderTabs() {
-  var html = '';
-  state.children.forEach(function(ch, i) {
-    if (!ch) return;
-    var col = COLORS[i];
-    html += '<div class="child-tab '+(i===activeIdx?'active':'')+'" style="--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
-      '<span class="tab-avatar">'+ch.avatar+'</span>' +
-      '<span class="tab-name">'+ch.name+'</span>' +
-      '<span class="tab-week">£'+weekNet(ch).toFixed(2)+' this week</span>' +
-      '</div>';
+  var maxDays = 7;
+  var BAR_MAX_HEIGHT = 60; // px
+
+  var html = '<div style="display:flex;align-items:flex-end;gap:6px;height:'+(BAR_MAX_HEIGHT+30)+'px">';
+  weeks.forEach(function(w) {
+    var heightPct = w.days / maxDays;
+    var barH = Math.max(w.days > 0 ? 6 : 0, Math.round(BAR_MAX_HEIGHT * heightPct));
+    // Split bar: daily on top (accent), special on bottom (blue)
+    // Proportional split based on relative counts
+    var total = w.daily + w.special;
+    var specialH = total > 0 ? Math.round(barH * w.special / total) : 0;
+    var dailyH   = barH - specialH;
+
+    html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">';
+    // Bar
+    html += '<div style="width:100%;display:flex;flex-direction:column;border-radius:6px 6px 0 0;overflow:hidden;'+(w.isCurrent?'outline:2px solid rgba(0,0,0,0.15);outline-offset:1px':'')+'height:'+BAR_MAX_HEIGHT+'px;justify-content:flex-end">';
+    if (barH > 0) {
+      html += '<div style="display:flex;flex-direction:column;height:'+barH+'px">';
+      if (dailyH > 0)   html += '<div style="flex:'+dailyH+';background:'+accent+'"></div>';
+      if (specialH > 0) html += '<div style="flex:'+specialH+';background:'+special+'"></div>';
+      html += '</div>';
+    } else {
+      html += '<div style="height:4px;background:#f1f3f5;border-radius:4px"></div>';
+    }
+    html += '</div>';
+    // Day count badge
+    html += '<div style="font-size:.6rem;font-weight:800;color:'+(w.days>0?'var(--text-dark)':'var(--text-mid)')+';margin-top:3px">'+(w.days>0?w.days+'d':'—')+'</div>';
+    // Week label
+    html += '<div style="font-size:.55rem;color:var(--text-mid);text-align:center;margin-top:1px;line-height:1.2">'+(w.isCurrent?'Now':w.label)+'</div>';
+    html += '</div>';
   });
-  document.getElementById('childTabs').innerHTML = html;
+  html += '</div>';
+
+  // Legend
+  html += '<div style="display:flex;gap:12px;margin-top:10px;justify-content:center">' +
+    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+accent+'"></div><span style="font-size:.7rem;font-weight:700;color:var(--text-mid)">Daily</span></div>' +
+    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+special+'"></div><span style="font-size:.7rem;font-weight:700;color:var(--text-mid)">Special</span></div>' +
+    '</div>';
+  return html;
 }
 
 function jarSVG(pct, accent, ripple) {
   var p = Math.min(100, Math.max(0, pct));
   var fillH = Math.round(73 * p / 100);
   var fillY = 118 - fillH;
-
-  // Static SVG jar — canvas overlay handles the liquid animation
+  var waveAnim = ripple ? (
+    '<animate attributeName="d" ' +
+    'values="M25,'+fillY+' Q40,'+(fillY-8)+' 55,'+fillY+' Q70,'+(fillY+8)+' 85,'+fillY+' L85,118 Q85,126 55,126 Q25,126 25,118 Z;' +
+    'M25,'+fillY+' Q40,'+(fillY+8)+' 55,'+fillY+' Q70,'+(fillY-8)+' 85,'+fillY+' L85,118 Q85,126 55,126 Q25,126 25,118 Z;' +
+    'M25,'+fillY+' Q40,'+(fillY-4)+' 55,'+fillY+' Q70,'+(fillY+4)+' 85,'+fillY+' L85,118 Q85,126 55,126 Q25,126 25,118 Z;' +
+    'M25,'+fillY+' Q40,'+(fillY+2)+' 55,'+fillY+' Q70,'+(fillY-2)+' 85,'+fillY+' L85,118 Q85,126 55,126 Q25,126 25,118 Z;' +
+    'M25,'+fillY+' Q40,'+fillY+' 55,'+fillY+' Q70,'+fillY+' 85,'+fillY+' L85,118 Q85,126 55,126 Q25,126 25,118 Z" ' +
+    'dur="1.4s" begin="0s" repeatCount="1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1"/>'
+  ) : '';
   return '<svg id="jarSvg" viewBox="0 0 110 145" width="110" height="145" xmlns="http://www.w3.org/2000/svg">' +
-    '<defs>' +
-    '<clipPath id="jc"><path d="M25,45 L25,118 Q25,125 55,125 Q85,125 85,118 L85,45 Z"/></clipPath>' +
-    '<linearGradient id="jfill" x1="0" y1="0" x2="1" y2="0">' +
-    '<stop offset="0%" stop-color="'+accent+'" stop-opacity=".75"/>' +
-    '<stop offset="100%" stop-color="'+accent+'" stop-opacity="1"/>' +
-    '</linearGradient>' +
-    '</defs>' +
-    // Fill block
+    '<defs><clipPath id="jc"><path d="M25,45 L25,118 Q25,125 55,125 Q85,125 85,118 L85,45 Z"/></clipPath>' +
+    '<linearGradient id="jfill" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="'+accent+'" stop-opacity=".75"/><stop offset="100%" stop-color="'+accent+'" stop-opacity="1"/></linearGradient></defs>' +
     (fillH > 0 ? '<rect x="25" y="'+fillY+'" width="60" height="'+fillH+'" fill="url(#jfill)" clip-path="url(#jc)"/>' : '') +
-    // Wave canvas overlay (positioned over fill)
-    (fillH > 0 && ripple ? '<foreignObject x="25" y="'+(fillY-12)+'" width="60" height="20" clip-path="url(#jc)"><canvas id="waveCanvas" xmlns="http://www.w3.org/1999/xhtml" width="60" height="20" style="display:block"></canvas></foreignObject>' : '') +
-    // Shine
+    (fillH > 0 && ripple ? '<path d="M25,'+fillY+' Q40,'+fillY+' 55,'+fillY+' Q70,'+fillY+' 85,'+fillY+' L85,118 Q85,126 55,126 Q25,126 25,118 Z" fill="url(#jfill)" clip-path="url(#jc)">'+waveAnim+'</path>' : '') +
     (fillH > 2 ? '<ellipse cx="55" cy="'+fillY+'" rx="16" ry="2.5" fill="rgba(255,255,255,0.22)" clip-path="url(#jc)"/>' : '') +
-    // Jar outline
     '<path d="M25,45 L25,118 Q25,126 55,126 Q85,126 85,118 L85,45 Z" fill="none" stroke="#ccc" stroke-width="2"/>' +
-    // Neck
     '<path d="M35,45 L35,30 Q35,26 40,26 L70,26 Q75,26 75,30 L75,45" fill="none" stroke="#ccc" stroke-width="2"/>' +
-    // Lid
     '<rect x="29" y="18" width="52" height="11" rx="5.5" fill="'+accent+'" opacity=".8"/>' +
-    // Glass shine
     '<path d="M30,52 Q32,44 36,50" stroke="rgba(255,255,255,.5)" stroke-width="1.8" fill="none" stroke-linecap="round"/>' +
     (p>=100?'<text x="55" y="90" font-size="11" font-weight="bold" text-anchor="middle" fill="'+accent+'">Full! 🎉</text>':'')+
     '</svg>';
@@ -685,6 +723,30 @@ function startWaveAnimation(accent) {
   draw();
 }
 
+
+function weekNet(ch) {
+  if (!ch) return 0;
+  return +(Math.max(0, WEEKLY_BASE - (ch.weekPenalties||0)) + Math.min(BONUS_CAP, (ch.weekEarned||0))).toFixed(2);
+}
+function bonusEarned(ch) { return Math.min(BONUS_CAP, ch.weekEarned||0); }
+function canAddBonus(ch) { return (ch.weekEarned||0) < BONUS_CAP; }
+function expCount(ch) { return (ch.expectedTasks||[]).filter(function(e) { return ch.expectedDone[e.id]; }).length; }
+
+function render() { state = seedWeeklyLog(state); renderTabs(); renderMain(); }
+
+function renderTabs() {
+  var html = '';
+  state.children.forEach(function(ch, i) {
+    if (!ch) return;
+    var col = COLORS[i];
+    html += '<div class="child-tab '+(i===activeIdx?'active':'')+'" style="--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
+      '<span class="tab-avatar">'+ch.avatar+'</span>' +
+      '<span class="tab-name">'+ch.name+'</span>' +
+      '<span class="tab-week">£'+weekNet(ch).toFixed(2)+' this week</span>' +
+      '</div>';
+  });
+  document.getElementById('childTabs').innerHTML = html;
+}
 
 function renderMain() {
   var ch  = state.children[activeIdx];
@@ -776,20 +838,13 @@ function renderMain() {
     '<div class="streak-label">consecutive days with a quest completed</div>' +
     '</div></div></div>' +
 
-    // ACTIVITY CHART
+    // WEEKLY ACTIVITY CHART + THIS WEEK DAILY VIEW
     '<div class="chart-section">' +
-    '<div class="chart-header">' +
-    '<div class="chart-title">📅 Activity</div>' +
-    '<div style="display:flex;gap:10px;align-items:center">' +
-    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:var(--c-accent1,#9775fa)"></div><span style="font-size:.65rem;font-weight:700;color:var(--text-mid)">Daily</span></div>' +
-    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:var(--green)"></div><span style="font-size:.65rem;font-weight:700;color:var(--text-mid)">Special</span></div>' +
-    '</div>' +
-    '</div>' +
-    activityChartHTML(ch, 28) + '<script>setTimeout(function(){var t=document.querySelector(".chart-timeline");if(t)t.scrollLeft=t.scrollWidth;},50);<\/script>' +
-    (editMode ? '<div class="chart-stats">' +
-      '<span>'+Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length+' days active</span>' +
-      '<span>'+Math.round(Object.keys(ch.activityLog||{}).filter(function(k){return isActiveDay(ch.activityLog,k);}).length/28*100)+'% (28d)</span>' +
-      '</div>' : '') +
+    '<div class="chart-header"><div class="chart-title">📅 Weekly Activity</div></div>' +
+    weeklyChartHTML(ch, 8) +
+    '<div style="margin-top:14px"><div style="font-size:.8rem;font-weight:800;color:var(--text-dark);margin-bottom:8px">This week</div>' +
+    thisWeekHTML(ch) + '</div>' +
+
     '</div>' +
 
     // DEDUCTION SECTION — after chart
@@ -1244,7 +1299,7 @@ function initApp() {
           try {
             if (res&&res.data&&res.data.state) {
               var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
-              if (s&&s.children) { state=applyResets(s); saveLocal(); render(); }
+              if (s&&s.children) { state=seedWeeklyLog(applyResets(s)); saveLocal(); render(); }
             }
           } catch(e) {}
           try {
@@ -1267,7 +1322,7 @@ function initApp() {
                       });
                     }
                   });
-                  state=forceHistoricalDates(applyResets(s)); saveLocal(); render();
+                  state=seedWeeklyLog(applyResets(s)); saveLocal(); render();
                 }
               } catch(e) {}
             }).subscribe();
@@ -1292,7 +1347,7 @@ document.addEventListener('visibilitychange', function() {
         try {
           if (res&&res.data&&res.data.state) {
             var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
-            if (s&&s.children) { state=applyResets(s); saveLocal(); render(); }
+            if (s&&s.children) { state=seedWeeklyLog(applyResets(s)); saveLocal(); render(); }
           }
         } catch(e) {}
       }).catch(function(){});
