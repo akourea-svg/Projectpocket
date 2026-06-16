@@ -40,11 +40,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 .pin-hint{margin-top:12px;font-size:.75rem;color:#bbb;font-weight:600}
 
 /* ── HEADER ── */
-.app-header{padding:22px 20px 18px;text-align:center;background:linear-gradient(135deg,#9775fa 0%,#7c52f5 100%);position:relative;overflow:hidden}
-.app-header::before{content:'⭐';position:absolute;font-size:60px;opacity:.08;top:-10px;left:-10px;transform:rotate(-20deg)}
-.app-header::after{content:'✨';position:absolute;font-size:50px;opacity:.08;bottom:-8px;right:-5px;transform:rotate(15deg)}
-.app-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2.2rem;color:#fff;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.2);position:relative;z-index:1}
 
+.app-header{padding:18px 20px 4px;text-align:center}
+.app-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2rem;background:linear-gradient(135deg,#9775fa,#f59f00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:.5px;filter:drop-shadow(0 2px 4px rgba(151,117,250,.2))}
 /* ── PARENT BAR ── */
 .parent-bar{display:flex;justify-content:flex-end;padding:10px 16px;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.06);z-index:100}
 .parent-bar-btn{background:#f0f0f5;border:none;color:var(--text-mid);border-radius:10px;padding:8px 18px;font-family:'Nunito',system-ui,sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .15s}
@@ -194,6 +192,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 @keyframes avatarBounce{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.9)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
 @keyframes jarShake{0%,100%{transform:translateX(0) rotate(0)}15%{transform:translateX(-6px) rotate(-3deg)}30%{transform:translateX(6px) rotate(3deg)}45%{transform:translateX(-4px) rotate(-2deg)}60%{transform:translateX(4px) rotate(2deg)}75%{transform:translateX(-2px) rotate(-1deg)}}
 .jar-fill-ripple{position:absolute;bottom:0;left:0;right:0;height:8px;background:rgba(255,255,255,.4);border-radius:50%;animation:ripple .8s ease-out forwards}
+@keyframes miniBurstAnim{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot));opacity:0}}
 @keyframes ripple{0%{transform:scaleX(1.15) scaleY(.85);opacity:.7}50%{transform:scaleX(.92) scaleY(1.08);opacity:.5}100%{transform:scaleX(1) scaleY(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
@@ -228,9 +227,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 </div>
 
 <div id="app" style="display:none">
-  <header class="app-header">
-    <div class="app-title">🌟 ProjectPocket</div>
-  </header>
+  <div class="app-header"><div class="app-title">🌟 ProjectPocket</div></div>
   <div class="child-tabs" id="childTabs"></div>
   <div class="main-content" id="mainContent"></div>
   <div id="parentControls" style="display:none;padding:0 14px 14px"></div>
@@ -1099,7 +1096,7 @@ function renderMain() {
     if (!child) return;
     child.expectedDone[card.dataset.eid] = !child.expectedDone[card.dataset.eid];
     child.lastExpectedDate = todayStr();
-    if (child.expectedDone[card.dataset.eid]) recordActivity(child, 'daily');
+    if (child.expectedDone[card.dataset.eid]) { recordActivity(child, 'daily'); var colX = COLORS[activeIdx]; miniBurst(e.clientX||innerWidth/2, e.clientY||innerHeight/2, colX?colX.accent1:'#9775fa'); }
     save(); playTick(); render();
     // Check if all daily quests now complete
     var allDone = child.expectedTasks.every(function(t){return child.expectedDone[t.id];});
@@ -1178,7 +1175,8 @@ function toggleChore(childId, choreId, e) {
   if (!chore.done || chore.lastDone !== td) {
     chore.done=true; chore.lastDone=td;
     recordActivity(ch, 'special');
-    save(); spawnCoins(e); playTick(); render();
+    var col2 = COLORS[activeIdx]; miniBurst((e&&e.clientX)||innerWidth/2, (e&&e.clientY)||innerHeight/2, col2?col2.accent1:'#9775fa');
+    save(); playTick(); render();
   } else {
     chore.done=false; chore.lastDone='';
     save(); render();
@@ -1411,6 +1409,53 @@ function showAmazingBanner(name) {
     el.querySelector('div').style.transform = 'scale(0.5)';
     setTimeout(function() { el.style.pointerEvents = 'none'; }, 300);
   };
+}
+
+function miniBurst(x, y, accent) {
+  // Small localised confetti burst from tap point
+  var COLS = [accent, '#ffd43b', '#fff', '#ff922b', accent];
+  for (var i = 0; i < 18; i++) {
+    (function(idx) {
+      setTimeout(function() {
+        var p = document.createElement('div');
+        var size = 4 + Math.random() * 5;
+        var angle = Math.random() * Math.PI * 2;
+        var dist = 30 + Math.random() * 50;
+        var tx = Math.cos(angle) * dist;
+        var ty = Math.sin(angle) * dist - 20;
+        var color = COLS[Math.floor(Math.random() * COLS.length)];
+        p.style.cssText = 'position:fixed;pointer-events:none;z-index:500;' +
+          'width:'+size+'px;height:'+size+'px;' +
+          'background:'+color+';border-radius:'+(Math.random()>0.5?'50%':'2px')+';' +
+          'left:'+(x-size/2)+'px;top:'+(y-size/2)+'px;' +
+          'animation:miniBurstAnim .6s ease-out forwards;' +
+          '--tx:'+tx+'px;--ty:'+ty+'px;--rot:'+(Math.random()*360)+'deg;opacity:1';
+        document.body.appendChild(p);
+        setTimeout(function(){p.remove();}, 700);
+      }, idx * 20);
+    })(i);
+  }
+  // Also spawn emoji sparks
+  var sparks = ['⭐','✨','💫'];
+  for (var j = 0; j < 3; j++) {
+    (function(idx) {
+      setTimeout(function() {
+        var el = document.createElement('div');
+        el.className = 'coin-particle';
+        el.textContent = sparks[idx % sparks.length];
+        el.style.fontSize = (14+Math.random()*8)+'px';
+        el.style.background = 'none';
+        el.style.boxShadow = 'none';
+        var a = (Math.PI*2*idx/3)-Math.PI/2, d = 40+Math.random()*30;
+        el.style.setProperty('--dx', Math.cos(a)*d+'px');
+        el.style.setProperty('--dy', Math.sin(a)*d+'px');
+        el.style.left=x+'px'; el.style.top=y+'px';
+        el.style.animationDuration = (0.5+Math.random()*0.3)+'s';
+        document.body.appendChild(el);
+        setTimeout(function(){el.remove();},800);
+      }, idx * 60);
+    })(j);
+  }
 }
 
 function spawnCoins(e) {
