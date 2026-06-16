@@ -61,12 +61,12 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 .main-content{padding:16px}
 
 /* ── WEEK / THIS WEEK CARD ── */
-.week-card{border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 6px 24px rgba(0,0,0,.12);position:relative;overflow:hidden}
-.week-card::before{content:'';position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);top:-30px;right:-20px}
-.week-card::after{content:'';position:absolute;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06);bottom:-20px;left:10px}
+.week-card{border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.week-card::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.1);top:-50px;right:-40px}
+.week-card::after{content:'';position:absolute;width:120px;height:120px;border-radius:50%;background:rgba(0,0,0,.08);bottom:-40px;left:-20px}
 .week-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
 .week-label{font-family:'Fredoka One',Arial,sans-serif;color:rgba(255,255,255,.8);font-size:.82rem}
-.week-amount{font-family:'Fredoka One',Arial,sans-serif;font-size:3rem;color:#fff;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,.15)}
+.week-amount{font-family:'Fredoka One',Arial,sans-serif;font-size:3.2rem;color:#fff;line-height:1;text-shadow:0 3px 12px rgba(0,0,0,.2)}
 .week-right{text-align:right}
 .week-saved-label{font-size:.68rem;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .week-saved-val{font-family:'Fredoka One',Arial,sans-serif;font-size:1.5rem;color:#fff}
@@ -893,9 +893,9 @@ function renderMain() {
     '<div class="week-label">This week</div>' +
     '<div style="display:flex;align-items:baseline;gap:10px;margin-top:4px">' +
     '<div class="week-amount">£'+net.toFixed(2)+'</div>' +
-    '<div style="font-size:2rem;line-height:1">'+weekEmoji+'</div>' +
+    '<div style="font-size:2.6rem;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.2))">'+weekEmoji+'</div>' +
     '</div>' +
-    '<div style="font-size:.85rem;font-weight:700;color:rgba(255,255,255,.85);margin-top:4px">'+weekMsg+'</div>' +
+    '<div style="font-size:.9rem;font-weight:800;color:rgba(255,255,255,.9);margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.15)">'+weekMsg+'</div>' +
     '</div>' +
     '<div style="text-align:right">' +
     '<div class="week-saved-label">Total saved</div>' +
