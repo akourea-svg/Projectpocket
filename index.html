@@ -1050,11 +1050,77 @@ function renderMain() {
     var btn = document.getElementById('deductBtn');
     if (btn) { btn.style.filter='brightness(.75)'; setTimeout(function(){btn.style.filter='';},200); }
     addPenalty(ch.id);
+    window.scrollTo({top:0, behavior:'smooth'});
   });
   bindBtn('bonusBtn', function() {
     var btn = document.getElementById('bonusBtn');
     if (btn) { btn.style.filter='brightness(.75)'; setTimeout(function(){btn.style.filter='';},200); }
-    addBonus(ch.id);
+
+    // 1. Scroll to top slowly so kids can see the card
+    window.scrollTo({top:0, behavior:'smooth'});
+
+    // 2. After scroll arrives (~600ms), animate the counter up in pennies
+    setTimeout(function() {
+      var oldNet = weekNet(ch);
+      // Add the bonus to state
+      addBonus(ch.id);
+      var newNet = weekNet(ch);
+      var diff = newNet - oldNet; // should be 0.50
+      var steps = 50; // count up in 1p steps
+      var stepVal = diff / steps;
+      var stepDuration = 600 / steps; // total 600ms counter
+      var current = oldNet;
+      var step = 0;
+
+      // Find and animate the week-amount element
+      function animateCounter() {
+        step++;
+        current = parseFloat((oldNet + stepVal * step).toFixed(2));
+        var el = document.querySelector('.week-amount');
+        if (el) el.textContent = '£' + current.toFixed(2);
+        if (step < steps) {
+          setTimeout(animateCounter, stepDuration);
+        } else {
+          // Counter done — burst hearts
+          var cx = innerWidth / 2;
+          var cy = innerHeight / 2;
+          var symbols = ['❤️','💖','💜','💛','💕','❤️','💗','💜','💖','❤️'];
+          for (var wave=0; wave<3; wave++) {
+            (function(w) {
+              setTimeout(function() {
+                var count = 12;
+                for (var i=0; i<count; i++) {
+                  (function(idx) {
+                    setTimeout(function() {
+                      var el2 = document.createElement('div');
+                      var size = 40 + Math.random()*26;
+                      // Position centred: offset by half the emoji size
+                      var offset = size / 2;
+                      el2.style.cssText = 'position:fixed;pointer-events:none;z-index:9998;' +
+                        'font-size:'+size+'px;' +
+                        'left:'+(cx - offset)+'px;' +
+                        'top:'+(cy - offset)+'px;' +
+                        'animation:coin-fly '+(1+Math.random()*0.5)+'s ease-out forwards;' +
+                        'transform-origin:center';
+                      el2.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+                      var a = (Math.PI*2*idx/count) + (w*0.4);
+                      var d = 80 + Math.random()*140;
+                      el2.style.setProperty('--dx', Math.cos(a)*d+'px');
+                      el2.style.setProperty('--dy', Math.sin(a)*d+'px');
+                      document.body.appendChild(el2);
+                      setTimeout(function(){el2.remove();},1600);
+                    }, idx*25);
+                  })(i);
+                }
+              }, w*180);
+            })(wave);
+          }
+          // Re-render properly so all values sync
+          setTimeout(render, 400);
+        }
+      }
+      animateCounter();
+    }, 700);
   });
   bindBtn('jarSaveBtn', function() {
     var jsb = document.getElementById('jarSaveBtn');
