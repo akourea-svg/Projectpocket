@@ -432,6 +432,122 @@ function isoWeek(dateStr) {
   return thursday.getFullYear() + '-W' + (week < 10 ? '0'+week : week);
 }
 
+
+var BADGES = [
+  // Streak
+  {id:'streak3',   emoji:'🔥', name:'On Fire!',        desc:'3 day streak',           cat:'streak'},
+  {id:'streak7',   emoji:'🔥', name:'Week Warrior',     desc:'7 day streak',           cat:'streak'},
+  {id:'streak14',  emoji:'💥', name:'Unstoppable',      desc:'14 day streak',          cat:'streak'},
+  {id:'streak30',  emoji:'🌟', name:'Legend',           desc:'30 day streak',          cat:'streak'},
+  // Special quests
+  {id:'special3',  emoji:'⚡', name:'Quest Master',     desc:'3 special quests in a week', cat:'special'},
+  // Savings
+  {id:'save25',    emoji:'💰', name:'Saver',            desc:'25% of savings goal',    cat:'savings'},
+  {id:'save50',    emoji:'💰', name:'Halfway There',    desc:'50% of savings goal',    cat:'savings'},
+  {id:'save75',    emoji:'💎', name:'Almost There',     desc:'75% of savings goal',    cat:'savings'},
+  {id:'save100',   emoji:'🏆', name:'Goal Reached',     desc:'Saved full goal amount', cat:'savings'},
+  {id:'firstsave', emoji:'🎉', name:'First Save',       desc:'Banked money for the first time', cat:'savings'},
+  // Bonus
+  {id:'bonus1',    emoji:'🚀', name:'Bonus Earned',     desc:'Earned a bonus this week', cat:'bonus'},
+  // Totals
+  {id:'chores50',  emoji:'⭐', name:'Super Helper',     desc:'50 chores completed',    cat:'total'},
+  {id:'chores100', emoji:'🏅', name:'Champion',         desc:'100 chores completed',   cat:'total'},
+  {id:'teamwork',  emoji:'🤝', name:'Team Work!',       desc:'Both did a special quest on the same day', cat:'team'},
+];
+
+function checkBadges(ch, allChildren) {
+  if (!ch.badges) ch.badges = {};
+  if (!allChildren) allChildren = state.children;
+  if (typeof ch.totalChores !== 'number') ch.totalChores = 0;
+  var newBadges = [];
+  var streak = calcStreak(ch);
+  var savedPct = ch.goalTarget > 0 ? (ch.totalSaved / ch.goalTarget * 100) : 0;
+
+  // Streak badges
+  if (streak >= 3  && !ch.badges.streak3)  { ch.badges.streak3  = true; newBadges.push('streak3'); }
+  if (streak >= 7  && !ch.badges.streak7)  { ch.badges.streak7  = true; newBadges.push('streak7'); }
+  if (streak >= 14 && !ch.badges.streak14) { ch.badges.streak14 = true; newBadges.push('streak14'); }
+  if (streak >= 30 && !ch.badges.streak30) { ch.badges.streak30 = true; newBadges.push('streak30'); }
+
+  // Special quests this week
+  var wk = isoWeek(todayStr());
+  var weekEntry = ch.weeklyLog && ch.weeklyLog[wk];
+  if (weekEntry && (weekEntry.special || 0) >= 3 && !ch.badges.special3) {
+    ch.badges.special3 = true; newBadges.push('special3');
+  }
+
+  // Savings milestones
+  if (savedPct >= 25  && !ch.badges.save25)    { ch.badges.save25   = true; newBadges.push('save25'); }
+  if (savedPct >= 50  && !ch.badges.save50)    { ch.badges.save50   = true; newBadges.push('save50'); }
+  if (savedPct >= 75  && !ch.badges.save75)    { ch.badges.save75   = true; newBadges.push('save75'); }
+  if (savedPct >= 100 && !ch.badges.save100)   { ch.badges.save100  = true; newBadges.push('save100'); }
+  if ((ch.totalSaved||0) > 0 && !ch.badges.firstsave) { ch.badges.firstsave = true; newBadges.push('firstsave'); }
+
+  // Bonus
+  if ((ch.weekEarned||0) > 0 && !ch.badges.bonus1) { ch.badges.bonus1 = true; newBadges.push('bonus1'); }
+
+  // Total chores
+  if ((ch.totalChores||0) >= 50  && !ch.badges.chores50)  { ch.badges.chores50  = true; newBadges.push('chores50'); }
+  if ((ch.totalChores||0) >= 100 && !ch.badges.chores100) { ch.badges.chores100 = true; newBadges.push('chores100'); }
+
+  // Teamwork — both children did a special quest on the same day
+  if (!ch.badges.teamwork && allChildren && allChildren.length >= 2) {
+    // Build set of days this child did a special quest
+    var mySpecialDays = {};
+    Object.keys(ch.weeklyLog||{}).forEach(function(wk) {
+      var dc = ch.weeklyLog[wk].dayCounts || {};
+      Object.keys(dc).forEach(function(d) { if (dc[d].special > 0) mySpecialDays[d] = true; });
+    });
+    // Check if any other child shares a special quest day
+    var otherChildren = allChildren.filter(function(x){return x.id !== ch.id;});
+    var teamworkFound = otherChildren.some(function(other) {
+      return Object.keys(other.weeklyLog||{}).some(function(wk) {
+        var dc = (other.weeklyLog[wk].dayCounts) || {};
+        return Object.keys(dc).some(function(d) { return dc[d].special > 0 && mySpecialDays[d]; });
+      });
+    });
+    if (teamworkFound) { ch.badges.teamwork = true; newBadges.push('teamwork'); }
+  }
+
+  return newBadges;
+}
+
+function showBadgeUnlock(badge) {
+  var b = BADGES.find(function(x){return x.id===badge;});
+  if (!b) return;
+  var el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);z-index:9992;background:#fff;border-radius:24px;padding:28px 32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;min-width:220px';
+  el.innerHTML = '<div style="font-size:3.5rem;margin-bottom:8px">'+b.emoji+'</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:4px">Badge Unlocked!</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.2rem;color:var(--text-dark);margin-bottom:6px">'+b.name+'</div>' +
+    '<div style="font-size:.8rem;font-weight:700;color:var(--text-mid)">'+b.desc+'</div>';
+  document.body.appendChild(el);
+  requestAnimationFrame(function() {
+    el.style.opacity = '1';
+    el.style.transform = 'translate(-50%,-50%) scale(1)';
+  });
+  launchConfetti();
+  setTimeout(function() {
+    el.style.opacity = '0';
+    el.style.transform = 'translate(-50%,-50%) scale(0.8)';
+    setTimeout(function(){el.remove();}, 400);
+  }, 3000);
+}
+
+function badgeCabinetHTML(ch) {
+  var earned = ch.badges || {};
+  var html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px">';
+  BADGES.forEach(function(b) {
+    var has = !!earned[b.id];
+    html += '<div style="text-align:center;opacity:'+(has?'1':'0.25')+';">' +
+      '<div style="font-size:1.8rem;'+(has?'filter:drop-shadow(0 2px 6px rgba(0,0,0,.2))':'filter:grayscale(1)')+'">'+b.emoji+'</div>' +
+      '<div style="font-size:.55rem;font-weight:700;color:'+(has?'var(--text-dark)':'var(--text-mid)')+';margin-top:3px;line-height:1.2">'+b.name+'</div>' +
+      '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
 function recordWeeklyActivity(ch, type) {
   var wk = isoWeek(todayStr());
   if (!ch.weeklyLog) ch.weeklyLog = {};
@@ -969,6 +1085,12 @@ function renderMain() {
     '<div class="streak-label">consecutive days with a quest completed</div>' +
     '</div></div></div>' +
 
+    // BADGES
+    '<div class="chart-section" style="margin-top:16px">' +
+    '<div class="chart-header"><div class="chart-title">🏅 Badges</div></div>' +
+    badgeCabinetHTML(ch) +
+    '</div>' +
+
     // WEEKLY ACTIVITY CHART + THIS WEEK DAILY VIEW
     '<div class="chart-section">' +
     '<div class="chart-header"><div class="chart-title">📅 Weekly Activity</div></div>' +
@@ -1020,7 +1142,7 @@ function renderMain() {
     '</div></div>' +
     '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
       '<button class="btn-action btn-reset" id="resetQuestsBtn">🔄 Reset quest lists to defaults</button>' +
-      '<button class="btn-action btn-danger" id="resetAllBtn">🗑️ Reset ALL data to zero</button>' +
+      '<button class="btn-action btn-danger" id="resetAllBtn">↩️ Reset bonus &amp; deductions to zero</button>' +
       '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'Test mode ON — tap to turn off':'Test Saturday mode')+'</button>' +
       '<div class="panel-section" style="margin-top:8px"><div class="panel-label">🔑 Change PIN</div>' +
       '<input class="form-input" id="pinNew" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:7px">' +
@@ -1070,11 +1192,9 @@ function renderMain() {
       save(); render(); showMsg('£'+amt.toFixed(2)+' removed from savings', '#868e96');
     });
     setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties=0; save(); render(); });
-    setupDoubleTab('resetAllBtn',    function() {
-      ch.totalSaved=0; ch.weekEarned=0; ch.weekPenalties=0;
-      ch.weekStart=weekStart();
-      ch.earningChores.forEach(function(c){c.done=false;c.lastDone='';});
-      ch.expectedDone={}; ch.lastExpectedDate='';
+    setupDoubleTab('resetAllBtn', function() {
+      ch.weekEarned = 0;
+      ch.weekPenalties = 0;
       save(); render();
     });
     bindBtn('changePinBtn', function() {
@@ -1207,9 +1327,36 @@ function renderMain() {
     if (!card || editMode) return;
     var child = state.children.find(function(c){return c.id===card.dataset.child;});
     if (!child) return;
-    child.expectedDone[card.dataset.eid] = !child.expectedDone[card.dataset.eid];
+    var wasChecked = !!child.expectedDone[card.dataset.eid];
+    child.expectedDone[card.dataset.eid] = !wasChecked;
     child.lastExpectedDate = todayStr();
-    if (child.expectedDone[card.dataset.eid]) { recordActivity(child, 'daily'); var colX = COLORS[activeIdx]; miniBurst(e.clientX||innerWidth/2, e.clientY||innerHeight/2, colX?colX.accent1:'#9775fa'); }
+    if (!wasChecked) {
+      // Ticking on
+      child.totalChores = (child.totalChores||0) + 1;
+      recordActivity(child, 'daily');
+      var colX = COLORS[activeIdx]; miniBurst(e.clientX||innerWidth/2, e.clientY||innerHeight/2, colX?colX.accent1:'#9775fa');
+      var nb2 = checkBadges(child, state.children); if (nb2.length) { setTimeout(function(){showBadgeUnlock(nb2[0]);},600); }
+    } else {
+      // Unticking — decrement counts
+      if (child.totalChores > 0) child.totalChores--;
+      var wkD = isoWeek(todayStr());
+      var entryD = child.weeklyLog && child.weeklyLog[wkD];
+      if (entryD) {
+        if (entryD.daily > 0) entryD.daily--;
+        var tdD = todayStr();
+        if (entryD.dayCounts && entryD.dayCounts[tdD] && entryD.dayCounts[tdD].daily > 0) {
+          entryD.dayCounts[tdD].daily--;
+        }
+        if (entryD.dayCounts && entryD.dayCounts[tdD]) {
+          var dcD = entryD.dayCounts[tdD];
+          if (dcD.daily === 0 && dcD.special === 0) {
+            delete entryD.daysSeen[tdD];
+            delete entryD.dayCounts[tdD];
+            entryD.days = Object.keys(entryD.daysSeen).length;
+          }
+        }
+      }
+    }
     save(); playTick(); render();
     // Check if all daily quests now complete
     var allDone = child.expectedTasks.every(function(t){return child.expectedDone[t.id];});
@@ -1287,11 +1434,32 @@ function toggleChore(childId, choreId, e) {
   var td = todayStr();
   if (!chore.done || chore.lastDone !== td) {
     chore.done=true; chore.lastDone=td;
+    ch.totalChores = (ch.totalChores||0) + 1;
     recordActivity(ch, 'special');
     var col2 = COLORS[activeIdx]; miniBurst((e&&e.clientX)||innerWidth/2, (e&&e.clientY)||innerHeight/2, col2?col2.accent1:'#9775fa');
+    var nb1 = checkBadges(ch, state.children); if (nb1.length) { setTimeout(function(){showBadgeUnlock(nb1[0]);},600); }
     save(); playTick(); render();
   } else {
     chore.done=false; chore.lastDone='';
+    // Decrement weekly log counts for today
+    var wkU = isoWeek(todayStr());
+    var entryU = ch.weeklyLog && ch.weeklyLog[wkU];
+    if (entryU) {
+      if (entryU.special > 0) entryU.special--;
+      var tdU = todayStr();
+      if (entryU.dayCounts && entryU.dayCounts[tdU] && entryU.dayCounts[tdU].special > 0) {
+        entryU.dayCounts[tdU].special--;
+      }
+      // If no activity left today, remove from daysSeen
+      if (entryU.dayCounts && entryU.dayCounts[tdU]) {
+        var dc = entryU.dayCounts[tdU];
+        if (dc.daily === 0 && dc.special === 0) {
+          delete entryU.daysSeen[tdU];
+          delete entryU.dayCounts[tdU];
+          entryU.days = Object.keys(entryU.daysSeen).length;
+        }
+      }
+    }
     save(); render();
   }
 }
@@ -1403,6 +1571,7 @@ function doSaveToJar(childId) {
       }
     }, 50);
     // Check if jar is now full
+    var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){showBadgeUnlock(nb3[0]);},800); }
     if (ch.totalSaved >= ch.goalTarget) {
       setTimeout(function() { showJarFullCelebration(ch); }, 400);
     }
