@@ -383,7 +383,7 @@ function freshDemoState() {
        '2026-W24':{daily:8,special:2,days:3,daysSeen:{'2026-06-13':true,'2026-06-14':true,'2026-06-15':true},dayCounts:{'2026-06-13':{daily:4,special:1},'2026-06-14':{daily:2,special:1},'2026-06-15':{daily:2,special:0}}},
        '2026-W25':{daily:6,special:1,days:3,daysSeen:{'2026-06-15':true,'2026-06-16':true,'2026-06-17':true},dayCounts:{'2026-06-15':{daily:2,special:0},'2026-06-16':{daily:2,special:1},'2026-06-17':{daily:2,special:0}}}
      },
-     badges:{streak3:true, special3:true, save25:true, save50:true, firstsave:true, bonus1:true},
+     badges:{},
      totalChores:42,
      earningChores:DEFAULT_CHORES.map(function(ch,i){return {id:'dp'+(i+1),emoji:ch.emoji,name:ch.name,done:i<2,lastDone:i<2?todayStr():''}}),
      expectedTasks:DEFAULT_EXPECTED.map(function(e){return {id:e.id,emoji:e.emoji,name:e.name};}),
@@ -399,7 +399,7 @@ function freshDemoState() {
        '2026-W24':{daily:6,special:1,days:2,daysSeen:{'2026-06-13':true,'2026-06-14':true},dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:3,special:0}}},
        '2026-W25':{daily:4,special:0,days:2,daysSeen:{'2026-06-16':true,'2026-06-17':true},dayCounts:{'2026-06-16':{daily:2,special:0},'2026-06-17':{daily:2,special:0}}}
      },
-     badges:{streak3:true, firstsave:false, bonus1:true, teamwork:true},
+     badges:{},
      totalChores:28,
      earningChores:DEFAULT_CHORES.map(function(ch,i){return {id:'rp'+(i+1),emoji:ch.emoji,name:ch.name,done:false,lastDone:''}}),
      expectedTasks:DEFAULT_EXPECTED.map(function(e){return {id:e.id,emoji:e.emoji,name:e.name};}),
@@ -447,6 +447,13 @@ function applyResets(s) {
     if (ch.weekSaved && !ch.weekSavedDate) ch.weekSaved = false;
     // Clean up old activityLog if present
     delete ch.activityLog;
+    // Audit badges — remove any that don't meet criteria
+    if (ch.badges) {
+      // firstsave / save100 only if totalBanked > 0
+      if (ch.badges.firstsave && !(ch.totalBanked > 0)) delete ch.badges.firstsave;
+      if (ch.badges.save100   && !(ch.totalBanked > 0)) delete ch.badges.save100;
+      // save25/50/75 are progress badges — keep once earned even if goal resets
+    }
     // Always force seed historical data
     // Force seed historical completed days — genuine past activity only
     ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
@@ -486,11 +493,11 @@ var BADGES = [
   // Special quests
   {id:'special3',  emoji:'⚡', name:'Quest Master',     desc:'3 special quests in a week', cat:'special'},
   // Savings
-  {id:'save25',    emoji:'💰', name:'Saver',            desc:'25% of savings goal',    cat:'savings'},
-  {id:'save50',    emoji:'💰', name:'Halfway There',    desc:'50% of savings goal',    cat:'savings'},
-  {id:'save75',    emoji:'💎', name:'Almost There',     desc:'75% of savings goal',    cat:'savings'},
-  {id:'save100',   emoji:'🏆', name:'Goal Reached',     desc:'Saved full goal amount', cat:'savings'},
-  {id:'firstsave', emoji:'🎉', name:'First Save',       desc:'Banked money for the first time', cat:'savings'},
+  {id:'save25',    emoji:'💰', name:'Saver',            desc:'25% of your goal saved', cat:'savings'},
+  {id:'save50',    emoji:'💰', name:'Halfway There',    desc:'50% of your goal saved', cat:'savings'},
+  {id:'save75',    emoji:'💎', name:'Almost There',     desc:'75% of your goal saved', cat:'savings'},
+  {id:'save100',   emoji:'🏆', name:'Goal Reached',     desc:'Banked a full savings goal!', cat:'savings'},
+  {id:'firstsave', emoji:'🎉', name:'First Bank',       desc:'Banked your first savings goal!', cat:'savings'},
   // Bonus
   {id:'bonus1',    emoji:'🚀', name:'Bonus Earned',     desc:'Earned a bonus this week', cat:'bonus'},
   // Totals
@@ -553,15 +560,12 @@ function checkBadges(ch, allChildren) {
     ch.badges.special3 = true; newBadges.push('special3');
   }
 
-  // Savings milestones
-  if (savedPct >= 25  && !ch.badges.save25)    { ch.badges.save25   = true; newBadges.push('save25'); }
-  if (savedPct >= 50  && !ch.badges.save50)    { ch.badges.save50   = true; newBadges.push('save50'); }
-  if (savedPct >= 75  && !ch.badges.save75)    { ch.badges.save75   = true; newBadges.push('save75'); }
-  if (savedPct >= 100 && !ch.badges.save100)   { ch.badges.save100  = true; newBadges.push('save100'); }
-  if (((ch.goalSaved||0) > 0 || (ch.totalSaved||0) > 0) && !ch.badges.firstsave) { ch.badges.firstsave = true; newBadges.push('firstsave'); }
-
-  // Bonus
-  if ((ch.weekEarned||0) > 0 && !ch.badges.bonus1) { ch.badges.bonus1 = true; newBadges.push('bonus1'); }
+  // Savings progress badges — fire on goalSaved progress, accumulate forever
+  if (savedPct >= 25  && !ch.badges.save25)  { ch.badges.save25  = true; newBadges.push('save25'); }
+  if (savedPct >= 50  && !ch.badges.save50)  { ch.badges.save50  = true; newBadges.push('save50'); }
+  if (savedPct >= 75  && !ch.badges.save75)  { ch.badges.save75  = true; newBadges.push('save75'); }
+  // save100 and firstsave only when Bank It is pressed (handled in showJarFullCelebration)
+  // bonus1 is awarded in addBonus() directly, not here passively
 
   // Total chores
   if ((ch.totalChores||0) >= 50  && !ch.badges.chores50)  { ch.badges.chores50  = true; newBadges.push('chores50'); }
@@ -1733,7 +1737,12 @@ function addBonus(childId) {
   var ch = state.children.find(function(c){return c.id===childId;});
   if ((ch.weekEarned||0) >= BONUS_CAP) return;
   ch.weekEarned = +((ch.weekEarned||0) + BONUS_AMOUNT).toFixed(2);
+  // Award bonus badge on first bonus
+  if (!ch.badges) ch.badges = {};
+  var isNewBadge = !ch.badges.bonus1;
+  if (isNewBadge) ch.badges.bonus1 = true;
   save(); render();
+  if (isNewBadge) setTimeout(function(){showBadgeUnlock('bonus1');}, 600);
 }
 
 function doBankNow(ch) {
@@ -1850,6 +1859,12 @@ function showJarFullCelebration(ch) {
 
   function setNewGoal(amount, name) {
     ch.totalBanked = +((ch.totalBanked||0) + (ch.goalSaved||0)).toFixed(2);
+    // Award banking badges
+    if (!ch.badges) ch.badges = {};
+    var newBankBadges = [];
+    if (!ch.badges.firstsave) { ch.badges.firstsave = true; newBankBadges.push('firstsave'); }
+    if (!ch.badges.save100)   { ch.badges.save100   = true; newBankBadges.push('save100'); }
+    if (newBankBadges.length) setTimeout(function(){showBadgeUnlock(newBankBadges[0]);}, 1200);
     ch.goalSaved = 0; // Reset goal progress only
     ch.goalTarget = amount;
     ch.goalName   = name || 'My Savings Goal';
