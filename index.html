@@ -397,14 +397,25 @@ function applyResets(s) {
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
+    // Reset weekSaved if saved on a different date than today
+    if (ch.weekSaved && ch.weekSavedDate && ch.weekSavedDate !== todayStr()) ch.weekSaved = false;
+    // ONE-TIME FIX: force clear weekSaved if weekSavedDate is missing (old corrupt state)
+    if (ch.weekSaved && !ch.weekSavedDate) ch.weekSaved = false;
     // Clean up old activityLog if present
     delete ch.activityLog;
     // Always force seed historical data
     // Force seed historical completed days — genuine past activity only
-    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}};
-    if (!ch.weeklyLog['2026-W25']) ch.weeklyLog['2026-W25'] = {daily:0, special:0, days:0, daysSeen:{}};
-    ch.weeklyLog['2026-W25'].daysSeen['2026-06-15'] = true;
-    ch.weeklyLog['2026-W25'].days = Object.keys(ch.weeklyLog['2026-W25'].daysSeen).length;
+    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
+    ch.weeklyLog['2026-W25'] = {
+      daily:8, special:1, days:4,
+      daysSeen:{'2026-06-15':true,'2026-06-16':true,'2026-06-17':true,'2026-06-18':true},
+      dayCounts:{
+        '2026-06-15':{daily:2, special:0},
+        '2026-06-16':{daily:2, special:1},
+        '2026-06-17':{daily:2, special:0},
+        '2026-06-18':{daily:2, special:0}
+      }
+    };
   });
   return s;
 }
@@ -424,17 +435,19 @@ function isoWeek(dateStr) {
 function recordWeeklyActivity(ch, type) {
   var wk = isoWeek(todayStr());
   if (!ch.weeklyLog) ch.weeklyLog = {};
-  if (!ch.weeklyLog[wk]) ch.weeklyLog[wk] = {daily:0, special:0, days:0, daysSeen:{}};
+  if (!ch.weeklyLog[wk]) ch.weeklyLog[wk] = {daily:0, special:0, days:0, daysSeen:{}, dayCounts:{}};
   var entry = ch.weeklyLog[wk];
-  // Track unique days
   var td = todayStr();
   if (!entry.daysSeen) entry.daysSeen = {};
+  if (!entry.dayCounts) entry.dayCounts = {};
   if (!entry.daysSeen[td]) {
     entry.daysSeen[td] = true;
     entry.days = Object.keys(entry.daysSeen).length;
   }
-  if (type === 'daily')   entry.daily++;
-  if (type === 'special') entry.special++;
+  // Track per-day counts: dayCounts[date] = {daily:N, special:N}
+  if (!entry.dayCounts[td]) entry.dayCounts[td] = {daily:0, special:0};
+  if (type === 'daily')   { entry.daily++; entry.dayCounts[td].daily++; }
+  if (type === 'special') { entry.special++; entry.dayCounts[td].special++; }
 }
 
 function seedWeeklyLog(s) {
@@ -443,7 +456,7 @@ function seedWeeklyLog(s) {
     if (!ch) return;
     if (!ch.weeklyLog) ch.weeklyLog = {};
     // Always force seed historical weeks — force overwrite regardless of existing data
-    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}};
+    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
 
     // Remove old activityLog
     delete ch.activityLog;
@@ -543,31 +556,40 @@ function calcStreak(ch) {
   return streak;
 }
 
-// This week daily view — Mon to Sun, showing today and past days
+// This week daily view — fractional fill based on chore counts
 function thisWeekHTML(ch) {
   if (!ch || !ch.weeklyLog) return '';
   var today = new Date();
   today.setHours(12,0,0,0);
   var todayKey = todayStr();
+  var DAILY_TOTAL = (ch.expectedTasks || []).length || 7;
+  var SPECIAL_TOTAL = (ch.earningChores || []).length || 5;
 
   // Get Sunday of this display week
   var sun = new Date(today);
   sun.setDate(today.getDate() - today.getDay());
 
-  // Merge daysSeen from ALL weeks that overlap this Sun-Sat display window
-  var daysSeen = {};
+  // Merge dayCounts from all weeks
+  var dayCounts = {};
   Object.keys(ch.weeklyLog).forEach(function(wk) {
     var entry = ch.weeklyLog[wk];
-    if (entry && entry.daysSeen) {
+    if (entry && entry.dayCounts) {
+      Object.keys(entry.dayCounts).forEach(function(d) {
+        dayCounts[d] = entry.dayCounts[d];
+      });
+    }
+    // Fallback: if daysSeen but no dayCounts, mark as partial
+    if (entry && entry.daysSeen && !entry.dayCounts) {
       Object.keys(entry.daysSeen).forEach(function(d) {
-        daysSeen[d] = true;
+        if (!dayCounts[d]) dayCounts[d] = {daily:1, special:0};
       });
     }
   });
 
   var DAY_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var MON_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">';
+  var accent = 'var(--c-accent1,#9775fa)';
+  var special = 'var(--special,#2ec4b6)';
+  var html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px">';
 
   for (var i = 0; i < 7; i++) {
     var d = new Date(sun);
@@ -575,20 +597,45 @@ function thisWeekHTML(ch) {
     var key = d.toISOString().slice(0,10);
     var isToday = key === todayKey;
     var isFuture = d > today;
-    var active = !!daysSeen[key];
-    var accent = active ? 'var(--c-accent1,#9775fa)' : (isFuture ? 'transparent' : '#f1f3f5');
-    var border = isFuture ? '2px dashed #dee2e6' : (isToday ? '2px solid var(--c-accent1,#9775fa)' : '2px solid transparent');
-    var textColor = active ? '#fff' : (isFuture ? '#dee2e6' : 'var(--text-mid)');
+    var counts = dayCounts[key] || {daily:0, special:0};
+    var dailyPct  = Math.min(1, counts.daily / DAILY_TOTAL);
+    var specialPct = Math.min(1, counts.special / SPECIAL_TOTAL);
+    var hasAny = counts.daily > 0 || counts.special > 0;
+
+    // Build stacked fill: daily from bottom, special on top
+    // Total height = 100%, daily fills proportionally, special stacks above
+    var dailyH   = Math.round(dailyPct * 100);
+    var specialH = Math.round(specialPct * 40); // special is max 40% of height
+
+    var borderStyle = isFuture
+      ? '2px dashed #e0e0e0'
+      : isToday
+        ? '2px solid '+accent
+        : '2px solid rgba(0,0,0,.06)';
+
+    var bg = isFuture ? '#fafafa' : '#f5f5f5';
 
     html += '<div style="text-align:center">' +
-      '<div style="font-size:.6rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">' + DAY_SHORT[i] + '</div>' +
-      '<div style="width:100%;aspect-ratio:1;border-radius:8px;background:'+accent+';border:'+border+';display:flex;align-items:center;justify-content:center">' +
-      '<span style="font-size:.65rem;font-weight:800;color:'+textColor+'">' + (isToday ? '•' : (active ? '✓' : '')) + '</span>' +
+      '<div style="font-size:.58rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">' + (isToday ? 'Today' : DAY_SHORT[i]) + '</div>' +
+      // Square with fractional fill
+      '<div style="position:relative;width:100%;padding-top:100%;border-radius:10px;background:'+bg+';border:'+borderStyle+';overflow:hidden">' +
+        // Daily fill from bottom
+        (dailyH > 0 ? '<div style="position:absolute;bottom:0;left:0;right:0;height:'+dailyH+'%;background:'+accent+';opacity:0.85;transition:height .4s ease"></div>' : '') +
+        // Special fill on top of daily (different colour, smaller)
+        (specialH > 0 ? '<div style="position:absolute;bottom:'+(dailyH)+'%;left:0;right:0;height:'+specialH+'%;background:'+special+';opacity:0.9;transition:height .4s ease"></div>' : '') +
+        // Today dot
+        (isToday && !hasAny ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem">·</div>' : '') +
       '</div>' +
-      '<div style="font-size:.55rem;color:var(--text-mid);margin-top:2px">' + d.getDate() + '</div>' +
+      '<div style="font-size:.52rem;color:var(--text-mid);margin-top:2px">' + d.getDate() + '</div>' +
       '</div>';
   }
   html += '</div>';
+
+  // Legend
+  html += '<div style="display:flex;gap:12px;margin-top:8px;justify-content:center">' +
+    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+accent+'"></div><span style="font-size:.68rem;font-weight:700;color:var(--text-mid)">Daily</span></div>' +
+    '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+special+'"></div><span style="font-size:.68rem;font-weight:700;color:var(--text-mid)">Special</span></div>' +
+    '</div>';
   return html;
 }
 
@@ -616,35 +663,38 @@ function weeklyChartHTML(ch, numWeeks) {
     weeks.push({wk:wk, label:label, isCurrent:isCurrent, days:entry.days||0, daily:entry.daily||0, special:entry.special||0});
   }
 
-  var maxDays = 7;
-  var BAR_MAX_HEIGHT = 60; // px
+  // Max chores per week = 7 days * (daily + special tasks)
+  var DAILY_T = (state.children[activeIdx].expectedTasks||[]).length || 7;
+  var SPECIAL_T = (state.children[activeIdx].earningChores||[]).length || 5;
+  var maxChores = 7 * (DAILY_T + SPECIAL_T);
+  var BAR_MAX_HEIGHT = 60;
 
-  var html = '<div style="display:flex;align-items:flex-end;gap:6px;height:'+(BAR_MAX_HEIGHT+30)+'px">';
+  // Find actual max for this child to scale bars nicely
+  var actualMax = 0;
+  weeks.forEach(function(w) { if (w.daily+w.special > actualMax) actualMax = w.daily+w.special; });
+  var scaleMax = Math.max(actualMax, Math.round(maxChores * 0.5)); // at least 50% of max
+
+  var html = '<div style="display:flex;align-items:flex-end;gap:6px;height:'+(BAR_MAX_HEIGHT+36)+'px">';
   weeks.forEach(function(w) {
-    var heightPct = w.days / maxDays;
-    var barH = Math.max(w.days > 0 ? 6 : 0, Math.round(BAR_MAX_HEIGHT * heightPct));
-    // Split bar: daily on top (accent), special on bottom (blue)
-    // Proportional split based on relative counts
     var total = w.daily + w.special;
+    var heightPct = scaleMax > 0 ? total / scaleMax : 0;
+    var barH = Math.max(total > 0 ? 6 : 0, Math.round(BAR_MAX_HEIGHT * heightPct));
     var specialH = total > 0 ? Math.round(barH * w.special / total) : 0;
     var dailyH   = barH - specialH;
 
     html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">';
-    // Bar
-    html += '<div style="width:100%;display:flex;flex-direction:column;border-radius:6px 6px 0 0;overflow:hidden;'+(w.isCurrent?'outline:2px solid rgba(0,0,0,0.15);outline-offset:1px':'')+'height:'+BAR_MAX_HEIGHT+'px;justify-content:flex-end">';
+    html += '<div style="font-size:.58rem;font-weight:800;color:'+(total>0?'var(--text-dark)':'var(--text-mid)')+';margin-bottom:2px">'+(total>0?total:'')+'</div>';
+    html += '<div style="width:100%;display:flex;flex-direction:column;border-radius:8px 8px 0 0;overflow:hidden;'+(w.isCurrent?'box-shadow:0 0 0 2px var(--c-accent1,#9775fa)':'')+'height:'+BAR_MAX_HEIGHT+'px;justify-content:flex-end">';
     if (barH > 0) {
       html += '<div style="display:flex;flex-direction:column;height:'+barH+'px">';
       if (dailyH > 0)   html += '<div style="flex:'+dailyH+';background:'+accent+'"></div>';
       if (specialH > 0) html += '<div style="flex:'+specialH+';background:'+special+'"></div>';
       html += '</div>';
     } else {
-      html += '<div style="height:4px;background:#f1f3f5;border-radius:4px"></div>';
+      html += '<div style="height:3px;background:#eee;border-radius:4px;margin-bottom:0"></div>';
     }
     html += '</div>';
-    // Day count badge
-    html += '<div style="font-size:.6rem;font-weight:800;color:'+(w.days>0?'var(--text-dark)':'var(--text-mid)')+';margin-top:3px">'+(w.days>0?w.days+'d':'—')+'</div>';
-    // Week label
-    html += '<div style="font-size:.55rem;color:var(--text-mid);text-align:center;margin-top:1px;line-height:1.2">'+(w.isCurrent?'Now':w.label)+'</div>';
+    html += '<div style="font-size:.52rem;color:var(--text-mid);text-align:center;margin-top:3px;line-height:1.2">'+(w.isCurrent?'Now':w.label)+'</div>';
     html += '</div>';
   });
   html += '</div>';
@@ -1339,7 +1389,8 @@ function doSaveToJar(childId) {
     ch.totalSaved = +((ch.totalSaved||0) + net).toFixed(2);
     ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=weekStart();
     ch.weekSaved=true;
-    ch.earningChores.forEach(function(c){c.done=false;c.lastDone='';});
+    ch.weekSavedDate=todayStr();
+    ch.earningChores.forEach(function(c){c.done=false;c.lastDone=''});
     ch.expectedDone={};
     save(); render();
     // Trigger ripple at new fill level after render
