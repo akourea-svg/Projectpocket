@@ -44,9 +44,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 .app-header{padding:18px 20px 4px;text-align:center}
 .app-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2rem;background:linear-gradient(135deg,#9775fa,#f59f00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:.5px;filter:drop-shadow(0 2px 4px rgba(151,117,250,.2))}
 /* ── PARENT BAR ── */
-.parent-bar{display:flex;justify-content:flex-end;padding:10px 16px;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.06);z-index:100}
-.parent-bar-btn{background:#f0f0f5;border:none;color:var(--text-mid);border-radius:10px;padding:8px 18px;font-family:'Nunito',system-ui,sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .15s}
-.parent-bar-btn.active{background:var(--purple);color:#fff;box-shadow:0 4px 12px rgba(151,117,250,.4)}
+.parent-bar{display:flex;justify-content:space-around;align-items:center;padding:10px 0 16px;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.08);z-index:100}
+.parent-bar-btn{background:none;border:none;color:var(--text-mid);font-family:'Nunito',system-ui,sans-serif;font-size:.58rem;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 16px}
+.parent-bar-btn.active{color:var(--purple)}
 
 /* ── TABS ── */
 .child-tabs{display:flex;padding:16px 16px 0;gap:12px}
@@ -92,28 +92,28 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 .expected-title{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:1.1rem}
 .expected-badge{font-family:'Fredoka One',Arial,sans-serif;font-size:.78rem;background:var(--yellow);color:#664d03;border-radius:20px;padding:4px 12px}
 .expected-subtitle{font-size:.76rem;color:var(--text-mid);font-weight:600;margin-bottom:12px}
-.expected-list{display:flex;flex-direction:column;gap:8px}
-.expected-card{background:#fafafa;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none;border:2px solid transparent}
-.expected-card:active{transform:scale(.98)}
+.expected-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.expected-card{background:#fafafa;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none;border:2px solid transparent;text-align:center}
+.expected-card:active{transform:scale(.95)}
 .expected-card.done{background:#f0faf3;border-color:#c8f0d4}
-.expected-emoji{font-size:1.6rem;flex-shrink:0;width:34px;text-align:center}
-.expected-name{flex:1;font-weight:700;color:var(--text-dark);font-size:.92rem}
+.expected-emoji{font-size:1.6rem}
+.expected-name{font-weight:700;color:var(--text-dark);font-size:.68rem;line-height:1.2}
 .expected-card.done .expected-name{text-decoration:line-through;color:var(--text-mid)}
-.expected-check{width:28px;height:28px;border-radius:50%;border:2.5px solid #dee2e6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:transparent;transition:all .2s;background:#fff}
-.expected-card.done .expected-check{background:var(--green);border-color:var(--green);color:#fff;transform:scale(1.1)}
+.expected-check{width:22px;height:22px;border-radius:50%;border:2.5px solid #dee2e6;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;transition:all .2s;background:#fff}
+.expected-card.done .expected-check{background:var(--green);border-color:var(--green);color:#fff}
 
 /* ── SPECIAL QUESTS ── */
-.chores-list{display:flex;flex-direction:column;gap:10px}
-.chore-card{background:#fff;border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .15s;border:2px solid transparent}
-.chore-card.done{background:#f0faf3;border-color:#c8f0d4}
-.chore-card.done-locked{opacity:.4;cursor:default}
-.chore-card:not(.done-locked):active{transform:scale(.97)}
-.chore-emoji{font-size:2rem;flex-shrink:0;width:40px;text-align:center;line-height:1}
-.chore-info{flex:1;min-width:0}
-.chore-name{font-weight:800;font-size:1rem;color:var(--text-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chore-card.done .chore-name{text-decoration:line-through;color:var(--text-mid)}
-.chore-checkbox{width:34px;height:34px;border-radius:50%;border:2.5px solid #dee2e6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s;background:#f8f9fa;color:transparent}
-.chore-card.done .chore-checkbox{background:var(--green);border-color:var(--green);color:#fff;transform:scale(1.1)}
+.chores-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chore-card{background:#fafafa;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .15s;border:2px solid transparent;text-align:center;box-shadow:none}
+.chore-card.done{background:#f0faf3;border-color:#b8ecc8}
+.chore-card.done-locked{opacity:.35;cursor:default}
+.chore-card:not(.done-locked):active{transform:scale(.95)}
+.chore-emoji{font-size:1.6rem;line-height:1}
+.chore-info{width:100%}
+.chore-name{font-weight:700;font-size:.68rem;color:var(--text-dark);line-height:1.2;text-align:center}
+.chore-card.done .chore-name{text-decoration:line-through;color:#aaa}
+.chore-checkbox{width:22px;height:22px;border-radius:50%;border:2.5px solid #dee2e6;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .2s;background:#fff;color:transparent}
+.chore-card.done .chore-checkbox{background:var(--green);border-color:var(--green);color:#fff}
 .chore-edit-btns{display:flex;gap:6px;flex-shrink:0}
 .icon-btn{width:32px;height:32px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:transform .15s}
 .icon-btn:active{transform:scale(.85)}
@@ -229,10 +229,13 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
   <div class="child-tabs" id="childTabs"></div>
   <div class="main-content" id="mainContent"></div>
   <div id="parentControls" style="display:none;padding:0 14px 14px"></div>
+  <div id="historyPanel" style="display:none;padding:14px"></div>
 </div>
 
 <div class="parent-bar" id="parentBar">
-  <button class="parent-bar-btn" id="editToggleBtn">⚙️ Parent</button>
+  <button class="parent-bar-btn active" id="homeTabBtn"><span style="font-size:1.3rem">🏠</span>Home</button>
+  <button class="parent-bar-btn" id="historyTabBtn"><span style="font-size:1.3rem">📊</span>History</button>
+  <button class="parent-bar-btn" id="editToggleBtn"><span style="font-size:1.3rem">⚙️</span>Parent</button>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -286,7 +289,8 @@ var DEFAULT_CHORES = [
   {id:'p2',emoji:'🧹',name:'Sweep kitchen'},
   {id:'p3',emoji:'🧽',name:'Wipe cupboards'},
   {id:'p4',emoji:'🧸',name:'Tidy playroom'},
-  {id:'p5',emoji:'🛏️',name:'Tidy bedroom'}
+  {id:'p5',emoji:'🛏️',name:'Tidy bedroom'},
+  {id:'p6',emoji:'✨',name:'Other'}
 ];
 
 // ── HELPERS ──────────────────────────────────────────────
@@ -1195,6 +1199,12 @@ function renderMain() {
     '<div class="section-heading">⚡ Special Quests</div>' +
     '<div class="chores-list" id="choresList">'+earningHTML+'</div>' +
 
+
+
+
+
+
+
     // STREAK
     '<div class="streak-section" style="margin-top:14px">' +
     '<div class="streak-inner">' +
@@ -1205,18 +1215,9 @@ function renderMain() {
     '</div></div></div>' +
 
     // BADGES
-    '<div class="chart-section" style="margin-top:16px">' +
+    '<div class="chart-section" style="margin-top:14px">' +
     '<div class="chart-header"><div class="chart-title">🏅 Badges</div></div>' +
     badgeCabinetHTML(ch) +
-    '</div>' +
-
-    // WEEKLY ACTIVITY CHART + THIS WEEK DAILY VIEW
-    '<div class="chart-section">' +
-    '<div class="chart-header"><div class="chart-title">📅 Weekly Activity</div></div>' +
-    weeklyChartHTML(ch, 8) +
-    '<div style="margin-top:14px"><div style="font-size:.8rem;font-weight:800;color:var(--text-dark);margin-bottom:8px">This week</div>' +
-    thisWeekHTML(ch) + '</div>' +
-
     '</div>' +
 
     // DEDUCTION SECTION — after chart
@@ -1230,9 +1231,9 @@ function renderMain() {
     '<span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
     '</div></div>';
 
-  // Parent controls
+  // Parent controls — only rendered when in parent tab via renderParentOnly
   var pc = document.getElementById('parentControls');
-  if (editMode) {
+  if (false) { // disabled — parent panel now in own tab
     pc.style.display = 'block';
     pc.innerHTML =
       '<div class="add-chore-section">' +
@@ -1659,7 +1660,19 @@ function switchChild(i) {
   activeIdx = i;
   document.documentElement.style.setProperty('--child-bg', COLORS[i].bg);
   document.body.style.background = COLORS[i].bg;
-  render();
+  // Re-render the correct panel for whichever tab is active
+  if (activeTab === 'parent') {
+    renderTabs();
+    var pc = document.getElementById('parentControls');
+    var mc = document.getElementById('mainContent');
+    if (mc) mc.style.display = 'none';
+    if (pc) { pc.style.display = 'block'; renderParentOnly(); }
+  } else if (activeTab === 'history') {
+    renderTabs();
+    renderHistory();
+  } else {
+    render();
+  }
   // Bounce the active avatar
   var tabs = document.querySelectorAll('.child-tab');
   if (tabs[i]) {
@@ -1672,11 +1685,245 @@ function switchChild(i) {
   }
 }
 
+// Tab state
+var activeTab = 'home';
+
+function switchTab(tab) {
+  activeTab = tab;
+  var mc = document.getElementById('mainContent');
+  var pc = document.getElementById('parentControls');
+  var hp = document.getElementById('historyPanel');
+  var homeBtn = document.getElementById('homeTabBtn');
+  var histBtn = document.getElementById('historyTabBtn');
+  var parentBtn = document.getElementById('editToggleBtn');
+
+  // Reset all
+  [homeBtn, histBtn, parentBtn].forEach(function(b) { if(b) b.classList.remove('active'); });
+
+  if (tab === 'home') {
+    if(mc) mc.style.display = '';
+    if(pc) { pc.style.display = 'none'; pc.innerHTML = ''; }
+    if(hp) hp.style.display = 'none';
+    if(homeBtn) homeBtn.classList.add('active');
+    editMode = false;
+    render();
+  } else if (tab === 'history') {
+    if(mc) mc.style.display = 'none';
+    if(pc) { pc.style.display = 'none'; pc.innerHTML = ''; }
+    if(hp) { hp.style.display = 'block'; renderHistory(); }
+    if(histBtn) histBtn.classList.add('active');
+    editMode = false;
+  } else if (tab === 'parent') {
+    if(mc) mc.style.display = 'none';
+    if(hp) hp.style.display = 'none';
+    if(pc) pc.style.display = 'block';
+    if(parentBtn) parentBtn.classList.add('active');
+    editMode = true;
+    renderParentOnly();
+  }
+}
+
+function renderParentOnly() {
+  var pc = document.getElementById('parentControls');
+  if (!pc) return;
+  pc.style.display = 'block';
+  // Render parent panel for active child
+  var ch = state.children[activeIdx];
+  var col = COLORS[activeIdx];
+
+  pc.innerHTML =
+    '<div style="padding:14px">' +
+    '<div class="add-chore-section">' +
+    '<h4>➕ Add Daily Quest for '+ch.name+'</h4>' +
+    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+    '<input class="form-input" id="newExpEmoji" maxlength="4" value="⭐" style="text-align:center;font-size:1.3rem">' +
+    '<input class="form-input" id="newExpName" placeholder="Quest name…"></div>' +
+    '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Daily Quest ✨</button>' +
+    '<h4>➕ Add Special Quest for '+ch.name+'</h4>' +
+    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+    '<input class="form-input" id="newEmoji" maxlength="4" value="🧹" style="text-align:center;font-size:1.3rem">' +
+    '<input class="form-input" id="newName" placeholder="Quest name…"></div>' +
+    '<button class="btn-primary" id="addChoreBtn" style="margin-bottom:4px">Add Special Quest ✨</button></div>' +
+    '<div class="parent-panel"><h3>👨‍👩‍👧 Parent Controls — '+ch.name+'</h3>' +
+    '<div class="panel-section"><div class="panel-label">🎯 Savings Goal</div>' +
+    '<div class="goal-edit-row">' +
+    '<input class="form-input" id="goalName_'+ch.id+'" value="'+ch.goalName+'">' +
+    '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
+    '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
+    '<div class="panel-section" style="margin-bottom:8px">' +
+    '<div class="panel-label">📅 Log Past Activity</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Date</div>' +
+    '<input class="form-input" id="pastDate" type="date" value="'+new Date(Date.now()-86400000).toISOString().slice(0,10)+'"></div>' +
+    '<div></div></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Daily quests</div>' +
+    '<input class="form-input" id="pastDaily" type="number" min="0" max="'+((ch.expectedTasks||[]).length||7)+'" placeholder="0" style="text-align:center"></div>' +
+    '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Special quests</div>' +
+    '<input class="form-input" id="pastSpecial" type="number" min="0" max="'+((ch.earningChores||[]).length||6)+'" placeholder="0" style="text-align:center"></div>' +
+    '</div>' +
+    '<button class="btn-save" id="logPastBtn" style="width:100%">Log Activity</button></div>' +
+    '<div class="panel-section" style="margin-bottom:8px"><div class="panel-label">🔧 Manual Override</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Goal saved (£)</div>' +
+    '<input class="form-input" id="overrideGoalSaved" type="number" step="0.01" min="0" value="'+(ch.goalSaved||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Total banked (£)</div>' +
+    '<input class="form-input" id="overrideTotalBanked" type="number" step="0.01" min="0" value="'+(ch.totalBanked||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Weekly earnings (£)</div>' +
+    '<input class="form-input" id="overrideWeekEarned" type="number" step="0.01" min="0" value="'+(ch.weekEarned||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Deductions (£)</div>' +
+    '<input class="form-input" id="overrideWeekPenalties" type="number" step="0.01" min="0" value="'+(ch.weekPenalties||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '</div>' +
+    '<div style="margin-bottom:7px"><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Streak days (manual)</div>' +
+    '<input class="form-input" id="overrideStreak" type="number" step="1" min="0" placeholder="Leave blank to auto-calculate" style="text-align:center"></div>' +
+    '<button class="btn-save" id="applyOverrideBtn" style="width:100%">Apply Changes</button></div>' +
+    '<button class="btn-action btn-reset" id="resetBonusBtn">↩️ Reset bonus to zero</button>' +
+    '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
+    '<button class="btn-action btn-reset" id="resetQuestsBtn">🔄 Reset quest lists to defaults</button>' +
+    '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'🟢 Test Saturday ON — tap to turn off':'Test Saturday mode')+'</button>' +
+    '<button class="btn-action '+(_testMode?'active':'btn-reset')+'" id="testModeBtn" style="'+(_testMode?'background:#9775fa;color:#fff':'')+'">🎭 '+(_testMode?'🟢 Demo mode ON — tap to exit':'Run demo mode')+'</button>' +
+    '<div class="panel-section" style="margin-top:8px"><div class="panel-label">🔑 Change PIN</div>' +
+    '<input class="form-input" id="pinNew" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:7px">' +
+    '<input class="form-input" id="pinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm new PIN" style="margin-bottom:7px">' +
+    '<div id="pinChangeMsg" style="font-size:.8rem;font-weight:700;min-height:18px;margin-bottom:7px"></div>' +
+    '<button class="btn-save" id="changePinBtn" style="width:100%">Update PIN</button></div></div>' +
+    '</div>';
+
+  // Bind all parent control buttons
+  var bindBtn2 = function(id, fn) { var el = document.getElementById(id); if(el) el.addEventListener('click', fn); };
+  var setupDoubleTab2 = function(id, action) {
+    var btn = document.getElementById(id); if(!btn) return;
+    var orig = btn.textContent;
+    btn.addEventListener('click', function() {
+      if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent=orig;action();}
+      else{btn.dataset.armed='1';btn.textContent='✅ Tap again to confirm';setTimeout(function(){if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent=orig;}},3000);}
+    });
+  };
+  bindBtn2('addExpBtn', function(){ addExpectedTask(ch.id); renderParentOnly(); });
+  bindBtn2('addChoreBtn', function(){ addChore(ch.id); renderParentOnly(); });
+  bindBtn2('saveGoalBtn', function(){ saveGoal(ch.id); renderParentOnly(); });
+  bindBtn2('logPastBtn', function(){
+    var dateStr = document.getElementById('pastDate').value;
+    var daily = document.getElementById('pastDaily').value;
+    var special = document.getElementById('pastSpecial').value;
+    logPastActivity(ch, dateStr, daily, special);
+  });
+  bindBtn2('applyOverrideBtn', function(){
+    var gs = parseFloat(document.getElementById('overrideGoalSaved').value);
+    var tb = parseFloat(document.getElementById('overrideTotalBanked').value);
+    var we = parseFloat(document.getElementById('overrideWeekEarned').value);
+    var wp = parseFloat(document.getElementById('overrideWeekPenalties').value);
+    var sk = document.getElementById('overrideStreak').value;
+    if (!isNaN(gs)) ch.goalSaved = +gs.toFixed(2);
+    if (!isNaN(tb)) ch.totalBanked = +tb.toFixed(2);
+    if (!isNaN(we)) ch.weekEarned = Math.min(BONUS_CAP, +we.toFixed(2));
+    if (!isNaN(wp)) ch.weekPenalties = Math.min(WEEKLY_BASE, +wp.toFixed(2));
+    if (sk !== '' && !isNaN(parseInt(sk))) ch.manualStreak = parseInt(sk);
+    else delete ch.manualStreak;
+    save(); renderParentOnly(); showMsg('Override applied ✅', '#2f9e44');
+  });
+  setupDoubleTab2('resetBonusBtn', function(){ ch.weekEarned=0; save(); renderParentOnly(); });
+  setupDoubleTab2('resetDeductBtn', function(){ ch.weekPenalties=0; save(); renderParentOnly(); });
+  setupDoubleTab2('resetQuestsBtn', function(){
+    ch.expectedTasks = DEFAULT_EXPECTED.map(function(e){return {id:e.id,emoji:e.emoji,name:e.name};});
+    ch.earningChores = DEFAULT_CHORES.map(function(c,i){return {id:'p'+(Date.now()+i),emoji:c.emoji,name:c.name,done:false,lastDone:''};});
+    save(); renderParentOnly();
+  });
+  bindBtn2('testSatBtn', function(){
+    if (!_testSaturday) {
+      _testSnapshot = JSON.parse(JSON.stringify(state));
+      _testSaturday = true;
+      state.children.forEach(function(ch){ch.weekSaved=false;});
+    } else {
+      _testSaturday = false;
+      if (_testSnapshot) { state=applyResets(JSON.parse(JSON.stringify(_testSnapshot))); _testSnapshot=null; saveLocal(); }
+    }
+    renderParentOnly();
+  });
+  bindBtn2('testModeBtn', function(){
+    if (!_testMode) {
+      _testModeSnapshot = JSON.parse(JSON.stringify(state));
+      _testModeSnapshot._savedGoalSaved = state.children.map(function(ch){return ch.goalSaved||0;});
+      _testModeSnapshot._savedTotalBanked = state.children.map(function(ch){return ch.totalBanked||0;});
+      _testMode = true;
+      editMode = false;
+      state = freshDemoState();
+      showMsg('🎭 Demo mode ON — real data safe', '#9775fa');
+      switchTab('home');
+    } else {
+      _testMode = false;
+      if (_testModeSnapshot) {
+        var restored = JSON.parse(JSON.stringify(_testModeSnapshot));
+        if (restored._savedGoalSaved) {
+          restored.children.forEach(function(ch,i){ch.goalSaved=restored._savedGoalSaved[i];ch.totalBanked=restored._savedTotalBanked[i];});
+        }
+        delete restored._savedGoalSaved; delete restored._savedTotalBanked;
+        state = applyResets(restored); _testModeSnapshot = null; saveLocal();
+        try { var cl=getSb(); if(cl) cl.from('app_state').upsert({id:1,state:JSON.parse(JSON.stringify(state)),updated_at:new Date().toISOString()}).catch(function(){}); } catch(e){}
+      }
+      showMsg('Demo mode OFF — real data restored', '#2f9e44');
+      renderParentOnly();
+    }
+  });
+  bindBtn2('changePinBtn', function(){
+    var next = document.getElementById('pinNew').value.trim();
+    var conf = document.getElementById('pinConfirm').value.trim();
+    var msg = document.getElementById('pinChangeMsg');
+    if (!next||next.length!==4||!/^\d{4}$/.test(next)){msg.style.color='var(--red)';msg.textContent='PIN must be exactly 4 digits';return;}
+    if (next!==conf){msg.style.color='var(--red)';msg.textContent='PINs do not match';return;}
+    try{localStorage.setItem(PIN_KEY,next);}catch(e){}
+    msg.style.color='var(--green)';msg.textContent='PIN updated!';
+    document.getElementById('pinNew').value='';
+    document.getElementById('pinConfirm').value='';
+    updatePinHint();
+  });
+}
+
+function renderHistory() {
+  var hp = document.getElementById('historyPanel');
+  if (!hp) return;
+  var ch = state.children[activeIdx];
+  var col = COLORS[activeIdx];
+  var accent = col.accent1;
+
+  // Weekly bar chart
+  var html = '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.1rem;color:var(--text-dark);margin-bottom:14px">📊 '+ch.name+' History</div>';
+
+  // This week grid
+  html += '<div style="background:#fff;border-radius:20px;padding:14px;margin-bottom:12px">';
+  html += '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;color:var(--text-dark);margin-bottom:10px">This week</div>';
+  html += thisWeekHTML(ch);
+  html += '</div>';
+
+  // Weekly bars
+  html += '<div style="background:#fff;border-radius:20px;padding:14px;margin-bottom:12px">';
+  html += '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;color:var(--text-dark);margin-bottom:12px">📅 Weekly Activity</div>';
+  html += weeklyChartHTML(ch, 8);
+  html += '</div>';
+
+  // Streak
+  html += '<div style="background:linear-gradient(135deg,#fff8f0,#fff3e8);border-radius:20px;padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:14px">';
+  html += '<div style="font-size:2.5rem;filter:drop-shadow(0 2px 6px rgba(255,146,43,.4))">🔥</div>';
+  html += '<div><div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.8rem;color:#e67700">'+calcStreak(ch)+' day streak</div>';
+  html += '<div style="font-size:.75rem;font-weight:700;color:#997404">consecutive days with a quest</div></div>';
+  html += '</div>';
+
+  // Badges
+  html += '<div style="background:#fff;border-radius:20px;padding:14px">';
+  html += '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;color:var(--text-dark);margin-bottom:10px">🏅 Badges</div>';
+  html += badgeCabinetHTML(ch);
+  html += '</div>';
+
+  hp.innerHTML = html;
+}
+
+document.getElementById('homeTabBtn').addEventListener('click', function() { switchTab('home'); });
+document.getElementById('historyTabBtn').addEventListener('click', function() { switchTab('history'); });
 document.getElementById('editToggleBtn').addEventListener('click', function() {
-  editMode = !editMode;
-  this.textContent = editMode ? '✅ Done' : '⚙️ Parent';
-  this.classList.toggle('active', editMode);
-  render();
+  if (activeTab === 'parent') { switchTab('home'); }
+  else { switchTab('parent'); }
 });
 
 document.getElementById('childTabs').addEventListener('click', function(e) {
