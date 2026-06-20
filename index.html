@@ -1690,6 +1690,7 @@ var activeTab = 'home';
 
 function switchTab(tab) {
   activeTab = tab;
+  window.scrollTo(0, 0);
   var mc = document.getElementById('mainContent');
   var pc = document.getElementById('parentControls');
   var hp = document.getElementById('historyPanel');
