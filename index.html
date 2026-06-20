@@ -358,7 +358,7 @@ function isSaturday() { return _testSaturday || new Date().getDay() === 6; }
 // ── STATE ────────────────────────────────────────────────
 function makeChild(id, name, avatar, offset) {
   return {id:id, name:name, avatar:avatar,
-    totalSaved:0, goalName:'My Savings Goal', goalTarget:10,
+    totalSaved:0, goalSaved:0, totalBanked:0, goalName:'My Savings Goal', goalTarget:10,
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
     weekSaved:false,
     weeklyLog:{}, // {'2026-W25': {daily:2, special:1, days:3}} — keyed by ISO week
@@ -391,8 +391,11 @@ function applyResets(s) {
     if (typeof ch.weekPenalties !== 'number') ch.weekPenalties = 0;
     if (typeof ch.weekEarned    !== 'number') ch.weekEarned    = 0;
     if (typeof ch.totalSaved !== 'number') ch.totalSaved = 0;
+    if (typeof ch.goalSaved   !== 'number') ch.goalSaved   = 0;
+    if (typeof ch.totalBanked !== 'number') ch.totalBanked = 0;
+    // Seed £5 saved for both children (2x £2.50 Saturday banks)
+    if (ch.goalSaved === 0 && ch.totalBanked === 0) ch.goalSaved = 5.00;
     // Restore Ada's minimum saved amount if wiped
-    if (ch.id === 'c1' && ch.totalSaved === 0) ch.totalSaved = 2.50;
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
     // Reset weekSaved on new week
@@ -494,7 +497,7 @@ function checkBadges(ch, allChildren) {
   if (typeof ch.totalChores !== 'number') ch.totalChores = 0;
   var newBadges = [];
   var streak = calcStreak(ch);
-  var savedPct = ch.goalTarget > 0 ? (ch.totalSaved / ch.goalTarget * 100) : 0;
+  var savedPct = ch.goalTarget > 0 ? ((ch.goalSaved||0) / ch.goalTarget * 100) : 0;
 
   // Streak badges
   if (streak >= 3  && !ch.badges.streak3)  { ch.badges.streak3  = true; newBadges.push('streak3'); }
@@ -514,7 +517,7 @@ function checkBadges(ch, allChildren) {
   if (savedPct >= 50  && !ch.badges.save50)    { ch.badges.save50   = true; newBadges.push('save50'); }
   if (savedPct >= 75  && !ch.badges.save75)    { ch.badges.save75   = true; newBadges.push('save75'); }
   if (savedPct >= 100 && !ch.badges.save100)   { ch.badges.save100  = true; newBadges.push('save100'); }
-  if ((ch.totalSaved||0) > 0 && !ch.badges.firstsave) { ch.badges.firstsave = true; newBadges.push('firstsave'); }
+  if (((ch.goalSaved||0) > 0 || (ch.totalSaved||0) > 0) && !ch.badges.firstsave) { ch.badges.firstsave = true; newBadges.push('firstsave'); }
 
   // Bonus
   if ((ch.weekEarned||0) > 0 && !ch.badges.bonus1) { ch.badges.bonus1 = true; newBadges.push('bonus1'); }
@@ -1015,7 +1018,7 @@ function renderMain() {
   var base = Math.max(0, +(WEEKLY_BASE - (ch.weekPenalties||0)).toFixed(2));
   var basePct  = Math.round(base / WEEKLY_BASE * 100);
   var bonusPct = Math.round(bon  / BONUS_CAP  * 100);
-  var savedPct = Math.min(100, Math.round((ch.totalSaved||0) / ch.goalTarget * 100));
+  var savedPct = Math.min(100, Math.round((ch.goalSaved||0) / ch.goalTarget * 100));
   var expC = expCount(ch), expT = (ch.expectedTasks||[]).length;
   var canDeduct = (ch.weekPenalties||0) < WEEKLY_BASE;
   var td = todayStr();
@@ -1069,11 +1072,15 @@ function renderMain() {
     '<div style="position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px">' +
     '<div id="jarSvgWrap">'+jarSVG(savedPct, col.accent1, false)+'</div>' +
     '<div style="position:absolute;text-align:center;pointer-events:none">' +
-    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.5rem;color:var(--c-accent1,#9775fa);line-height:1">£'+(ch.totalSaved||0).toFixed(2)+'</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.5rem;color:var(--c-accent1,#9775fa);line-height:1">£'+(ch.goalSaved||0).toFixed(2)+'</div>' +
     '<div style="font-size:.65rem;font-weight:700;color:var(--text-mid);margin-top:2px">of £'+ch.goalTarget.toFixed(2)+'</div>' +
-    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1rem;color:var(--c-accent1,#9775fa);margin-top:2px">'+(savedPct>=100?'Full! 🎉':savedPct+'%')+'</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1rem;color:var(--c-accent1,#9775fa);margin-top:2px">'+(savedPct>=100?'🎉 Goal reached!':savedPct+'%')+'</div>' +
     '</div>' +
     '</div>' +
+    
+    (savedPct >= 100
+      ? '<button class="jar-save-btn" id="bankGoalBtn" style="background:linear-gradient(135deg,#f59f00,#e67700);font-size:1.2rem;padding:16px;margin-bottom:8px">🎉 Bank It! You reached your goal!</button>'
+      : '') +
     (ch.weekSaved && isSaturday()
       ? '<div style="color:var(--green);font-size:.85rem;font-weight:700;padding:8px 0">✅ All saved this week — great job!</div>'
       : net > 0 && isSaturday()
@@ -1094,8 +1101,8 @@ function renderMain() {
     '<div style="font-size:.9rem;font-weight:800;color:rgba(255,255,255,.9);margin-top:4px;text-shadow:0 1px 4px rgba(0,0,0,.15)">'+weekMsg+'</div>' +
     '</div>' +
     '<div style="text-align:right">' +
-    '<div class="week-saved-label">Total saved</div>' +
-    '<div class="week-saved-val">£'+(ch.totalSaved||0).toFixed(2)+'</div>' +
+    '<div class="week-saved-label">Total banked</div>' +
+    '<div class="week-saved-val">£'+(ch.totalBanked||0).toFixed(2)+'</div>' +
     (bon > 0 ? '<div style="font-size:.72rem;font-weight:700;color:rgba(255,255,255,.75);margin-top:3px">+£'+bon.toFixed(2)+' bonus 🎉</div>' : '') +
     (ch.weekPenalties > 0 ? '<div style="font-size:.72rem;font-weight:700;color:rgba(255,255,255,.75);margin-top:3px">−£'+ch.weekPenalties.toFixed(2)+' deducted</div>' : '') +
     '</div>' +
@@ -1229,14 +1236,14 @@ function renderMain() {
     bindBtn('savingsAddBtn', function() {
       var amt = parseFloat(document.getElementById('savingsAdjAmt').value);
       if (isNaN(amt) || amt <= 0) { showMsg('Enter a valid amount', '#e03131'); return; }
-      ch.totalSaved = +((ch.totalSaved||0) + amt).toFixed(2);
+      ch.goalSaved = +((ch.goalSaved||0) + amt).toFixed(2);
       document.getElementById('savingsAdjAmt').value = '';
       save(); render(); showMsg('£'+amt.toFixed(2)+' added to savings', '#2f9e44');
     });
     bindBtn('savingsSubBtn', function() {
       var amt = parseFloat(document.getElementById('savingsAdjAmt').value);
       if (isNaN(amt) || amt <= 0) { showMsg('Enter a valid amount', '#e03131'); return; }
-      ch.totalSaved = Math.max(0, +((ch.totalSaved||0) - amt).toFixed(2));
+      ch.goalSaved = Math.max(0, +((ch.goalSaved||0) - amt).toFixed(2));
       document.getElementById('savingsAdjAmt').value = '';
       save(); render(); showMsg('£'+amt.toFixed(2)+' removed from savings', '#868e96');
     });
@@ -1336,6 +1343,37 @@ function renderMain() {
       animateCounter();
     }, 700);
   });
+  bindBtn('bankGoalBtn', function() {
+    // Full screen celebration then reset goal progress
+    launchConfetti();
+    // Show celebration overlay
+    var ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:9991;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.75);opacity:0;transition:opacity .3s;pointer-events:none;padding:30px';
+    ov.innerHTML = '<div id="bankItInner" style="text-align:center;transform:scale(.5);transition:transform .4s cubic-bezier(.34,1.56,.64,1)">' +
+      '<div style="font-size:5rem;margin-bottom:10px">🏆</div>' +
+      '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:2.2rem;color:#fff;margin-bottom:8px">Goal reached!</div>' +
+      '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.4rem;color:#ffd43b;margin-bottom:6px">'+ch.name+' saved £'+ch.goalSaved.toFixed(2)+'!</div>' +
+      '<div style="font-size:.95rem;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:24px">Amazing work! 🌟</div>' +
+      '<button id="bankItConfirm" style="background:linear-gradient(135deg,#f59f00,#e67700);color:#fff;border:none;border-radius:16px;padding:16px 32px;font-family:Fredoka One,Arial,sans-serif;font-size:1.2rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3)">Set a new goal! 🎯</button>' +
+      '</div>';
+    document.body.appendChild(ov);
+    ov.style.pointerEvents = 'all';
+    setTimeout(function() {
+      ov.style.opacity = '1';
+      document.getElementById('bankItInner').style.transform = 'scale(1)';
+    }, 50);
+    launchConfetti();
+    setTimeout(launchConfetti, 800);
+    setTimeout(launchConfetti, 1600);
+    document.getElementById('bankItConfirm').addEventListener('click', function() {
+      ov.style.opacity = '0';
+      setTimeout(function() {
+        ov.remove();
+        showJarFullCelebration(ch);
+      }, 300);
+    });
+  });
+
   bindBtn('jarSaveBtn', function() {
     var jsb = document.getElementById('jarSaveBtn');
     if (!jsb) return;
@@ -1539,7 +1577,7 @@ function showJarFullCelebration(ch) {
     '<div id="jarFullInner" style="background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:340px;text-align:center;transform:scale(.8);transition:transform .4s cubic-bezier(.34,1.56,.64,1)">' +
     '<div style="font-size:3rem;margin-bottom:8px">🎉</div>' +
     '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.8rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
-    '<div style="font-size:.9rem;font-weight:700;color:#868e96;margin-bottom:20px">'+ch.name+' saved \u00a3'+ch.totalSaved.toFixed(2)+'! What is the next goal?</div>' +
+    '<div style="font-size:.9rem;font-weight:700;color:#868e96;margin-bottom:20px">'+ch.name+' saved \u00a3'+(ch.goalSaved||0).toFixed(2)+'! What is the next goal?</div>' +
     '<button id="jarGoal10" style="display:block;width:100%;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Fredoka One,Arial,sans-serif;font-size:1.1rem;cursor:pointer;margin-bottom:10px">🎯 Save another £10</button>' +
     '<div style="display:flex;gap:8px;align-items:center">' +
     '<input id="jarGoalCustom" type="number" min="1" step="1" placeholder="My own amount £" style="flex:1;padding:12px;border:2px solid #dee2e6;border-radius:12px;font-size:1rem;font-weight:700;text-align:center;outline:none">' +
@@ -1554,7 +1592,8 @@ function showJarFullCelebration(ch) {
   });
 
   function setNewGoal(amount, name) {
-    ch.totalSaved = 0; // Reset jar
+    ch.totalBanked = +((ch.totalBanked||0) + (ch.goalSaved||0)).toFixed(2);
+    ch.goalSaved = 0; // Reset goal progress only
     ch.goalTarget = amount;
     ch.goalName   = name || 'My Savings Goal';
     save(); render();
@@ -1598,7 +1637,7 @@ function doSaveToJar(childId) {
     })(i);
   }
   setTimeout(function() {
-    ch.totalSaved = +((ch.totalSaved||0) + net).toFixed(2);
+    ch.goalSaved = +((ch.goalSaved||0) + net).toFixed(2);
     ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=weekStart();
     ch.weekSaved=true;
     ch.weekSavedDate=todayStr();
@@ -1610,14 +1649,14 @@ function doSaveToJar(childId) {
       var jarWrap2 = document.getElementById('jarSvgWrap');
       if (jarWrap2) {
         var col2 = COLORS[state.children.indexOf(ch)];
-        var pct2 = Math.min(100, Math.round((ch.totalSaved||0) / ch.goalTarget * 100));
+        var pct2 = Math.min(100, Math.round((ch.goalSaved||0) / ch.goalTarget * 100));
         jarWrap2.innerHTML = jarSVG(pct2, col2.accent1, true);
         setTimeout(function() { startWaveAnimation(col2.accent1); }, 30);
       }
     }, 50);
     // Check if jar is now full
     var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){showBadgeUnlock(nb3[0]);},800); }
-    if (ch.totalSaved >= ch.goalTarget) {
+    if (ch.goalSaved >= ch.goalTarget) {
       setTimeout(function() { showJarFullCelebration(ch); }, 400);
     }
   }, numCoins*60+900);
