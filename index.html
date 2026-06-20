@@ -1492,11 +1492,6 @@ function renderMain() {
       if (cell) showBadgeInfo(cell.dataset.badge);
     });
   }
-  // Attach to the whole badges grid section
-  document.querySelectorAll('[data-badge]').forEach(function(el) {
-    el.addEventListener('click', function() { showBadgeInfo(el.dataset.badge); });
-  });
-
   bindBtn('bankNowBtn', function() {
     if ((ch.goalSaved||0) <= 0) { showMsg('Nothing saved yet to bank!', '#e03131'); return; }
     // Warning if they haven't hit goal yet
