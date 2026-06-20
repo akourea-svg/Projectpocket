@@ -276,8 +276,7 @@ var COLORS = [
 var DEFAULT_EXPECTED = [
   {id:'e1',emoji:'👟',name:'Shoes on the rack'},
   {id:'e2',emoji:'🛏️',name:'Make bed'},
-  {id:'e3',emoji:'👕',name:'Clothes off the floor'},
-  {id:'e4',emoji:'👚',name:'Clothes put away'},
+  {id:'e4',emoji:'👚',name:'Tidy away clothes'},
   {id:'e5',emoji:'🍽️',name:'Dishes to the sink'},
   {id:'e6',emoji:'🧸',name:'Put away toys'},
   {id:'e7',emoji:'🗑️',name:'Rubbish in bin'},
@@ -353,6 +352,9 @@ function weekStart() {
 }
 var _testSaturday = false;
 var _testSnapshot = null;
+var _testMode = false;
+var _testModeSnapshot = null;
+var _testModeState = null; // separate demo state
 function isSaturday() { return _testSaturday || new Date().getDay() === 6; }
 
 // ── STATE ────────────────────────────────────────────────
@@ -369,6 +371,45 @@ function makeChild(id, name, avatar, offset) {
     expectedDone:{}, lastExpectedDate:''
   };
 }
+function freshDemoState() {
+  // A realistic demo state showing mid-week progress
+  var s = {children:[
+    {id:'c1', name:'Ada', avatar:'🦁',
+     totalSaved:0, goalSaved:7.50, totalBanked:5.00, goalName:'New Toy', goalTarget:10,
+     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
+     weekSaved:false, weekSavedDate:'',
+     weeklyLog:{
+       '2026-W23':{daily:18,special:4,days:6,daysSeen:{'2026-06-01':true,'2026-06-02':true,'2026-06-03':true,'2026-06-04':true,'2026-06-05':true,'2026-06-06':true},dayCounts:{'2026-06-01':{daily:4,special:1},'2026-06-02':{daily:3,special:1},'2026-06-03':{daily:4,special:0},'2026-06-04':{daily:3,special:1},'2026-06-05':{daily:2,special:1},'2026-06-06':{daily:2,special:0}}},
+       '2026-W24':{daily:8,special:2,days:3,daysSeen:{'2026-06-13':true,'2026-06-14':true,'2026-06-15':true},dayCounts:{'2026-06-13':{daily:4,special:1},'2026-06-14':{daily:2,special:1},'2026-06-15':{daily:2,special:0}}},
+       '2026-W25':{daily:6,special:1,days:3,daysSeen:{'2026-06-15':true,'2026-06-16':true,'2026-06-17':true},dayCounts:{'2026-06-15':{daily:2,special:0},'2026-06-16':{daily:2,special:1},'2026-06-17':{daily:2,special:0}}}
+     },
+     badges:{streak3:true, special3:true, save25:true, save50:true, firstsave:true, bonus1:true},
+     totalChores:42,
+     earningChores:DEFAULT_CHORES.map(function(ch,i){return {id:'dp'+(i+1),emoji:ch.emoji,name:ch.name,done:i<2,lastDone:i<2?todayStr():''}}),
+     expectedTasks:DEFAULT_EXPECTED.map(function(e){return {id:e.id,emoji:e.emoji,name:e.name};}),
+     expectedDone:{'e1':true,'e2':true,'e4':true},
+     lastExpectedDate:todayStr()
+    },
+    {id:'c2', name:'Riley', avatar:'🐷',
+     totalSaved:0, goalSaved:7.50, totalBanked:0.00, goalName:'Craft Kit', goalTarget:10,
+     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
+     weekSaved:false, weekSavedDate:'',
+     weeklyLog:{
+       '2026-W23':{daily:12,special:2,days:4,daysSeen:{'2026-06-01':true,'2026-06-02':true,'2026-06-04':true,'2026-06-06':true},dayCounts:{'2026-06-01':{daily:3,special:1},'2026-06-02':{daily:3,special:0},'2026-06-04':{daily:4,special:1},'2026-06-06':{daily:2,special:0}}},
+       '2026-W24':{daily:6,special:1,days:2,daysSeen:{'2026-06-13':true,'2026-06-14':true},dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:3,special:0}}},
+       '2026-W25':{daily:4,special:0,days:2,daysSeen:{'2026-06-16':true,'2026-06-17':true},dayCounts:{'2026-06-16':{daily:2,special:0},'2026-06-17':{daily:2,special:0}}}
+     },
+     badges:{streak3:true, firstsave:false, bonus1:true, teamwork:true},
+     totalChores:28,
+     earningChores:DEFAULT_CHORES.map(function(ch,i){return {id:'rp'+(i+1),emoji:ch.emoji,name:ch.name,done:false,lastDone:''}}),
+     expectedTasks:DEFAULT_EXPECTED.map(function(e){return {id:e.id,emoji:e.emoji,name:e.name};}),
+     expectedDone:{'e1':true},
+     lastExpectedDate:todayStr()
+    }
+  ]};
+  return s;
+}
+
 function freshState() {
   var s = seedWeeklyLog({children:[makeChild('c1','Ada','🦁',1), makeChild('c2','Riley','🐷',4)]});
   s.children[0].totalSaved = 2.50; // Ada's saved amount
@@ -570,12 +611,32 @@ function showBadgeUnlock(badge) {
   }, 3000);
 }
 
+function showBadgeInfo(badgeId) {
+  var b = BADGES.find(function(x){return x.id===badgeId;});
+  if (!b) return;
+  var earned = (state.children[activeIdx].badges||{})[badgeId];
+  var el = document.createElement('div');
+  el.style.cssText = 'position:fixed;inset:0;z-index:9993;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:30px;pointer-events:all';
+  el.innerHTML =
+    '<div style="background:#fff;border-radius:24px;padding:24px;width:100%;max-width:300px;text-align:center">' +
+    '<div style="font-size:3rem;margin-bottom:8px;'+(earned?'':'filter:grayscale(1);opacity:.4')+'">'+b.emoji+'</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.4rem;color:var(--purple);margin-bottom:6px">'+b.name+'</div>' +
+    '<div style="font-size:.85rem;font-weight:700;color:#555;margin-bottom:12px">'+b.desc+'</div>' +
+    '<div style="font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:20px;display:inline-block;background:'+(earned?'#f0faf3':'#f5f5f5')+';color:'+(earned?'#2f9e44':'#888')+'">'+(earned?'✅ Unlocked!':'🔒 Not yet earned')+'</div>' +
+    '<br><button id="badgeInfoClose" style="margin-top:16px;background:#f1f3f5;border:none;border-radius:12px;padding:10px 24px;font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;cursor:pointer;color:#555">Close</button>' +
+    '</div>';
+  document.body.appendChild(el);
+  el.addEventListener('click', function(e){
+    if (e.target===el || e.target.id==='badgeInfoClose') el.remove();
+  });
+}
+
 function badgeCabinetHTML(ch) {
   var earned = ch.badges || {};
   var html = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px">';
   BADGES.forEach(function(b) {
     var has = !!earned[b.id];
-    html += '<div style="text-align:center;opacity:'+(has?'1':'0.25')+';">' +
+    html += '<div style="text-align:center;opacity:'+(has?'1':'0.3')+';cursor:pointer" data-badge="'+b.id+'">' +
       '<div style="font-size:1.8rem;'+(has?'filter:drop-shadow(0 2px 6px rgba(0,0,0,.2))':'filter:grayscale(1)')+'">'+b.emoji+'</div>' +
       '<div style="font-size:.55rem;font-weight:700;color:'+(has?'var(--text-dark)':'var(--text-mid)')+';margin-top:3px;line-height:1.2">'+b.name+'</div>' +
       '</div>';
@@ -630,7 +691,7 @@ function loadLocal() {
   }
   catch(e) { return freshState(); }
 }
-function saveLocal() { try { localStorage.setItem('cq_v7', JSON.stringify(state)); } catch(e) {} }
+function saveLocal() { if (_testMode) return; try { localStorage.setItem('cq_v7', JSON.stringify(state)); } catch(e) {} }
 
 // ── SUPABASE ─────────────────────────────────────────────
 var _sb = null;
@@ -651,6 +712,7 @@ function loadSupabaseLib() {
   });
 }
 function save() {
+  if (_testMode) { return; } // don't save anything during demo mode
   saveLocal();
   try {
     var client = getSb();
@@ -684,6 +746,7 @@ function recordActivity(ch, type) { recordWeeklyActivity(ch, type); }
 
 // Streak: count consecutive days with any activity using daysSeen across all weeks
 function calcStreak(ch) {
+  if (typeof ch.manualStreak === 'number') return ch.manualStreak;
   if (!ch.weeklyLog) return 0;
   // Build a set of all active days from daysSeen
   var activeDays = {};
@@ -879,7 +942,7 @@ function jarSVG(pct, accent, ripple) {
     '<animate attributeName="opacity" from="0.6" to="0" dur="0.8s" begin="0s" fill="freeze"/>' +
     '</circle>' : '';
 
-  return '<svg viewBox="0 0 120 120" width="120" height="120" xmlns="http://www.w3.org/2000/svg">' +
+  return '<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
     // Outer glow ring (subtle)
     '<circle cx="'+cx+'" cy="'+cy+'" r="54" fill="'+accent+'" opacity="0.08"/>' +
     // Track (background ring)
@@ -991,8 +1054,22 @@ function expCount(ch) { return (ch.expectedTasks||[]).filter(function(e) { retur
 
 function render() {
   state = seedWeeklyLog(state);
-  // Apply gradient background
   renderTabs(); renderMain();
+  // Show demo mode banner
+  var banner = document.getElementById('demoModeBanner');
+  if (_testMode) {
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'demoModeBanner';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#9775fa;color:#fff;text-align:center;font-size:.75rem;font-weight:700;padding:4px;z-index:9000;letter-spacing:.5px';
+      banner.textContent = '🎭 DEMO MODE — no data will be saved';
+      document.body.appendChild(banner);
+    }
+    // Offset content so banner doesn't cover it
+    document.getElementById('app').style.paddingTop = '24px';
+  } else {
+    if (banner) { banner.remove(); document.getElementById('app').style.paddingTop = ''; }
+  }
 }
 
 function renderTabs() {
@@ -1065,28 +1142,26 @@ function renderMain() {
   else { weekEmoji = '🌟'; weekMsg = 'Keep going!'; }
 
   document.getElementById('mainContent').innerHTML =
-    // SAVINGS RING — top, under tabs
+    // SAVINGS RING — split panel
     '<div class="jar-section">' +
-    '<div class="jar-title">💰 '+esc(ch.goalName)+'</div>' +
-    '<div class="jar-goal-label">Saving towards £'+ch.goalTarget.toFixed(2)+' · '+savedPct+'% there!</div>' +
-    '<div style="position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px">' +
-    '<div id="jarSvgWrap">'+jarSVG(savedPct, col.accent1, false)+'</div>' +
-    '<div style="position:absolute;text-align:center;pointer-events:none">' +
-    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.5rem;color:var(--c-accent1,#9775fa);line-height:1">£'+(ch.goalSaved||0).toFixed(2)+'</div>' +
-    '<div style="font-size:.65rem;font-weight:700;color:var(--text-mid);margin-top:2px">of £'+ch.goalTarget.toFixed(2)+'</div>' +
-    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1rem;color:var(--c-accent1,#9775fa);margin-top:2px">'+(savedPct>=100?'🎉 Goal reached!':savedPct+'%')+'</div>' +
-    '</div>' +
-    '</div>' +
-    
-    (savedPct >= 100
-      ? '<button class="jar-save-btn" id="bankGoalBtn" style="background:linear-gradient(135deg,#f59f00,#e67700);font-size:1.2rem;padding:16px;margin-bottom:8px">🎉 Bank It! You reached your goal!</button>'
-      : '') +
+    // Title
+    '<div class="jar-title" style="margin-bottom:16px">💰 '+esc(ch.goalName)+'</div>' +
+    // Big ring centred
+    '<div style="position:relative;width:160px;height:160px;margin:0 auto 16px">' +
+    '<div id="jarSvgWrap" style="width:160px;height:160px">'+jarSVG(savedPct, col.accent1, false)+'</div>' +
+    '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;gap:2px">' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.8rem;color:var(--c-accent1,#9775fa);line-height:1">£'+(ch.goalSaved||0).toFixed(2)+'</div>' +
+    '<div style="font-size:.7rem;font-weight:700;color:var(--text-mid)">of £'+ch.goalTarget.toFixed(2)+'</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1rem;color:var(--c-accent1,#9775fa);margin-top:2px">'+(savedPct>=100?'🎉':savedPct+'%')+'</div>' +
+    '</div></div>' +
+    // Single action line
     (ch.weekSaved && isSaturday()
-      ? '<div style="color:var(--green);font-size:.85rem;font-weight:700;padding:8px 0">✅ All saved this week — great job!</div>'
+      ? '<div style="text-align:center;font-size:.9rem;font-weight:700;color:var(--green);margin-bottom:12px">✅ All saved this week!</div>'
       : net > 0 && isSaturday()
-      ? '<button class="jar-save-btn" id="jarSaveBtn">💰 Save this week\'s £'+net.toFixed(2)+'!</button>'
-      : net > 0 ? '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">💰 £'+net.toFixed(2)+' ready to save on Saturday!</div>'
-      : '<div style="color:var(--text-mid);font-size:.85rem;font-weight:700;padding:8px 0">Nothing to save yet this week</div>') +
+      ? '<button class="jar-save-btn" id="jarSaveBtn" style="margin-bottom:12px">💰 Save this week\'s £'+net.toFixed(2)+'!</button>'
+      : '<div style="text-align:center;font-size:.82rem;font-weight:700;color:var(--text-mid);margin-bottom:12px">'+(net>0?'💰 £'+net.toFixed(2)+' ready to save on Saturday':'Nothing to save yet this week')+'</div>') +
+    // Bank it now - very subtle
+    '<div style="text-align:center"><button id="bankNowBtn" style="background:none;border:none;font-size:.7rem;color:#ccc;cursor:pointer;text-decoration:underline">bank it now</button></div>' +
     '</div>' +
 
     // THIS WEEK PANEL
@@ -1173,13 +1248,7 @@ function renderMain() {
       '<input class="form-input" id="goalName_'+ch.id+'" value="'+esc(ch.goalName)+'">' +
       '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
       '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
-      '<div class="panel-section" style="margin-bottom:8px">' +
-    '<div class="panel-label">💰 Adjust Savings</div>' +
-    '<div style="display:flex;gap:7px;margin-bottom:0">' +
-    '<input class="form-input" id="savingsAdjAmt" type="number" step="0.50" min="0.01" placeholder="£ amount">' +
-    '<button class="btn-save" id="savingsAddBtn">+ Add</button>' +
-    '<button class="btn-save" id="savingsSubBtn" style="background:#868e96">- Remove</button>' +
-    '</div></div>' +
+      
     '<div class="panel-section" style="margin-bottom:8px">' +
     '<div class="panel-label">📅 Log Past Activity</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
@@ -1195,9 +1264,29 @@ function renderMain() {
     '</div>' +
     '<button class="btn-save" id="logPastBtn" style="width:100%">Log Activity</button>' +
     '</div>' +
+    '<div class="panel-section" style="margin-bottom:8px">' +
+    '<div class="panel-label">🔧 Manual Override</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Goal saved (£)</div>' +
+    '<input class="form-input" id="overrideGoalSaved" type="number" step="0.01" min="0" value="'+(ch.goalSaved||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Total banked (£)</div>' +
+    '<input class="form-input" id="overrideTotalBanked" type="number" step="0.01" min="0" value="'+(ch.totalBanked||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Weekly earnings (£)</div>' +
+    '<input class="form-input" id="overrideWeekEarned" type="number" step="0.01" min="0" value="'+(ch.weekEarned||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Deductions (£)</div>' +
+    '<input class="form-input" id="overrideWeekPenalties" type="number" step="0.01" min="0" value="'+(ch.weekPenalties||0).toFixed(2)+'" style="text-align:center"></div>' +
+    '</div>' +
+    '<div style="margin-bottom:7px"><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Streak days (manual)</div>' +
+    '<input class="form-input" id="overrideStreak" type="number" step="1" min="0" placeholder="Leave blank to auto-calculate" style="text-align:center"></div>' +
+    '<button class="btn-save" id="applyOverrideBtn" style="width:100%">Apply Changes</button>' +
+    '</div>' +
     '<button class="btn-action btn-reset" id="resetBonusBtn">↩️ Reset bonus to zero</button>' +
+      '<button class="btn-action btn-reset" id="resetQuestsBtn">🔄 Reset quest lists to defaults</button>' +
       '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
       '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'🟢 Test Saturday ON — tap to turn off':'Test Saturday mode')+'</button>' +
+      '<button class="btn-action '+ (_testMode?'active':'btn-reset') +'" id="testModeBtn" style="'+(_testMode?'background:#9775fa;color:#fff':'')+'">🎭 '+(_testMode?'🟢 Demo mode ON — tap to exit':'Run demo mode')+'</button>' +
       '<div class="panel-section" style="margin-top:8px"><div class="panel-label">🔑 Change PIN</div>' +
       '<input class="form-input" id="pinNew" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:7px">' +
       '<input class="form-input" id="pinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm new PIN" style="margin-bottom:7px">' +
@@ -1208,6 +1297,47 @@ function renderMain() {
     bindBtn('addExpBtn',      function() { addExpectedTask(ch.id); });
     bindBtn('addChoreBtn',    function() { addChore(ch.id); });
     bindBtn('saveGoalBtn',    function() { saveGoal(ch.id); });
+    bindBtn('testModeBtn', function() {
+      if (!_testMode) {
+        // Enter demo mode — deep snapshot of real state including all savings fields
+        _testModeSnapshot = JSON.parse(JSON.stringify(state));
+        // Also preserve exact savings values separately for safety
+        _testModeSnapshot._savedGoalSaved = state.children.map(function(ch){return ch.goalSaved||0;});
+        _testModeSnapshot._savedTotalBanked = state.children.map(function(ch){return ch.totalBanked||0;});
+        _testMode = true;
+        editMode = false; // exit parent edit mode so chores are interactive
+        document.getElementById('editToggleBtn').textContent = '⚙️ Parent';
+        document.getElementById('editToggleBtn').classList.remove('active');
+        state = freshDemoState();
+        showMsg('🎭 Demo mode ON — real data safe', '#9775fa');
+      } else {
+        // Exit demo mode — restore real state exactly
+        _testMode = false;
+        if (_testModeSnapshot) {
+          var restored = JSON.parse(JSON.stringify(_testModeSnapshot));
+          // Restore exact savings values
+          if (restored._savedGoalSaved) {
+            restored.children.forEach(function(ch, i) {
+              ch.goalSaved = restored._savedGoalSaved[i];
+              ch.totalBanked = restored._savedTotalBanked[i];
+            });
+          }
+          delete restored._savedGoalSaved;
+          delete restored._savedTotalBanked;
+          state = applyResets(restored);
+          _testModeSnapshot = null;
+          saveLocal(); // write real state back to localStorage
+          // Push real state back to Supabase to override any demo contamination
+          try {
+            var cl = getSb();
+            if (cl) cl.from('app_state').upsert({id:1, state:JSON.parse(JSON.stringify(state)), updated_at:new Date().toISOString()}).catch(function(){});
+          } catch(e) {}
+        }
+        showMsg('Demo mode OFF — real data restored', '#2f9e44');
+      }
+      render();
+    });
+
     bindBtn('testSatBtn', function() {
       if (!_testSaturday) {
         // Enabling test mode — snapshot current state
@@ -1227,26 +1357,33 @@ function renderMain() {
       render();
     });
     setupDoubleTab('resetBonusBtn',  function() { ch.weekEarned=0; save(); render(); });
+    setupDoubleTab('resetQuestsBtn', function() {
+      ch.expectedTasks = DEFAULT_EXPECTED.map(function(e) { return {id:e.id, emoji:e.emoji, name:e.name}; });
+      ch.earningChores = DEFAULT_CHORES.map(function(c,i) { return {id:'p'+(Date.now()+i), emoji:c.emoji, name:c.name, done:false, lastDone:''}; });
+      save(); render();
+    });
+    bindBtn('applyOverrideBtn', function() {
+      var gs = parseFloat(document.getElementById('overrideGoalSaved').value);
+      var tb = parseFloat(document.getElementById('overrideTotalBanked').value);
+      var we = parseFloat(document.getElementById('overrideWeekEarned').value);
+      var wp = parseFloat(document.getElementById('overrideWeekPenalties').value);
+      var sk = document.getElementById('overrideStreak').value;
+      if (!isNaN(gs)) ch.goalSaved = +gs.toFixed(2);
+      if (!isNaN(tb)) ch.totalBanked = +tb.toFixed(2);
+      if (!isNaN(we)) ch.weekEarned = Math.min(BONUS_CAP, +we.toFixed(2));
+      if (!isNaN(wp)) ch.weekPenalties = Math.min(WEEKLY_BASE, +wp.toFixed(2));
+      if (sk !== '' && !isNaN(parseInt(sk))) ch.manualStreak = parseInt(sk);
+      else delete ch.manualStreak;
+      save(); render();
+      showMsg('Override applied ✅', '#2f9e44');
+    });
     bindBtn('logPastBtn', function() {
       var dateStr   = document.getElementById('pastDate').value;
       var daily     = document.getElementById('pastDaily').value;
       var special   = document.getElementById('pastSpecial').value;
       logPastActivity(ch, dateStr, daily, special);
     });
-    bindBtn('savingsAddBtn', function() {
-      var amt = parseFloat(document.getElementById('savingsAdjAmt').value);
-      if (isNaN(amt) || amt <= 0) { showMsg('Enter a valid amount', '#e03131'); return; }
-      ch.goalSaved = +((ch.goalSaved||0) + amt).toFixed(2);
-      document.getElementById('savingsAdjAmt').value = '';
-      save(); render(); showMsg('£'+amt.toFixed(2)+' added to savings', '#2f9e44');
-    });
-    bindBtn('savingsSubBtn', function() {
-      var amt = parseFloat(document.getElementById('savingsAdjAmt').value);
-      if (isNaN(amt) || amt <= 0) { showMsg('Enter a valid amount', '#e03131'); return; }
-      ch.goalSaved = Math.max(0, +((ch.goalSaved||0) - amt).toFixed(2));
-      document.getElementById('savingsAdjAmt').value = '';
-      save(); render(); showMsg('£'+amt.toFixed(2)+' removed from savings', '#868e96');
-    });
+
     setupDoubleTab('resetDeductBtn', function() { ch.weekPenalties=0; save(); render(); });
 
     bindBtn('changePinBtn', function() {
@@ -1343,35 +1480,73 @@ function renderMain() {
       animateCounter();
     }, 700);
   });
-  bindBtn('bankGoalBtn', function() {
-    // Full screen celebration then reset goal progress
-    launchConfetti();
-    // Show celebration overlay
-    var ov = document.createElement('div');
-    ov.style.cssText = 'position:fixed;inset:0;z-index:9991;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.75);opacity:0;transition:opacity .3s;pointer-events:none;padding:30px';
-    ov.innerHTML = '<div id="bankItInner" style="text-align:center;transform:scale(.5);transition:transform .4s cubic-bezier(.34,1.56,.64,1)">' +
-      '<div style="font-size:5rem;margin-bottom:10px">🏆</div>' +
-      '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:2.2rem;color:#fff;margin-bottom:8px">Goal reached!</div>' +
-      '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.4rem;color:#ffd43b;margin-bottom:6px">'+ch.name+' saved £'+ch.goalSaved.toFixed(2)+'!</div>' +
-      '<div style="font-size:.95rem;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:24px">Amazing work! 🌟</div>' +
-      '<button id="bankItConfirm" style="background:linear-gradient(135deg,#f59f00,#e67700);color:#fff;border:none;border-radius:16px;padding:16px 32px;font-family:Fredoka One,Arial,sans-serif;font-size:1.2rem;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.3)">Set a new goal! 🎯</button>' +
-      '</div>';
-    document.body.appendChild(ov);
-    ov.style.pointerEvents = 'all';
-    setTimeout(function() {
-      ov.style.opacity = '1';
-      document.getElementById('bankItInner').style.transform = 'scale(1)';
-    }, 50);
-    launchConfetti();
-    setTimeout(launchConfetti, 800);
-    setTimeout(launchConfetti, 1600);
-    document.getElementById('bankItConfirm').addEventListener('click', function() {
-      ov.style.opacity = '0';
-      setTimeout(function() {
-        ov.remove();
-        showJarFullCelebration(ch);
-      }, 300);
+  // Badge cabinet click delegation
+  var badgeSection = document.querySelector('[data-badge]');
+  if (badgeSection && badgeSection.parentElement) {
+    badgeSection.parentElement.addEventListener('click', function(e) {
+      var cell = e.target.closest('[data-badge]');
+      if (cell) showBadgeInfo(cell.dataset.badge);
     });
+  }
+  // Attach to the whole badges grid section
+  document.querySelectorAll('[data-badge]').forEach(function(el) {
+    el.addEventListener('click', function() { showBadgeInfo(el.dataset.badge); });
+  });
+
+  bindBtn('bankNowBtn', function() {
+    if ((ch.goalSaved||0) <= 0) { showMsg('Nothing saved yet to bank!', '#e03131'); return; }
+    // Warning if they haven't hit goal yet
+    var atGoal = (ch.goalSaved||0) >= ch.goalTarget;
+    if (!atGoal) {
+      var ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;z-index:9991;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.75);padding:30px;opacity:0;transition:opacity .3s;pointer-events:none';
+      ov.innerHTML =
+        '<div style="background:#fff;border-radius:24px;padding:24px;width:100%;max-width:340px;text-align:center;transform:scale(.8);transition:transform .4s cubic-bezier(.34,1.56,.64,1)" id="bankNowInner">' +
+        '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:10px">Are you sure?</div>' +
+        '<div style="font-size:.9rem;font-weight:700;color:#555;margin-bottom:20px;line-height:1.5">If you bank before you hit your goal you will not get your 50p goal bonus!</div>' +
+        '<div style="font-size:.85rem;color:#888;margin-bottom:16px">You have £'+(ch.goalSaved||0).toFixed(2)+' saved so far.</div>' +
+        '<button id="bankNowConfirm" style="display:block;width:100%;background:#e03131;color:#fff;border:none;border-radius:14px;padding:13px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer;margin-bottom:8px">Bank £'+(ch.goalSaved||0).toFixed(2)+' anyway</button>' +
+        '<button id="bankNowCancel" style="display:block;width:100%;background:#f1f3f5;color:#555;border:none;border-radius:14px;padding:12px;font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;cursor:pointer">Keep saving! 🎯</button>' +
+        '</div>';
+      document.body.appendChild(ov);
+      ov.style.pointerEvents = 'all';
+      requestAnimationFrame(function() {
+        ov.style.opacity = '1';
+        document.getElementById('bankNowInner').style.transform = 'scale(1)';
+      });
+      document.getElementById('bankNowCancel').addEventListener('click', function() {
+        // Hearts burst for keeping saving
+        var cx = innerWidth/2, cy = innerHeight/2;
+        var symbols = ['❤️','💜','💛','💖','💕','❤️','💗'];
+        for (var wi=0; wi<3; wi++) {
+          (function(w) {
+            setTimeout(function() {
+              for (var i=0; i<10; i++) {
+                (function(idx) {
+                  setTimeout(function() {
+                    var hel = document.createElement('div');
+                    hel.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;font-size:'+(28+Math.random()*18)+'px;left:'+(cx-20)+'px;top:'+(cy-20)+'px;animation:coin-fly '+(0.9+Math.random()*0.5)+'s ease-out forwards';
+                    hel.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+                    var a = (Math.PI*2*idx/10)+(w*0.4), d = 70+Math.random()*120;
+                    hel.style.setProperty('--dx', Math.cos(a)*d+'px');
+                    hel.style.setProperty('--dy', Math.sin(a)*d+'px');
+                    document.body.appendChild(hel);
+                    setTimeout(function(){hel.remove();},1500);
+                  }, idx*25);
+                })(i);
+              }
+            }, w*180);
+          })(wi);
+        }
+        ov.style.opacity = '0'; setTimeout(function(){ov.style.pointerEvents='none';ov.remove();},300);
+      });
+      document.getElementById('bankNowConfirm').addEventListener('click', function() {
+        ov.style.opacity = '0'; setTimeout(function(){ov.style.pointerEvents='none';ov.remove();},300);
+        doBankNow(ch);
+      });
+    } else {
+      showJarFullCelebration(ch);
+    }
   });
 
   bindBtn('jarSaveBtn', function() {
@@ -1561,6 +1736,88 @@ function addBonus(childId) {
   save(); render();
 }
 
+function doBankNow(ch) {
+  var amount = ch.goalSaved || 0;
+  var fromSaved = amount;
+  var fromBanked = ch.totalBanked || 0;
+  var toSaved = 0;
+  var toBanked = +((fromBanked + amount).toFixed(2));
+  var duration = 1200;
+  var steps = 60;
+  var stepDuration = duration / steps;
+
+  ch.totalBanked = toBanked;
+  ch.goalSaved = 0;
+  save(); render();
+
+  // Animate goalSaved counting down and totalBanked counting up
+  var step = 0;
+  function animateBank() {
+    step++;
+    var progress = step / steps;
+    var ease = 1 - Math.pow(1 - progress, 3);
+    var curSaved  = fromSaved  - (fromSaved  * ease);
+    var curBanked = fromBanked + (toBanked - fromBanked) * ease;
+
+    // Update ring amount display
+    var ringEl = document.querySelector('#jarSvgWrap + div div:first-child');
+    if (ringEl) ringEl.textContent = '£' + curSaved.toFixed(2);
+
+    // Update total banked in week card
+    var bankedEl = document.querySelector('.week-saved-val');
+    if (bankedEl) bankedEl.textContent = '£' + curBanked.toFixed(2);
+
+    // Update ring arc
+    var circle = document.querySelector('#jarSvgWrap circle:nth-child(2)');
+    if (circle) {
+      var col2 = COLORS[state.children.indexOf(ch)];
+      var pct2 = Math.min(100, Math.round(curSaved / ch.goalTarget * 100));
+      var r = 48, circ = 2*Math.PI*r;
+      var dash = circ * pct2 / 100;
+      circle.setAttribute('stroke-dasharray', dash + ' ' + (circ-dash));
+    }
+
+    if (step < steps) setTimeout(animateBank, stepDuration);
+    else showMsg('£'+amount.toFixed(2)+' banked! Keep saving 💪', '#2f9e44');
+  }
+  animateBank();
+}
+
+function showGoalReachedCelebration(ch) {
+  launchConfetti();
+  // Re-render so week card shows the updated 50p bonus before popup appears
+  render();
+  var el = document.createElement('div');
+  el.id = 'goalReachedOverlay';
+  // Slide up from bottom so week card (with updated bonus) is visible above
+  el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9991;padding:16px 16px 30px;background:transparent;opacity:0;transition:opacity .3s,transform .4s cubic-bezier(.34,1.2,.64,1);transform:translateY(100%);pointer-events:none';
+  el.innerHTML =
+    '<div style="background:#fff;border-radius:24px 24px 20px 20px;padding:24px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,.2)">' +
+    '<div style="font-size:2.8rem;margin-bottom:6px">🏆</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
+    '<div style="font-size:.9rem;font-weight:700;color:#555;margin-bottom:6px">Well done '+ch.name+' on reaching your goal!</div>' +
+    '<div style="background:linear-gradient(135deg,#f59f00,#e67700);border-radius:12px;padding:10px 16px;margin-bottom:14px;color:#fff;font-family:Fredoka One,Arial,sans-serif;font-size:1rem">🎉 You earned a bonus 50p! You will bank £'+ch.goalSaved.toFixed(2)+'</div>' +
+    '<button id="goalBankBtn" style="display:block;width:100%;background:linear-gradient(135deg,#9775fa,#7c52f5);color:#fff;border:none;border-radius:14px;padding:13px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer">🎯 Bank it &amp; set new goal!</button>' +
+    '</div>';
+  document.body.appendChild(el);
+  el.style.pointerEvents = 'all';
+  requestAnimationFrame(function() {
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+  setTimeout(launchConfetti, 600);
+
+  function closeOverlay() {
+    el.style.opacity = '0';
+    setTimeout(function() { el.style.pointerEvents='none'; el.remove(); }, 300);
+  }
+
+  document.getElementById('goalBankBtn').addEventListener('click', function() {
+    closeOverlay();
+    setTimeout(function() { showJarFullCelebration(ch); }, 300);
+  });
+}
+
 function showJarFullCelebration(ch) {
   // Confetti burst
   launchConfetti();
@@ -1655,9 +1912,14 @@ function doSaveToJar(childId) {
       }
     }, 50);
     // Check if jar is now full
-    var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){showBadgeUnlock(nb3[0]);},800); }
     if (ch.goalSaved >= ch.goalTarget) {
-      setTimeout(function() { showJarFullCelebration(ch); }, 400);
+      // Auto 50p bonus for reaching goal — added to goalSaved so they bank £10.50
+      ch.goalSaved = +((ch.goalSaved||0) + 0.50).toFixed(2);
+      save();
+      // Suppress badge popups — goal celebration takes priority
+      setTimeout(function() { showGoalReachedCelebration(ch); }, 200);
+    } else {
+      var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){showBadgeUnlock(nb3[0]);},800); }
     }
   }, numCoins*60+900);
 }
