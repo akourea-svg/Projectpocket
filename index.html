@@ -683,7 +683,6 @@ function weeklyChartHTML(ch, numWeeks) {
     var dailyH   = barH - specialH;
 
     html += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">';
-    html += '<div style="font-size:.58rem;font-weight:800;color:'+(total>0?'var(--text-dark)':'var(--text-mid)')+';margin-bottom:2px">'+(total>0?total:'')+'</div>';
     html += '<div style="width:100%;display:flex;flex-direction:column;border-radius:8px 8px 0 0;overflow:hidden;'+(w.isCurrent?'box-shadow:0 0 0 2px var(--c-accent1,#9775fa)':'')+'height:'+BAR_MAX_HEIGHT+'px;justify-content:flex-end">';
     if (barH > 0) {
       html += '<div style="display:flex;flex-direction:column;height:'+barH+'px">';
