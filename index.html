@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ProjectPocket 🌟</title>
 <link rel="manifest" href="./manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
@@ -141,7 +141,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 .btn-reset{background:#f0f0f5;color:var(--text-mid)}
 .btn-danger{background:#fff0f0;color:var(--red)}
 .goal-edit-row{display:flex;gap:8px}
-.form-input{background:#f8f8fc;border:2px solid #eee;border-radius:12px;padding:10px 12px;font-family:'Nunito',system-ui,sans-serif;font-size:.9rem;font-weight:700;color:var(--text-dark);width:100%;outline:none;transition:border-color .15s}
+.form-input{background:#f8f8fc;border:2px solid #eee;border-radius:12px;padding:10px 12px;font-family:'Nunito',system-ui,sans-serif;font-size:16px;font-weight:700;color:var(--text-dark);width:100%;outline:none;transition:border-color .15s}
 .form-input:focus{border-color:var(--purple);background:#fff}
 .btn-save{background:var(--purple);color:#fff;border:none;border-radius:12px;padding:10px 18px;font-family:'Fredoka One',Arial,sans-serif;font-size:.9rem;cursor:pointer;white-space:nowrap;box-shadow:0 4px 10px rgba(151,117,250,.3)}
 .add-chore-section{background:#f8f8fc;border-radius:20px;padding:16px;margin-top:12px}
@@ -347,7 +347,10 @@ function pinDel() {
 updatePinHint();
 
 // ── DATE ─────────────────────────────────────────────────
-function todayStr() { return new Date().toISOString().slice(0,10); }
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 function weekStart() {
   var d = new Date(), day = d.getDay();
   var diff = (day === 6) ? 0 : (day + 1);
@@ -715,6 +718,7 @@ function loadSupabaseLib() {
     if (typeof supabase !== 'undefined') { res(); return; }
     var s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    s.crossOrigin = 'anonymous';
     s.onload = res; s.onerror = rej;
     document.head.appendChild(s);
   });
@@ -766,8 +770,8 @@ function calcStreak(ch) {
   });
   var today = todayStr();
   var yesterday = (function() {
-    var d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()-1);
-    return d.toISOString().slice(0,10);
+    var d = new Date(); d.setDate(d.getDate()-1);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   })();
   // Streak must end today or yesterday — otherwise it's broken
   var startDate = activeDays[today] ? today : activeDays[yesterday] ? yesterday : null;
@@ -1225,16 +1229,8 @@ function renderMain() {
     badgeCabinetHTML(ch) +
     '</div>' +
 
-    // DEDUCTION SECTION — after chart
-    '<div class="deduction-section">' +
-    '<div class="deduction-label">Parent Controls</div>' +
-    '<div class="deduction-sub">Deductions: '+(ch.weekPenalties>0?'−£'+(ch.weekPenalties||0).toFixed(2):'£0.00')+' · Bonus: +£'+bon.toFixed(2)+'</div>' +
-    '<div class="deduction-row">' +
-    '<button class="deduction-btn" id="deductBtn" style="background:#868e96"'+(canDeduct?'':' disabled')+'>' +
-    '<span class="deduction-btn-icon">−</span><span class="deduction-btn-label">Deduct 25p</span></button>' +
-    '<button class="deduction-btn" id="bonusBtn" style="background:#2f9e44"'+(canAddBonus(ch)?'':' disabled')+'>' +
-    '<span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
-    '</div></div>';
+    // Bonus/deduct moved to parent tab
+    '';
 
   // Parent controls — only rendered when in parent tab via renderParentOnly
   var pc = document.getElementById('parentControls');
@@ -1695,6 +1691,8 @@ var activeTab = 'home';
 
 function switchTab(tab) {
   activeTab = tab;
+  // Blur any focused input to prevent iOS zoom persisting between tabs
+  if (document.activeElement) document.activeElement.blur();
   window.scrollTo(0, 0);
   var mc = document.getElementById('mainContent');
   var pc = document.getElementById('parentControls');
@@ -1733,31 +1731,30 @@ function renderParentOnly() {
   var pc = document.getElementById('parentControls');
   if (!pc) return;
   pc.style.display = 'block';
-  // Render parent panel for active child
   var ch = state.children[activeIdx];
   var col = COLORS[activeIdx];
 
+  var canDeductP = (ch.weekPenalties||0) < WEEKLY_BASE;
+  var canBonusP = canAddBonus(ch);
+  var bonP = +((ch.weekEarned||0)).toFixed(2);
+
   pc.innerHTML =
     '<div style="padding:14px">' +
-    '<div class="add-chore-section">' +
-    '<h4>➕ Add Daily Quest for '+ch.name+'</h4>' +
-    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
-    '<input class="form-input" id="newExpEmoji" maxlength="4" value="⭐" style="text-align:center;font-size:1.3rem">' +
-    '<input class="form-input" id="newExpName" placeholder="Quest name…"></div>' +
-    '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Daily Quest ✨</button>' +
-    '<h4>➕ Add Special Quest for '+ch.name+'</h4>' +
-    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
-    '<input class="form-input" id="newEmoji" maxlength="4" value="🧹" style="text-align:center;font-size:1.3rem">' +
-    '<input class="form-input" id="newName" placeholder="Quest name…"></div>' +
-    '<button class="btn-primary" id="addChoreBtn" style="margin-bottom:4px">Add Special Quest ✨</button></div>' +
-    '<div class="parent-panel"><h3>👨‍👩‍👧 Parent Controls — '+ch.name+'</h3>' +
-    '<div class="panel-section"><div class="panel-label">🎯 Savings Goal</div>' +
+    '<div class="deduction-section" style="margin-top:0;margin-bottom:12px">' +
+    '<div class="deduction-label">'+ch.name+' \u2014 Quick Actions</div>' +
+    '<div class="deduction-sub">Bonus: +\u00a3'+bonP.toFixed(2)+' \u00b7 Deductions: \u2212\u00a3'+(ch.weekPenalties||0).toFixed(2)+'</div>' +
+    '<div class="deduction-row">' +
+    '<button class="deduction-btn" id="pDeductBtn" style="background:#868e96"'+(canDeductP?'':' disabled')+'><span class="deduction-btn-icon">\u2212</span><span class="deduction-btn-label">Deduct 25p</span></button>' +
+    '<button class="deduction-btn" id="pBonusBtn" style="background:#2f9e44"'+(canBonusP?'':' disabled')+'><span class="deduction-btn-icon">+</span><span class="deduction-btn-label">Bonus 50p</span></button>' +
+    '</div></div>' +
+    '<div class="parent-panel"><h3>\u{1F468}\u200d\u{1F469}\u200d\u{1F467} Parent Controls \u2014 '+ch.name+'</h3>' +
+    '<div class="panel-section"><div class="panel-label">\uD83C\uDFAF Savings Goal</div>' +
     '<div class="goal-edit-row">' +
     '<input class="form-input" id="goalName_'+ch.id+'" value="'+ch.goalName+'">' +
     '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
     '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
     '<div class="panel-section" style="margin-bottom:8px">' +
-    '<div class="panel-label">📅 Log Past Activity</div>' +
+    '<div class="panel-label">\uD83D\uDCC5 Log Past Activity</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
     '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Date</div>' +
     '<input class="form-input" id="pastDate" type="date" value="'+new Date(Date.now()-86400000).toISOString().slice(0,10)+'"></div>' +
@@ -1769,44 +1766,85 @@ function renderParentOnly() {
     '<input class="form-input" id="pastSpecial" type="number" min="0" max="'+((ch.earningChores||[]).length||6)+'" placeholder="0" style="text-align:center"></div>' +
     '</div>' +
     '<button class="btn-save" id="logPastBtn" style="width:100%">Log Activity</button></div>' +
-    '<div class="panel-section" style="margin-bottom:8px"><div class="panel-label">🔧 Manual Override</div>' +
+    '<div class="panel-section" style="margin-bottom:8px"><div class="panel-label">\uD83D\uDD27 Manual Override</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Goal saved (£)</div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Goal saved (\u00a3)</div>' +
     '<input class="form-input" id="overrideGoalSaved" type="number" step="0.01" min="0" value="'+(ch.goalSaved||0).toFixed(2)+'" style="text-align:center"></div>' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Total banked (£)</div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Total banked (\u00a3)</div>' +
     '<input class="form-input" id="overrideTotalBanked" type="number" step="0.01" min="0" value="'+(ch.totalBanked||0).toFixed(2)+'" style="text-align:center"></div>' +
     '</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Weekly earnings (£)</div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Weekly earnings (\u00a3)</div>' +
     '<input class="form-input" id="overrideWeekEarned" type="number" step="0.01" min="0" value="'+(ch.weekEarned||0).toFixed(2)+'" style="text-align:center"></div>' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Deductions (£)</div>' +
+    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Deductions (\u00a3)</div>' +
     '<input class="form-input" id="overrideWeekPenalties" type="number" step="0.01" min="0" value="'+(ch.weekPenalties||0).toFixed(2)+'" style="text-align:center"></div>' +
     '</div>' +
     '<div style="margin-bottom:7px"><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Streak days (manual)</div>' +
     '<input class="form-input" id="overrideStreak" type="number" step="1" min="0" placeholder="Leave blank to auto-calculate" style="text-align:center"></div>' +
     '<button class="btn-save" id="applyOverrideBtn" style="width:100%">Apply Changes</button></div>' +
-    '<button class="btn-action btn-reset" id="resetBonusBtn">↩️ Reset bonus to zero</button>' +
-    '<button class="btn-action btn-reset" id="resetDeductBtn">↩️ Reset deductions to zero</button>' +
-    '<button class="btn-action btn-reset" id="resetQuestsBtn">🔄 Reset quest lists to defaults</button>' +
-    '<button class="btn-action btn-reset" id="testSatBtn">🗓️ '+(_testSaturday?'🟢 Test Saturday ON — tap to turn off':'Test Saturday mode')+'</button>' +
-    '<button class="btn-action '+(_testMode?'active':'btn-reset')+'" id="testModeBtn" style="'+(_testMode?'background:#9775fa;color:#fff':'')+'">🎭 '+(_testMode?'🟢 Demo mode ON — tap to exit':'Run demo mode')+'</button>' +
-    '<div class="panel-section" style="margin-top:8px"><div class="panel-label">🔑 Change PIN</div>' +
+    '<button class="btn-action btn-reset" id="resetBonusBtn">\u21A9\uFE0F Reset bonus to zero</button>' +
+    '<button class="btn-action btn-reset" id="resetDeductBtn">\u21A9\uFE0F Reset deductions to zero</button>' +
+    '<button class="btn-action btn-reset" id="resetQuestsBtn">\uD83D\uDD04 Reset quest lists to defaults</button>' +
+    '<button class="btn-action btn-reset" id="testSatBtn">\uD83D\uDCC5 '+(_testSaturday?'\uD83D\uDFE2 Test Saturday ON \u2014 tap to turn off':'Test Saturday mode')+'</button>' +
+    '<button class="btn-action '+(_testMode?'active':'btn-reset')+'" id="testModeBtn" style="'+(_testMode?'background:#9775fa;color:#fff':'')+'">\uD83C\uDFAD '+(_testMode?'\uD83D\uDFE2 Demo mode ON \u2014 tap to exit':'Run demo mode')+'</button>' +
+    '<div class="add-chore-section">' +
+    '<h4>\u2795 Add Daily Quest for '+ch.name+'</h4>' +
+    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+    '<input class="form-input" id="newExpEmoji" maxlength="4" value="\u2b50" style="text-align:center;font-size:1.3rem">' +
+    '<input class="form-input" id="newExpName" placeholder="Quest name\u2026"></div>' +
+    '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Daily Quest \u2728</button>' +
+    '<h4>\u2795 Add Special Quest for '+ch.name+'</h4>' +
+    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+    '<input class="form-input" id="newEmoji" maxlength="4" value="\uD83E\uDDF9" style="text-align:center;font-size:1.3rem">' +
+    '<input class="form-input" id="newName" placeholder="Quest name\u2026"></div>' +
+    '<button class="btn-primary" id="addChoreBtn" style="margin-bottom:4px">Add Special Quest \u2728</button></div>' +
+    '<div class="panel-section" style="margin-top:8px"><div class="panel-label">\uD83D\uDD11 Change PIN</div>' +
     '<input class="form-input" id="pinNew" type="password" inputmode="numeric" maxlength="4" placeholder="New 4-digit PIN" style="margin-bottom:7px">' +
     '<input class="form-input" id="pinConfirm" type="password" inputmode="numeric" maxlength="4" placeholder="Confirm new PIN" style="margin-bottom:7px">' +
     '<div id="pinChangeMsg" style="font-size:.8rem;font-weight:700;min-height:18px;margin-bottom:7px"></div>' +
     '<button class="btn-save" id="changePinBtn" style="width:100%">Update PIN</button></div></div>' +
     '</div>';
 
-  // Bind all parent control buttons
   var bindBtn2 = function(id, fn) { var el = document.getElementById(id); if(el) el.addEventListener('click', fn); };
   var setupDoubleTab2 = function(id, action) {
     var btn = document.getElementById(id); if(!btn) return;
     var orig = btn.textContent;
     btn.addEventListener('click', function() {
       if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent=orig;action();}
-      else{btn.dataset.armed='1';btn.textContent='✅ Tap again to confirm';setTimeout(function(){if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent=orig;}},3000);}
+      else{btn.dataset.armed='1';btn.textContent='\u2705 Tap again to confirm';setTimeout(function(){if(btn.dataset.armed==='1'){btn.dataset.armed='0';btn.textContent=orig;}},3000);}
     });
   };
+  bindBtn2('pBonusBtn', function() {
+    addBonus(ch.id);
+    switchTab('home');
+    window.scrollTo({top:0, behavior:'smooth'});
+    setTimeout(function() {
+      var chN = state.children.find(function(x){return x.id===ch.id;});
+      if (!chN) return;
+      var newNet = weekNet(chN);
+      var oldNet = +(newNet - BONUS_AMOUNT).toFixed(2);
+      var steps=50, stepDur=600/steps, step=0;
+      function animC() {
+        step++;
+        var cur = parseFloat((oldNet + (newNet-oldNet)*(step/steps)).toFixed(2));
+        var el = document.querySelector('.week-amount');
+        if (el) el.textContent = '\u00a3'+cur.toFixed(2);
+        if (step < steps) setTimeout(animC, stepDur);
+        else {
+          var cx=innerWidth/2, cy=innerHeight/2;
+          var syms=['\u2764\uFE0F','\uD83D\uDC96','\uD83D\uDC9C','\uD83D\uDC9B','\uD83D\uDC95','\uD83D\uDC97'];
+          for(var wi=0;wi<3;wi++){(function(w){setTimeout(function(){for(var i=0;i<12;i++){(function(idx){setTimeout(function(){var h=document.createElement('div');h.style.cssText='position:fixed;pointer-events:none;z-index:9998;font-size:'+(40+Math.random()*26)+'px;left:'+(cx-20)+'px;top:'+(cy-20)+'px;animation:coin-fly '+(1+Math.random()*.5)+'s ease-out forwards';h.textContent=syms[Math.floor(Math.random()*syms.length)];var a=(Math.PI*2*idx/12)+(w*.4),d=80+Math.random()*140;h.style.setProperty('--dx',Math.cos(a)*d+'px');h.style.setProperty('--dy',Math.sin(a)*d+'px');document.body.appendChild(h);setTimeout(function(){h.remove();},1600);},idx*25);})(i);}},w*180);})(wi);}
+          setTimeout(render,400);
+        }
+      }
+      animC();
+    }, 700);
+  });
+  bindBtn2('pDeductBtn', function() {
+    addPenalty(ch.id);
+    switchTab('home');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
   bindBtn2('addExpBtn', function(){ addExpectedTask(ch.id); renderParentOnly(); });
   bindBtn2('addChoreBtn', function(){ addChore(ch.id); renderParentOnly(); });
   bindBtn2('saveGoalBtn', function(){ saveGoal(ch.id); renderParentOnly(); });
@@ -1828,7 +1866,7 @@ function renderParentOnly() {
     if (!isNaN(wp)) ch.weekPenalties = Math.min(WEEKLY_BASE, +wp.toFixed(2));
     if (sk !== '' && !isNaN(parseInt(sk))) ch.manualStreak = parseInt(sk);
     else delete ch.manualStreak;
-    save(); renderParentOnly(); showMsg('Override applied ✅', '#2f9e44');
+    save(); showMsg('Override applied \u2705', '#2f9e44'); renderParentOnly();
   });
   setupDoubleTab2('resetBonusBtn', function(){ ch.weekEarned=0; save(); renderParentOnly(); });
   setupDoubleTab2('resetDeductBtn', function(){ ch.weekPenalties=0; save(); renderParentOnly(); });
@@ -1856,7 +1894,7 @@ function renderParentOnly() {
       _testMode = true;
       editMode = false;
       state = freshDemoState();
-      showMsg('🎭 Demo mode ON — real data safe', '#9775fa');
+      showMsg('\uD83C\uDFAD Demo mode ON \u2014 real data safe', '#9775fa');
       switchTab('home');
     } else {
       _testMode = false;
@@ -1869,7 +1907,7 @@ function renderParentOnly() {
         state = applyResets(restored); _testModeSnapshot = null; saveLocal();
         try { var cl=getSb(); if(cl) cl.from('app_state').upsert({id:1,state:JSON.parse(JSON.stringify(state)),updated_at:new Date().toISOString()}).catch(function(){}); } catch(e){}
       }
-      showMsg('Demo mode OFF — real data restored', '#2f9e44');
+      showMsg('Demo mode OFF \u2014 real data restored', '#2f9e44');
       renderParentOnly();
     }
   });
@@ -1886,7 +1924,6 @@ function renderParentOnly() {
     updatePinHint();
   });
 }
-
 function renderHistory() {
   var hp = document.getElementById('historyPanel');
   if (!hp) return;
@@ -1990,7 +2027,7 @@ function addBonus(childId) {
   var isNewBadge = !ch.badges.bonus1;
   if (isNewBadge) ch.badges.bonus1 = true;
   save(); render();
-  if (isNewBadge) setTimeout(function(){showBadgeUnlock('bonus1');}, 600);
+  if (isNewBadge) setTimeout(function(){showBadgeUnlock('bonus1');}, 2800);
 }
 
 function doBankNow(ch) {
@@ -2112,7 +2149,7 @@ function showJarFullCelebration(ch) {
     var newBankBadges = [];
     if (!ch.badges.firstsave) { ch.badges.firstsave = true; newBankBadges.push('firstsave'); }
     if (!ch.badges.save100)   { ch.badges.save100   = true; newBankBadges.push('save100'); }
-    if (newBankBadges.length) setTimeout(function(){showBadgeUnlock(newBankBadges[0]);}, 1200);
+    if (newBankBadges.length) setTimeout(function(){showBadgeUnlock(newBankBadges[0]);}, 2500);
     ch.goalSaved = 0; // Reset goal progress only
     ch.goalTarget = amount;
     ch.goalName   = name || 'My Savings Goal';
@@ -2182,7 +2219,7 @@ function doSaveToJar(childId) {
       // Suppress badge popups — goal celebration takes priority
       setTimeout(function() { showGoalReachedCelebration(ch); }, 200);
     } else {
-      var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){showBadgeUnlock(nb3[0]);},800); }
+      var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){showBadgeUnlock(nb3[0]);},2800); }
     }
   }, numCoins*60+900);
 }
@@ -2457,6 +2494,10 @@ function initApp() {
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function(){});
+
+// Suppress cross-origin "Script error." from Supabase CDN on iOS Safari
+window.addEventListener('unhandledrejection', function(e) { e.preventDefault(); });
+window.addEventListener('error', function(e) { if (e.message === 'Script error.') e.preventDefault(); });
 
 // Re-fetch from Supabase when app comes back into focus (iOS suspends WebSockets)
 document.addEventListener('visibilitychange', function() {
