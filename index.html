@@ -756,7 +756,7 @@ function recordActivity(ch, type) { recordWeeklyActivity(ch, type); }
 function calcStreak(ch) {
   if (typeof ch.manualStreak === 'number') return ch.manualStreak;
   if (!ch.weeklyLog) return 0;
-  // Build a set of all active days from daysSeen across all weeks
+  // Build set of all active days
   var activeDays = {};
   Object.keys(ch.weeklyLog).forEach(function(wk) {
     var entry = ch.weeklyLog[wk];
@@ -764,21 +764,17 @@ function calcStreak(ch) {
       Object.keys(entry.daysSeen).forEach(function(d) { activeDays[d] = true; });
     }
   });
-  var allDays = Object.keys(activeDays).sort();
-  if (!allDays.length) return 0;
-  // Find most recent active day
-  var mostRecent = allDays[allDays.length - 1];
   var today = todayStr();
   var yesterday = (function() {
     var d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()-1);
     return d.toISOString().slice(0,10);
   })();
-  // Only show streak if they were active today or yesterday (still live)
-  // If most recent day is older, streak has technically broken but show last count
-  var startFrom = mostRecent;
-  // Count consecutive days back from startFrom
+  // Streak must end today or yesterday — otherwise it's broken
+  var startDate = activeDays[today] ? today : activeDays[yesterday] ? yesterday : null;
+  if (!startDate) return 0;
+  // Count consecutive days back from startDate
   var streak = 0;
-  var d = new Date(startFrom + 'T12:00:00');
+  var d = new Date(startDate + 'T12:00:00');
   while (streak < 365) {
     var key = d.toISOString().slice(0,10);
     if (!activeDays[key]) break;
