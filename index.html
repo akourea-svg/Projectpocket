@@ -46,12 +46,12 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 /* ── PARENT BAR ── */
 .parent-bar{display:flex;justify-content:space-around;align-items:center;padding:10px 0 16px;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.08);z-index:100}
 .parent-bar-btn{background:none;border:none;color:var(--text-mid);font-family:'Nunito',system-ui,sans-serif;font-size:.58rem;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 16px}
-.parent-bar-btn.active{color:var(--purple)}
+.parent-bar-btn.active{color:var(--purple)}.parent-bar-btn .nav-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin:2px auto 0}.parent-bar-btn.active .nav-dot{background:var(--purple)}
 
 /* ── TABS ── */
 .child-tabs{display:flex;padding:16px 16px 0;gap:12px}
 .child-tab{flex:1;background:#fff;border:none;border-radius:24px;padding:18px 8px 14px;cursor:pointer;transition:all .2s;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-.child-tab.active{background:var(--tab-c1,#9775fa);box-shadow:0 8px 24px rgba(0,0,0,.15);transform:translateY(-3px)}
+.child-tab.active{box-shadow:0 8px 24px rgba(0,0,0,.15);transform:translateY(-3px)}
 .tab-avatar{font-size:3rem;display:block;line-height:1;transition:transform .3s cubic-bezier(.34,1.56,.64,1);margin-bottom:6px}
 .tab-name{font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;color:var(--text-mid);display:block}
 .child-tab.active .tab-name{color:#fff}
@@ -233,9 +233,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 </div>
 
 <div class="parent-bar" id="parentBar">
-  <button class="parent-bar-btn active" id="homeTabBtn"><span style="font-size:1.3rem">🏠</span>Home</button>
-  <button class="parent-bar-btn" id="historyTabBtn"><span style="font-size:1.3rem">📊</span>History</button>
-  <button class="parent-bar-btn" id="editToggleBtn"><span style="font-size:1.3rem">⚙️</span>Parent</button>
+  <button class="parent-bar-btn active" id="homeTabBtn"><span style="font-size:1.3rem">🏠</span>Home<div class="nav-dot"></div></button>
+  <button class="parent-bar-btn" id="historyTabBtn"><span style="font-size:1.3rem">📊</span>History<div class="nav-dot"></div></button>
+  <button class="parent-bar-btn" id="editToggleBtn"><span style="font-size:1.3rem">⚙️</span>Parent<div class="nav-dot"></div></button>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -273,8 +273,8 @@ var BONUS_CAP      = 5.00;
 var PENALTY_AMOUNT = 0.25;
 var BONUS_AMOUNT   = 0.50;
 var COLORS = [
-  { accent1:'#9775fa', tab1:'#9775fa', bg:'#f0ecff' },
-  { accent1:'#f59f00', tab1:'#f59f00', bg:'#fffbea' }
+  { accent1:'#9775fa', tab1:'#9775fa', tabGrad:'linear-gradient(160deg,#1a0a2e 0%,#7c3fa0 40%,#9775fa 70%,#f06292 100%)', bg:'#f0ecff' },
+  { accent1:'#f59f00', tab1:'#f59f00', tabGrad:'linear-gradient(160deg,#ffd43b 0%,#ff922b 40%,#e066a0 70%,#5c1f8a 100%)', bg:'#fffbea' }
 ];
 var DEFAULT_EXPECTED = [
   {id:'e1',emoji:'👟',name:'Shoes on the rack'},
@@ -756,7 +756,7 @@ function recordActivity(ch, type) { recordWeeklyActivity(ch, type); }
 function calcStreak(ch) {
   if (typeof ch.manualStreak === 'number') return ch.manualStreak;
   if (!ch.weeklyLog) return 0;
-  // Build a set of all active days from daysSeen
+  // Build a set of all active days from daysSeen across all weeks
   var activeDays = {};
   Object.keys(ch.weeklyLog).forEach(function(wk) {
     var entry = ch.weeklyLog[wk];
@@ -764,18 +764,27 @@ function calcStreak(ch) {
       Object.keys(entry.daysSeen).forEach(function(d) { activeDays[d] = true; });
     }
   });
+  var allDays = Object.keys(activeDays).sort();
+  if (!allDays.length) return 0;
+  // Find most recent active day
+  var mostRecent = allDays[allDays.length - 1];
+  var today = todayStr();
+  var yesterday = (function() {
+    var d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate()-1);
+    return d.toISOString().slice(0,10);
+  })();
+  // Only show streak if they were active today or yesterday (still live)
+  // If most recent day is older, streak has technically broken but show last count
+  var startFrom = mostRecent;
+  // Count consecutive days back from startFrom
   var streak = 0;
-  var d = new Date();
-  // Count from yesterday back
-  d.setDate(d.getDate() - 1);
+  var d = new Date(startFrom + 'T12:00:00');
   while (streak < 365) {
     var key = d.toISOString().slice(0,10);
     if (!activeDays[key]) break;
     streak++;
     d.setDate(d.getDate() - 1);
   }
-  // Count today if active
-  if (activeDays[todayStr()]) streak++;
   return streak;
 }
 
@@ -1085,7 +1094,7 @@ function renderTabs() {
   state.children.forEach(function(ch, i) {
     if (!ch) return;
     var col = COLORS[i];
-    html += '<div class="child-tab '+(i===activeIdx?'active':'')+'" style="--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
+    html += '<div class="child-tab '+(i===activeIdx?'active':'')+'" style="'+(i===activeIdx?'background:'+col.tabGrad+';':'')+'--tab-c1:'+col.tab1+'" data-idx="'+i+'">' +
       '<span class="tab-avatar">'+ch.avatar+'</span>' +
       '<span class="tab-name">'+ch.name+'</span>' +
 
