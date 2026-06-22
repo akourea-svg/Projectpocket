@@ -679,10 +679,37 @@ function seedWeeklyLog(s) {
   s.children.forEach(function(ch) {
     if (!ch) return;
     if (!ch.weeklyLog) ch.weeklyLog = {};
-    // Always force seed historical weeks — force overwrite regardless of existing data
-    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
 
-    // Remove old activityLog
+    // Seed W24 only if not already set (don't overwrite real data)
+    if (!ch.weeklyLog['2026-W24'] || !ch.weeklyLog['2026-W24'].daysSeen) {
+      ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
+    }
+
+    // Seed W25 — merge in the known historical days, don't overwrite days already recorded
+    if (!ch.weeklyLog['2026-W25']) ch.weeklyLog['2026-W25'] = {daily:0, special:0, days:0, daysSeen:{}, dayCounts:{}};
+    var w25 = ch.weeklyLog['2026-W25'];
+    if (!w25.daysSeen) w25.daysSeen = {};
+    if (!w25.dayCounts) w25.dayCounts = {};
+
+    // Seed each historical day only if not already present
+    var historicalDays = {
+      '2026-06-15': {daily:2, special:0},
+      '2026-06-16': {daily:2, special:1},
+      '2026-06-17': {daily:2, special:0},
+      '2026-06-18': {daily:2, special:0},
+      '2026-06-21': {daily:2, special:1}
+    };
+    Object.keys(historicalDays).forEach(function(d) {
+      if (!w25.daysSeen[d]) {
+        var dc = historicalDays[d];
+        w25.daysSeen[d] = true;
+        w25.dayCounts[d] = dc;
+        w25.daily   = (w25.daily||0)   + dc.daily;
+        w25.special = (w25.special||0) + dc.special;
+      }
+    });
+    w25.days = Object.keys(w25.daysSeen).length;
+
     delete ch.activityLog;
   });
   return s;
