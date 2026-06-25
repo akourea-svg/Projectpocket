@@ -479,8 +479,7 @@ function applyResets(s) {
 }
 // Get ISO week key e.g. '2026-W25'
 function isoWeek(dateStr) {
-  var d = new Date(dateStr);
-  d.setHours(0,0,0,0);
+  var d = new Date(dateStr + 'T12:00:00');
   // Thursday in current week determines year
   var thursday = new Date(d);
   thursday.setDate(d.getDate() - ((d.getDay()+6)%7) + 3);
@@ -600,11 +599,46 @@ function checkBadges(ch, allChildren) {
   return newBadges;
 }
 
+
+// Badge queue — shows badges only when no other overlays are active
+var _badgeQueue = [];
+function queueBadge(badgeId) {
+  _badgeQueue.push(badgeId);
+  drainBadgeQueue();
+}
+function isOverlayActive() {
+  // Check if any modal/confirmation overlay is currently visible
+  var overlays = document.querySelectorAll('[id$="Overlay"],[id="bankNowInner"],[id="goalReachedOverlay"]');
+  for (var i=0; i<overlays.length; i++) {
+    var el = overlays[i];
+    var style = el.closest ? el.closest('[style*="opacity"]') : null;
+    if (el && el.offsetParent !== null && getComputedStyle(el).opacity !== '0') return true;
+  }
+  // Also check for any fixed overlay divs that are visible
+  var fixed = document.querySelectorAll('div[style*="position:fixed"][style*="z-index:999"]');
+  for (var j=0; j<fixed.length; j++) {
+    var f = fixed[j];
+    if (f.id !== 'demoModeBanner' && getComputedStyle(f).opacity !== '0' && getComputedStyle(f).pointerEvents !== 'none') return true;
+  }
+  return false;
+}
+function drainBadgeQueue() {
+  if (!_badgeQueue.length) return;
+  if (isOverlayActive()) {
+    setTimeout(drainBadgeQueue, 300);
+    return;
+  }
+  var badgeId = _badgeQueue.shift();
+  showBadgeUnlock(badgeId);
+  // If more in queue, show next after badge dismisses (3s + fade)
+  if (_badgeQueue.length) setTimeout(drainBadgeQueue, 3500);
+}
+
 function showBadgeUnlock(badge) {
   var b = BADGES.find(function(x){return x.id===badge;});
   if (!b) return;
   var el = document.createElement('div');
-  el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);z-index:9992;background:#fff;border-radius:24px;padding:28px 32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;min-width:220px';
+  el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);z-index:9989;background:#fff;border-radius:24px;padding:28px 32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;min-width:220px';
   el.innerHTML = '<div style="font-size:3.5rem;margin-bottom:8px">'+b.emoji+'</div>' +
     '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:4px">Badge Unlocked!</div>' +
     '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.2rem;color:var(--text-dark);margin-bottom:6px">'+b.name+'</div>' +
@@ -627,7 +661,7 @@ function showBadgeInfo(badgeId) {
   if (!b) return;
   var earned = (state.children[activeIdx].badges||{})[badgeId];
   var el = document.createElement('div');
-  el.style.cssText = 'position:fixed;inset:0;z-index:9993;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:30px;pointer-events:all';
+  el.style.cssText = 'position:fixed;inset:0;z-index:9989;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:30px;pointer-events:all';
   el.innerHTML =
     '<div style="background:#fff;border-radius:24px;padding:24px;width:100%;max-width:300px;text-align:center">' +
     '<div style="font-size:3rem;margin-bottom:8px;'+(earned?'':'filter:grayscale(1);opacity:.4')+'">'+b.emoji+'</div>' +
@@ -787,7 +821,12 @@ function recordActivity(ch, type) { recordWeeklyActivity(ch, type); }
 function calcStreak(ch) {
   if (typeof ch.manualStreak === 'number') return ch.manualStreak;
   if (!ch.weeklyLog) return 0;
-  // Build set of all active days
+
+  function localDateStr(d) {
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  // Build set of all active days from daysSeen
   var activeDays = {};
   Object.keys(ch.weeklyLog).forEach(function(wk) {
     var entry = ch.weeklyLog[wk];
@@ -795,19 +834,21 @@ function calcStreak(ch) {
       Object.keys(entry.daysSeen).forEach(function(d) { activeDays[d] = true; });
     }
   });
-  var today = todayStr();
-  var yesterday = (function() {
-    var d = new Date(); d.setDate(d.getDate()-1);
-    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  })();
-  // Streak must end today or yesterday — otherwise it's broken
+
+  var now = new Date();
+  var today = localDateStr(now);
+  var yest = new Date(now); yest.setDate(now.getDate()-1);
+  var yesterday = localDateStr(yest);
+
+  // Streak must be anchored to today or yesterday
   var startDate = activeDays[today] ? today : activeDays[yesterday] ? yesterday : null;
   if (!startDate) return 0;
-  // Count consecutive days back from startDate
+
+  // Count consecutive days back using local dates only
   var streak = 0;
   var d = new Date(startDate + 'T12:00:00');
   while (streak < 365) {
-    var key = d.toISOString().slice(0,10);
+    var key = localDateStr(d);
     if (!activeDays[key]) break;
     streak++;
     d.setDate(d.getDate() - 1);
@@ -1621,7 +1662,7 @@ function renderMain() {
       child.totalChores = (child.totalChores||0) + 1;
       recordActivity(child, 'daily');
       var colX = COLORS[activeIdx]; miniBurst(e.clientX||innerWidth/2, e.clientY||innerHeight/2, colX?colX.accent1:'#9775fa');
-      var nb2 = checkBadges(child, state.children); if (nb2.length) { setTimeout(function(){showBadgeUnlock(nb2[0]);},600); }
+      var nb2 = checkBadges(child, state.children); if (nb2.length) { setTimeout(function(){queueBadge(nb2[0]);},600); }
     } else {
       // Unticking — decrement counts
       if (child.totalChores > 0) child.totalChores--;
@@ -1909,7 +1950,9 @@ function renderParentOnly() {
       state.children.forEach(function(ch){ch.weekSaved=false;});
     } else {
       _testSaturday = false;
-      if (_testSnapshot) { state=applyResets(JSON.parse(JSON.stringify(_testSnapshot))); _testSnapshot=null; saveLocal(); }
+      // Only restore snapshot if NOT in demo mode — in demo, just clear the flag
+      if (_testSnapshot && !_testMode) { state=applyResets(JSON.parse(JSON.stringify(_testSnapshot))); _testSnapshot=null; saveLocal(); }
+      else { _testSnapshot=null; } // discard demo-era snapshot
     }
     renderParentOnly();
   });
@@ -2011,7 +2054,7 @@ function toggleChore(childId, choreId, e) {
     ch.totalChores = (ch.totalChores||0) + 1;
     recordActivity(ch, 'special');
     var col2 = COLORS[activeIdx]; miniBurst((e&&e.clientX)||innerWidth/2, (e&&e.clientY)||innerHeight/2, col2?col2.accent1:'#9775fa');
-    var nb1 = checkBadges(ch, state.children); if (nb1.length) { setTimeout(function(){showBadgeUnlock(nb1[0]);},600); }
+    var nb1 = checkBadges(ch, state.children); if (nb1.length) { setTimeout(function(){queueBadge(nb1[0]);},600); }
     save(); playTick(); render();
   } else {
     chore.done=false; chore.lastDone='';
@@ -2054,7 +2097,7 @@ function addBonus(childId) {
   var isNewBadge = !ch.badges.bonus1;
   if (isNewBadge) ch.badges.bonus1 = true;
   save(); render();
-  if (isNewBadge) setTimeout(function(){showBadgeUnlock('bonus1');}, 2800);
+  if (isNewBadge) setTimeout(function(){queueBadge('bonus1');}, 2800);
 }
 
 function doBankNow(ch) {
@@ -2176,7 +2219,7 @@ function showJarFullCelebration(ch) {
     var newBankBadges = [];
     if (!ch.badges.firstsave) { ch.badges.firstsave = true; newBankBadges.push('firstsave'); }
     if (!ch.badges.save100)   { ch.badges.save100   = true; newBankBadges.push('save100'); }
-    if (newBankBadges.length) setTimeout(function(){showBadgeUnlock(newBankBadges[0]);}, 2500);
+    if (newBankBadges.length) setTimeout(function(){queueBadge(newBankBadges[0]);}, 2500);
     ch.goalSaved = 0; // Reset goal progress only
     ch.goalTarget = amount;
     ch.goalName   = name || 'My Savings Goal';
@@ -2246,7 +2289,7 @@ function doSaveToJar(childId) {
       // Suppress badge popups — goal celebration takes priority
       setTimeout(function() { showGoalReachedCelebration(ch); }, 200);
     } else {
-      var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){showBadgeUnlock(nb3[0]);},2800); }
+      var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){queueBadge(nb3[0]);},2800); }
     }
   }, numCoins*60+900);
 }
