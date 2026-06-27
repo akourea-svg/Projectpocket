@@ -2270,6 +2270,9 @@ function doSaveToJar(childId) {
     ch.weekSavedDate=todayStr();
     ch.earningChores.forEach(function(c){c.done=false;c.lastDone=''});
     ch.expectedDone={};
+    // Check savings progress badges now that goalSaved has increased
+    var nbSat = checkBadges(ch, state.children);
+    if (nbSat.length) { setTimeout(function(){queueBadge(nbSat[0]);}, 2800); }
     save(); render();
     // Trigger ripple at new fill level after render
     setTimeout(function() {
