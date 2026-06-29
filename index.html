@@ -194,9 +194,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 @keyframes miniBurstAnim{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot));opacity:0}}
 @keyframes ripple{0%{transform:scaleX(1.15) scaleY(.85);opacity:.7}50%{transform:scaleX(.92) scaleY(1.08);opacity:.5}100%{transform:scaleX(1) scaleY(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-.float-switcher{position:fixed;top:12px;right:12px;z-index:50;display:flex;flex-direction:row;gap:6px}
-.float-child-btn{width:36px;height:36px;border-radius:50%;border:2.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.9);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:1.3rem;padding:0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.float-child-btn.active{border-color:var(--c-accent1,#9775fa);box-shadow:0 3px 14px rgba(0,0,0,.3);transform:scale(1.1)}
+.float-switcher{position:fixed;top:12px;right:12px;z-index:50;display:flex;flex-direction:row;gap:6px;opacity:0;pointer-events:none;transition:opacity .2s}.float-switcher.visible{opacity:1;pointer-events:all}
+.float-child-btn{width:36px;height:36px;border-radius:50%;border:2.5px solid transparent;background:rgba(255,255,255,.9);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:1.3rem;padding:0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.float-child-btn.active{box-shadow:0 3px 14px rgba(0,0,0,.3);transform:scale(1.1)}
 </style>
 </head>
 <body>
@@ -548,6 +548,16 @@ function logPastActivity(ch, dateStr, dailyCount, specialCount) {
   entry.days = Object.keys(entry.daysSeen).length;
   save(); render();
   showMsg('Activity logged for '+dateStr, '#2f9e44');
+}
+
+function checkSavingsBadges(ch) {
+  if (!ch.badges) ch.badges = {};
+  var savedPct = ch.goalTarget > 0 ? ((ch.goalSaved||0) / ch.goalTarget * 100) : 0;
+  var newBadges = [];
+  if (savedPct >= 25 && !ch.badges.save25) { ch.badges.save25 = true; newBadges.push('save25'); }
+  if (savedPct >= 50 && !ch.badges.save50) { ch.badges.save50 = true; newBadges.push('save50'); }
+  if (savedPct >= 75 && !ch.badges.save75) { ch.badges.save75 = true; newBadges.push('save75'); }
+  return newBadges;
 }
 
 function checkBadges(ch, allChildren) {
@@ -1186,7 +1196,7 @@ function renderTabs() {
     fs.innerHTML = state.children.map(function(kid, i) {
       var col = COLORS[i];
       var isActive = i === activeIdx;
-      return '<button class="float-child-btn'+(isActive?' active':'')+'" data-fidx="'+i+'">' +
+      return '<button class="float-child-btn'+(isActive?' active':'')+'" data-fidx="'+i+'" style="border-color:'+(isActive?col.accent1:'transparent')+';box-shadow:'+(isActive?'0 3px 14px rgba(0,0,0,.35);':'0 2px 8px rgba(0,0,0,.15);')+'">' +
              kid.avatar+'</button>';
     }).join('');
     fs.onclick = function(e) {
@@ -1800,6 +1810,19 @@ function switchChild(i) {
   activeIdx = i;
   document.documentElement.style.setProperty('--child-bg', COLORS[i].bg);
   document.body.style.background = COLORS[i].bg;
+  // Immediately update float switcher so active state is correct
+  var fs2 = document.getElementById('floatSwitcher');
+  if (fs2) {
+    Array.from(fs2.querySelectorAll('[data-fidx]')).forEach(function(btn) {
+      var idx = parseInt(btn.dataset.fidx);
+      var isAct = idx === i;
+      var col2 = COLORS[idx];
+      btn.classList.toggle('active', isAct);
+      btn.style.borderColor = isAct ? col2.accent1 : 'transparent';
+      btn.style.boxShadow = isAct ? '0 3px 14px rgba(0,0,0,.35)' : '0 2px 8px rgba(0,0,0,.15)';
+      btn.style.transform = isAct ? 'scale(1.1)' : 'scale(1)';
+    });
+  }
   // Re-render the correct panel for whichever tab is active
   if (activeTab === 'parent') {
     renderTabs();
@@ -2344,7 +2367,7 @@ function doSaveToJar(childId) {
     ch.earningChores.forEach(function(c){c.done=false;c.lastDone=''});
     ch.expectedDone={};
     // Check savings progress badges now that goalSaved has increased
-    var nbSat = checkBadges(ch, state.children);
+    var nbSat = checkSavingsBadges(ch);
     if (nbSat.length) { setTimeout(function(){queueBadge(nbSat[0]);}, 2800); }
     save(); render();
     // Trigger ripple at new fill level after render
@@ -2643,6 +2666,14 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').ca
 
 // Suppress cross-origin "Script error." from Supabase CDN on iOS Safari
 window.addEventListener('unhandledrejection', function(e) { e.preventDefault(); });
+
+// Show float switcher only after scrolling past the title area
+window.addEventListener('scroll', function() {
+  var fs = document.getElementById('floatSwitcher');
+  if (!fs) return;
+  if (window.scrollY > 80) fs.classList.add('visible');
+  else fs.classList.remove('visible');
+}, {passive: true});
 window.addEventListener('error', function(e) { if (e.message === 'Script error.') e.preventDefault(); });
 
 // Re-fetch from Supabase when app comes back into focus (iOS suspends WebSockets)
