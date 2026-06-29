@@ -44,6 +44,8 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 .app-header{padding:18px 20px 4px;text-align:center}
 .app-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2rem;background:linear-gradient(135deg,#9775fa,#f59f00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:.5px;filter:drop-shadow(0 2px 4px rgba(151,117,250,.2))}
 /* ── PARENT BAR ── */
+.retro-indicator{text-align:center;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.9);padding:3px 10px;margin:4px 14px 0;border-radius:20px;background:rgba(151,117,250,.6);display:none}
+.retro-indicator.visible{display:block}
 .parent-bar{display:flex;justify-content:space-around;align-items:center;padding:10px 0 16px;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.08);z-index:100;padding-bottom:calc(16px + env(safe-area-inset-bottom));transform:translateZ(0);-webkit-transform:translateZ(0)}
 .parent-bar-btn{background:none;border:none;color:var(--text-mid);font-family:'Nunito',system-ui,sans-serif;font-size:.58rem;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 16px}
 .parent-bar-btn.active{color:var(--purple)}.parent-bar-btn .nav-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin:2px auto 0}.parent-bar-btn.active .nav-dot{background:var(--purple)}
@@ -193,6 +195,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 @keyframes miniBurstAnim{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot));opacity:0}}
 @keyframes ripple{0%{transform:scaleX(1.15) scaleY(.85);opacity:.7}50%{transform:scaleX(.92) scaleY(1.08);opacity:.5}100%{transform:scaleX(1) scaleY(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.float-switcher{position:fixed;top:12px;right:12px;z-index:9500;display:flex;flex-direction:row;gap:6px}
+.float-child-btn{width:36px;height:36px;border-radius:50%;border:2.5px solid rgba(255,255,255,.5);background:rgba(255,255,255,.9);cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:1.3rem;padding:0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.float-child-btn.active{border-color:var(--c-accent1,#9775fa);box-shadow:0 3px 14px rgba(0,0,0,.3);transform:scale(1.1)}
 </style>
 </head>
 <body>
@@ -227,6 +232,7 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 <div id="app" style="display:none">
   <div class="app-header"><div class="app-title">🌟 ProjectPocket</div></div>
   <div class="child-tabs" id="childTabs"></div>
+  <div class="float-switcher" id="floatSwitcher"></div>
   <div class="main-content" id="mainContent"></div>
   <div id="parentControls" style="display:none;padding:0 14px 14px"></div>
   <div id="historyPanel" style="display:none;padding:14px"></div>
@@ -690,12 +696,12 @@ function badgeCabinetHTML(ch) {
   return html;
 }
 
-function recordWeeklyActivity(ch, type) {
-  var wk = isoWeek(todayStr());
+function recordWeeklyActivity(ch, type, overrideDate) {
+  var td = overrideDate || todayStr();
+  var wk = isoWeek(td);
   if (!ch.weeklyLog) ch.weeklyLog = {};
   if (!ch.weeklyLog[wk]) ch.weeklyLog[wk] = {daily:0, special:0, days:0, daysSeen:{}, dayCounts:{}};
   var entry = ch.weeklyLog[wk];
-  var td = todayStr();
   if (!entry.daysSeen) entry.daysSeen = {};
   if (!entry.dayCounts) entry.dayCounts = {};
   if (!entry.daysSeen[td]) {
@@ -731,7 +737,15 @@ function seedWeeklyLog(s) {
       '2026-06-16': {daily:2, special:1},
       '2026-06-17': {daily:2, special:0},
       '2026-06-18': {daily:2, special:0},
-      '2026-06-21': {daily:2, special:1}
+      '2026-06-21': {daily:2, special:1},
+      '2026-06-22': {daily:2, special:0},
+      '2026-06-23': {daily:2, special:0},
+      '2026-06-24': {daily:2, special:0},
+      '2026-06-25': {daily:2, special:0},
+      '2026-06-26': {daily:2, special:0},
+      '2026-06-27': {daily:2, special:0},
+      '2026-06-28': {daily:2, special:0},
+      '2026-06-29': {daily:2, special:0}
     };
     Object.keys(historicalDays).forEach(function(d) {
       if (!w25.daysSeen[d]) {
@@ -840,8 +854,13 @@ function calcStreak(ch) {
   var yest = new Date(now); yest.setDate(now.getDate()-1);
   var yesterday = localDateStr(yest);
 
-  // Streak must be anchored to today or yesterday
-  var startDate = activeDays[today] ? today : activeDays[yesterday] ? yesterday : null;
+  // Streak — find most recent active day within last 7 days
+  var startDate = null;
+  for (var sd=0; sd<7; sd++) {
+    var checkD = new Date(); checkD.setDate(checkD.getDate()-sd);
+    var checkKey = localDateStr(checkD);
+    if (activeDays[checkKey]) { startDate = checkKey; break; }
+  }
   if (!startDate) return 0;
 
   // Count consecutive days back using local dates only
@@ -1170,6 +1189,20 @@ function renderTabs() {
   });
   document.getElementById('childTabs').innerHTML = html;
 }
+  // Float switcher
+  var fs = document.getElementById('floatSwitcher');
+  if (fs) {
+    fs.innerHTML = state.children.map(function(kid, i) {
+      var col = COLORS[i];
+      var isActive = i === activeIdx;
+      return '<button class="float-child-btn'+(isActive?' active':'')+'" data-fidx="'+i+'">' +
+             kid.avatar+'</button>';
+    }).join('');
+    fs.onclick = function(e) {
+      var btn = e.target.closest('[data-fidx]');
+      if (btn) { switchChild(parseInt(btn.dataset.fidx)); window.scrollTo({top:0,behavior:'smooth'}); }
+    };
+  }
 
 function renderMain() {
   var ch  = state.children[activeIdx];
@@ -1190,7 +1223,8 @@ function renderMain() {
   document.body.style.background = col.bg;
 
   var expectedHTML = (ch.expectedTasks||[]).map(function(e) {
-    var done = !!ch.expectedDone[e.id];
+    var retroKey = _retroDate ? (_retroDate+'_'+ch.id+'_'+e.id) : null;
+    var done = _retroDate ? !!(_retroTicked[_retroDate] && _retroTicked[_retroDate][ch.id+'_'+e.id]) : !!ch.expectedDone[e.id];
     return '<div class="expected-card'+(done?' done':'')+'" data-child="'+ch.id+'" data-eid="'+e.id+'">' +
       '<div class="expected-emoji">'+e.emoji+'</div>' +
       '<div class="expected-name">'+e.name+'</div>' +
@@ -1226,7 +1260,18 @@ function renderMain() {
   else if (ch.weekPenalties > 0) { weekEmoji = '😬'; weekMsg = 'Room to improve!'; }
   else { weekEmoji = '🌟'; weekMsg = 'Keep going!'; }
 
-  document.getElementById('mainContent').innerHTML =
+  // Build retro date picker
+  var today = todayStr();
+  var yest = (function(){ var d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+  function fmtRetro(ds) {
+    var d = new Date(ds+'T12:00:00');
+    return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+d.getDate();
+  }
+  var retroIndicatorHTML =
+    '<div class="retro-indicator'+(_retroDate&&_retroDate!==today?' visible':'')+'" id="retroIndicator">' +
+    (_retroDate&&_retroDate!==today?'Logging for '+fmtRetro(_retroDate):'') +
+    '</div>';
+  document.getElementById('mainContent').innerHTML = retroIndicatorHTML +
     // SAVINGS RING — split panel
     '<div class="jar-section">' +
     // Title
@@ -1270,7 +1315,13 @@ function renderMain() {
     '</div>' +
 
     '<div class="expected-section">' +
-    '<div class="expected-header"><div class="expected-title">⭐ Daily Quests</div><div class="expected-badge">'+expC+' / '+expT+'</div></div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+    '<div class="expected-header" style="margin-bottom:0"><div class="expected-title">⭐ Daily Quests</div><div class="expected-badge">'+expC+' / '+expT+'</div></div>' +
+    '<div style="display:flex;background:#f0ecff;border-radius:20px;padding:2px;gap:2px">' +
+    '<button id="logYestBtn" data-day="today" style="padding:5px 12px;border:none;border-radius:18px;font-family:Fredoka One,Arial,sans-serif;font-size:.72rem;cursor:pointer;transition:all .2s;background:'+(!_retroDate?'var(--c-accent1,#9775fa)':'transparent')+';color:'+(!_retroDate?'#fff':'#999')+'">Today</button>' +
+    '<button id="logYestBtn2" data-day="yest" style="padding:5px 12px;border:none;border-radius:18px;font-family:Fredoka One,Arial,sans-serif;font-size:.72rem;cursor:pointer;transition:all .2s;background:'+(_retroDate===yest?'var(--c-accent1,#9775fa)':'transparent')+';color:'+(_retroDate===yest?'#fff':'#999')+'">Yesterday</button>' +
+    '</div>' +
+    '</div>' +
     '<div class="expected-subtitle">Part of being in the family — tick off each day!</div>' +
     '<div class="expected-list" id="expectedList">'+expectedHTML+'</div></div>' +
     '<div class="section-heading">⚡ Special Quests</div>' +
@@ -1478,6 +1529,10 @@ function renderMain() {
   }
 
   // Bind main content events (fresh each render — these elements are recreated)
+  // Day toggle buttons
+  var _yestStr = (function(){ var d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+  bindBtn('logYestBtn', function() { _retroDate = null; render(); });
+  bindBtn('logYestBtn2', function() { _retroDate = _yestStr; render(); });
   bindBtn('deductBtn', function() {
     var btn = document.getElementById('deductBtn');
     if (btn) { btn.style.filter='brightness(.75)'; setTimeout(function(){btn.style.filter='';},200); }
@@ -1654,40 +1709,65 @@ function renderMain() {
     if (!card || editMode) return;
     var child = state.children.find(function(c){return c.id===card.dataset.child;});
     if (!child) return;
-    var wasChecked = !!child.expectedDone[card.dataset.eid];
-    child.expectedDone[card.dataset.eid] = !wasChecked;
-    child.lastExpectedDate = todayStr();
-    if (!wasChecked) {
-      // Ticking on
-      child.totalChores = (child.totalChores||0) + 1;
-      recordActivity(child, 'daily');
-      var colX = COLORS[activeIdx]; miniBurst(e.clientX||innerWidth/2, e.clientY||innerHeight/2, colX?colX.accent1:'#9775fa');
-      var nb2 = checkBadges(child, state.children); if (nb2.length) { setTimeout(function(){queueBadge(nb2[0]);},600); }
-    } else {
-      // Unticking — decrement counts
-      if (child.totalChores > 0) child.totalChores--;
-      var wkD = isoWeek(todayStr());
-      var entryD = child.weeklyLog && child.weeklyLog[wkD];
-      if (entryD) {
-        if (entryD.daily > 0) entryD.daily--;
-        var tdD = todayStr();
-        if (entryD.dayCounts && entryD.dayCounts[tdD] && entryD.dayCounts[tdD].daily > 0) {
-          entryD.dayCounts[tdD].daily--;
-        }
-        if (entryD.dayCounts && entryD.dayCounts[tdD]) {
-          var dcD = entryD.dayCounts[tdD];
-          if (dcD.daily === 0 && dcD.special === 0) {
-            delete entryD.daysSeen[tdD];
-            delete entryD.dayCounts[tdD];
-            entryD.days = Object.keys(entryD.daysSeen).length;
+
+    if (_retroDate) {
+      // RETRO MODE: toggle via _retroTicked, never touch expectedDone
+      if (!_retroTicked[_retroDate]) _retroTicked[_retroDate] = {};
+      var retroKey = child.id+'_'+card.dataset.eid;
+      var alreadyTicked = !!_retroTicked[_retroDate][retroKey];
+      if (!alreadyTicked) {
+        _retroTicked[_retroDate][retroKey] = true;
+        child.totalChores = (child.totalChores||0) + 1;
+        recordActivity(child, 'daily', _retroDate);
+        var colXr = COLORS[activeIdx]; miniBurst(e.clientX||innerWidth/2, e.clientY||innerHeight/2, colXr?colXr.accent1:'#9775fa');
+        var nb2r = checkBadges(child, state.children); if (nb2r.length) { setTimeout(function(){queueBadge(nb2r[0]);},600); }
+      } else {
+        delete _retroTicked[_retroDate][retroKey];
+        if (child.totalChores > 0) child.totalChores--;
+        var wkR = isoWeek(_retroDate);
+        var entryR = child.weeklyLog && child.weeklyLog[wkR];
+        if (entryR && entryR.dayCounts && entryR.dayCounts[_retroDate]) {
+          if (entryR.dayCounts[_retroDate].daily > 0) entryR.dayCounts[_retroDate].daily--;
+          if (entryR.daily > 0) entryR.daily--;
+          var dcR = entryR.dayCounts[_retroDate];
+          if (dcR.daily === 0 && dcR.special === 0) {
+            delete entryR.daysSeen[_retroDate]; delete entryR.dayCounts[_retroDate];
+            entryR.days = Object.keys(entryR.daysSeen).length;
           }
         }
       }
+      save(); playTick(); render();
+    } else {
+      // TODAY MODE: normal toggle via expectedDone
+      var wasChecked = !!child.expectedDone[card.dataset.eid];
+      child.expectedDone[card.dataset.eid] = !wasChecked;
+      child.lastExpectedDate = todayStr();
+      if (!wasChecked) {
+        child.totalChores = (child.totalChores||0) + 1;
+        recordActivity(child, 'daily', null);
+        var colX = COLORS[activeIdx]; miniBurst(e.clientX||innerWidth/2, e.clientY||innerHeight/2, colX?colX.accent1:'#9775fa');
+        var nb2 = checkBadges(child, state.children); if (nb2.length) { setTimeout(function(){queueBadge(nb2[0]);},600); }
+      } else {
+        if (child.totalChores > 0) child.totalChores--;
+        var wkD = isoWeek(todayStr());
+        var entryD = child.weeklyLog && child.weeklyLog[wkD];
+        if (entryD) {
+          if (entryD.daily > 0) entryD.daily--;
+          var tdD = todayStr();
+          if (entryD.dayCounts && entryD.dayCounts[tdD] && entryD.dayCounts[tdD].daily > 0) entryD.dayCounts[tdD].daily--;
+          if (entryD.dayCounts && entryD.dayCounts[tdD]) {
+            var dcD = entryD.dayCounts[tdD];
+            if (dcD.daily === 0 && dcD.special === 0) {
+              delete entryD.daysSeen[tdD]; delete entryD.dayCounts[tdD];
+              entryD.days = Object.keys(entryD.daysSeen).length;
+            }
+          }
+        }
+      }
+      save(); playTick(); render();
+      var allDone = child.expectedTasks.every(function(t){return child.expectedDone[t.id];});
+      if (allDone && child.expectedDone[card.dataset.eid]) showAmazingBanner(child.name);
     }
-    save(); playTick(); render();
-    // Check if all daily quests now complete
-    var allDone = child.expectedTasks.every(function(t){return child.expectedDone[t.id];});
-    if (allDone && child.expectedDone[card.dataset.eid]) showAmazingBanner(child.name);
   });
 
   // Delegate chore list clicks
@@ -1756,6 +1836,8 @@ function switchChild(i) {
 
 // Tab state
 var activeTab = 'home';
+var _retroDate = null; // null = today, else 'YYYY-MM-DD'
+var _retroTicked = {}; // {date: {childId_taskId: true}} tracks ticks in retro session
 
 function switchTab(tab) {
   activeTab = tab;
@@ -2052,7 +2134,7 @@ function toggleChore(childId, choreId, e) {
   if (!chore.done || chore.lastDone !== td) {
     chore.done=true; chore.lastDone=td;
     ch.totalChores = (ch.totalChores||0) + 1;
-    recordActivity(ch, 'special');
+    recordActivity(ch, 'special', _retroDate);
     var col2 = COLORS[activeIdx]; miniBurst((e&&e.clientX)||innerWidth/2, (e&&e.clientY)||innerHeight/2, col2?col2.accent1:'#9775fa');
     var nb1 = checkBadges(ch, state.children); if (nb1.length) { setTimeout(function(){queueBadge(nb1[0]);},600); }
     save(); playTick(); render();
