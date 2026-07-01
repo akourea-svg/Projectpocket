@@ -466,19 +466,24 @@ function applyResets(s) {
       if (ch.badges.save100   && !(ch.totalBanked > 0)) delete ch.badges.save100;
       // save25/50/75 are progress badges — keep once earned even if goal resets
     }
-    // Always force seed historical data
-    // Force seed historical completed days — genuine past activity only
-    ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
-    ch.weeklyLog['2026-W25'] = {
-      daily:8, special:1, days:4,
-      daysSeen:{'2026-06-15':true,'2026-06-16':true,'2026-06-17':true,'2026-06-18':true},
-      dayCounts:{
-        '2026-06-15':{daily:2, special:0},
-        '2026-06-16':{daily:2, special:1},
-        '2026-06-17':{daily:2, special:0},
-        '2026-06-18':{daily:2, special:0}
+    // Seed historical data only if not already present — never overwrite real data
+    if (!ch.weeklyLog['2026-W24'] || !ch.weeklyLog['2026-W24'].daysSeen) {
+      ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
+    }
+    if (!ch.weeklyLog['2026-W25']) ch.weeklyLog['2026-W25'] = {daily:0, special:0, days:0, daysSeen:{}, dayCounts:{}};
+    var _w25 = ch.weeklyLog['2026-W25'];
+    if (!_w25.daysSeen) _w25.daysSeen = {};
+    if (!_w25.dayCounts) _w25.dayCounts = {};
+    var _w25seed = {'2026-06-15':{daily:2,special:0},'2026-06-16':{daily:2,special:1},'2026-06-17':{daily:2,special:0},'2026-06-18':{daily:2,special:0},'2026-06-21':{daily:2,special:1}};
+    Object.keys(_w25seed).forEach(function(d) {
+      if (!_w25.daysSeen[d]) {
+        _w25.daysSeen[d] = true;
+        _w25.dayCounts[d] = _w25seed[d];
+        _w25.daily = (_w25.daily||0) + _w25seed[d].daily;
+        _w25.special = (_w25.special||0) + _w25seed[d].special;
       }
-    };
+    });
+    _w25.days = Object.keys(_w25.daysSeen).length;
   });
   return s;
 }
@@ -729,10 +734,7 @@ function seedWeeklyLog(s) {
     if (!ch) return;
     if (!ch.weeklyLog) ch.weeklyLog = {};
 
-    // Seed W24 only if not already set (don't overwrite real data)
-    if (!ch.weeklyLog['2026-W24'] || !ch.weeklyLog['2026-W24'].daysSeen) {
-      ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
-    }
+    // W24 seeded in applyResets
 
     // Seed W25 — merge in the known historical days, don't overwrite days already recorded
     if (!ch.weeklyLog['2026-W25']) ch.weeklyLog['2026-W25'] = {daily:0, special:0, days:0, daysSeen:{}, dayCounts:{}};
@@ -830,7 +832,7 @@ var editingChore = null;
 var editingExpTask = null;
 
 // recordActivity now delegates to recordWeeklyActivity
-function recordActivity(ch, type) { recordWeeklyActivity(ch, type); }
+function recordActivity(ch, type, overrideDate) { recordWeeklyActivity(ch, type, overrideDate); }
 
 // Streak: count consecutive days with any activity using daysSeen across all weeks
 function calcStreak(ch) {
@@ -2697,3 +2699,4 @@ document.addEventListener('visibilitychange', function() {
 </script>
 </body>
 </html>
+ 
