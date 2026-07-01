@@ -851,7 +851,11 @@ function recordActivity(ch, type, overrideDate) { recordWeeklyActivity(ch, type,
 
 // Streak: count consecutive days with any activity using daysSeen across all weeks
 function calcStreak(ch) {
-  if (typeof ch.manualStreak === 'number') return ch.manualStreak;
+  if (typeof ch.manualStreak === 'number') {
+    ch._dbgActiveDays = 'MANUAL:'+ch.manualStreak;
+    ch._dbgStartDate = 'manual'; ch._dbgBreak = 'n/a';
+    return ch.manualStreak;
+  }
 
   function localDateStr(d) {
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -886,7 +890,11 @@ function calcStreak(ch) {
   }
 
   // Streak must be anchored to today or yesterday
-  if (!activeDays[today] && !activeDays[yesterday]) return 0;
+  if (!activeDays[today] && !activeDays[yesterday]) {
+    ch._dbgActiveDays = 'EARLY_RETURN:'+Object.keys(activeDays).sort().slice(-5).join(',');
+    ch._dbgStartDate = 'none'; ch._dbgBreak = 'n/a';
+    return 0;
+  }
 
   var startDate = activeDays[today] ? today : yesterday;
 
