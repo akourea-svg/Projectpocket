@@ -452,6 +452,17 @@ function applyResets(s) {
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
     if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
+    // Backfill choresDates from daysSeen so streak works even without explicit ticks
+    if (ch.weeklyLog) {
+      Object.keys(ch.weeklyLog).forEach(function(wk) {
+        var entry = ch.weeklyLog[wk];
+        if (entry && entry.daysSeen) {
+          Object.keys(entry.daysSeen).forEach(function(d) {
+            if (ch.choresDates.indexOf(d) === -1) ch.choresDates.push(d);
+          });
+        }
+      });
+    }
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
     // Reset weekSaved if saved on a different date than today
@@ -870,7 +881,7 @@ function calcStreak(ch) {
   }
 
   // 3. expectedDone — catches today's in-memory ticks not yet in choresDates
-  if (ch.expectedDone && Object.values(ch.expectedDone).some(function(v){return v;})) {
+  if (ch.expectedDone && Object.keys(ch.expectedDone).some(function(k){return ch.expectedDone[k];})) {
     activeDays[today] = true;
   }
 
