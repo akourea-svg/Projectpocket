@@ -850,21 +850,22 @@ function calcStreak(ch) {
     }
   });
 
+  var allDays = Object.keys(activeDays).sort();
+  if (!allDays.length) return 0;
+
   var now = new Date();
   var today = localDateStr(now);
   var yest = new Date(now); yest.setDate(now.getDate()-1);
   var yesterday = localDateStr(yest);
 
-  // Streak — find most recent active day within last 7 days
-  var startDate = null;
-  for (var sd=0; sd<7; sd++) {
-    var checkD = new Date(); checkD.setDate(checkD.getDate()-sd);
-    var checkKey = localDateStr(checkD);
-    if (activeDays[checkKey]) { startDate = checkKey; break; }
-  }
-  if (!startDate) return 0;
+  // Start from most recent active day
+  var startDate = allDays[allDays.length - 1];
 
-  // Count consecutive days back using local dates only
+  // Streak is only "live" if active today or yesterday
+  // If last activity was older, streak has broken — return 0
+  if (startDate !== today && startDate !== yesterday) return 0;
+
+  // Count consecutive days back from startDate
   var streak = 0;
   var d = new Date(startDate + 'T12:00:00');
   while (streak < 365) {
