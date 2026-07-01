@@ -455,17 +455,6 @@ function applyResets(s) {
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
     delete ch.manualStreak; // never let Supabase restore a stale manual override
     if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
-    // Backfill choresDates from daysSeen so streak works even without explicit ticks
-    if (ch.weeklyLog) {
-      Object.keys(ch.weeklyLog).forEach(function(wk) {
-        var entry = ch.weeklyLog[wk];
-        if (entry && entry.daysSeen) {
-          Object.keys(entry.daysSeen).forEach(function(d) {
-            if (ch.choresDates.indexOf(d) === -1) ch.choresDates.push(d);
-          });
-        }
-      });
-    }
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
     // Reset weekSaved if saved on a different date than today
@@ -588,7 +577,11 @@ function checkBadges(ch, allChildren) {
   var streak = calcStreak(ch);
   var savedPct = ch.goalTarget > 0 ? ((ch.goalSaved||0) / ch.goalTarget * 100) : 0;
 
-  // Streak badges
+  // Streak badges — reset if streak has dropped below threshold
+  if (streak < 3)  { delete ch.badges.streak3; }
+  if (streak < 7)  { delete ch.badges.streak7; }
+  if (streak < 14) { delete ch.badges.streak14; }
+  if (streak < 30) { delete ch.badges.streak30; }
   if (streak >= 3  && !ch.badges.streak3)  { ch.badges.streak3  = true; newBadges.push('streak3'); }
   if (streak >= 7  && !ch.badges.streak7)  { ch.badges.streak7  = true; newBadges.push('streak7'); }
   if (streak >= 14 && !ch.badges.streak14) { ch.badges.streak14 = true; newBadges.push('streak14'); }
@@ -862,37 +855,29 @@ function calcStreak(ch) {
 
   var now = new Date();
   var today = localStr(now);
-  var yestDate = new Date(now); yestDate.setDate(now.getDate()-1);
-  var yesterday = localStr(yestDate);
+  var yestD = new Date(now); yestD.setDate(now.getDate()-1);
+  var yesterday = localStr(yestD);
 
-  // Build done set from choresDates (all ticks: today, retro, past)
+  // Build done set directly from dayCounts in weeklyLog
+  // dayCounts is the same source as the week grid — always accurate
   var done = {};
-  if (Array.isArray(ch.choresDates)) {
-    ch.choresDates.forEach(function(d) { done[d] = true; });
-  }
-
-  // Also include daysSeen as fallback for data before choresDates existed
   if (ch.weeklyLog) {
     Object.keys(ch.weeklyLog).forEach(function(wk) {
       var entry = ch.weeklyLog[wk];
-      if (entry && entry.daysSeen) {
-        Object.keys(entry.daysSeen).forEach(function(d) { done[d] = true; });
-      }
+      if (!entry || !entry.dayCounts) return;
+      Object.keys(entry.dayCounts).forEach(function(d) {
+        var dc = entry.dayCounts[d];
+        if (dc && (dc.daily > 0 || dc.special > 0)) done[d] = true;
+      });
     });
   }
 
-  // TODAY: also count if expectedDone has ticked items (in-memory, not yet in choresDates)
+  // Today: also check expectedDone (ticks not yet flushed to dayCounts)
   if (ch.expectedDone && Object.keys(ch.expectedDone).some(function(k){ return ch.expectedDone[k]; })) {
     done[today] = true;
   }
-  // If nothing ticked today AND today not in choresDates from a retro tick, remove it
-  var todayInChoresDates = Array.isArray(ch.choresDates) && ch.choresDates.indexOf(today) > -1;
-  var todayTicked = ch.expectedDone && Object.keys(ch.expectedDone).some(function(k){ return ch.expectedDone[k]; });
-  if (!todayTicked && !todayInChoresDates) {
-    delete done[today];
-  }
 
-  // Must be anchored to today or yesterday
+  // Must anchor to today or yesterday
   if (!done[today] && !done[yesterday]) return 0;
 
   var start = done[today] ? today : yesterday;
@@ -905,6 +890,7 @@ function calcStreak(ch) {
   }
   return streak;
 }
+
 
 // This week daily view — fractional fill based on chore counts
 function thisWeekHTML(ch) {
@@ -2662,7 +2648,15 @@ function initApp() {
                 if (local && local.children) {
                   s.children.forEach(function(remCh, i) {
                     var locCh = local.children[i];
-                    if (!locCh || !locCh.weeklyLog) return;
+                    if (!locCh) return;
+                    // Merge choresDates from local into remote
+                    if (locCh.choresDates && locCh.choresDates.length) {
+                      if (!Array.isArray(remCh.choresDates)) remCh.choresDates = [];
+                      locCh.choresDates.forEach(function(d) {
+                        if (remCh.choresDates.indexOf(d) === -1) remCh.choresDates.push(d);
+                      });
+                    }
+                    if (!locCh.weeklyLog) return;
                     if (!remCh.weeklyLog) remCh.weeklyLog = {};
                     // Merge each week's daysSeen from local into remote
                     Object.keys(locCh.weeklyLog).forEach(function(wk) {
@@ -2747,7 +2741,20 @@ document.addEventListener('visibilitychange', function() {
         try {
           if (res&&res.data&&res.data.state) {
             var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
-            if (s&&s.children) { state=seedWeeklyLog(applyResets(s)); saveLocal(); render(); }
+            if (s&&s.children) {
+              // Merge local choresDates into remote before replacing state
+              var locState = loadLocal();
+              if (locState && locState.children) {
+                s.children.forEach(function(remCh, i) {
+                  var locCh = locState.children[i];
+                  if (!locCh || !locCh.choresDates) return;
+                  if (!Array.isArray(remCh.choresDates)) remCh.choresDates = [];
+                  locCh.choresDates.forEach(function(d) {
+                    if (remCh.choresDates.indexOf(d) === -1) remCh.choresDates.push(d);
+                  });
+                });
+              }
+              state=seedWeeklyLog(applyResets(s)); saveLocal(); render(); }
           }
         } catch(e) {}
       }).catch(function(){});
