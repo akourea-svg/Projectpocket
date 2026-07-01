@@ -895,10 +895,12 @@ function calcStreak(ch) {
   var d = new Date(startDate + 'T12:00:00');
   while (streak < 365) {
     var key = localDateStr(d);
-    if (!activeDays[key]) break;
+    if (!activeDays[key]) { ch._dbgBreak = key; break; }
     streak++;
     d.setDate(d.getDate() - 1);
   }
+  ch._dbgActiveDays = Object.keys(activeDays).sort().slice(-5).join(',');
+  ch._dbgStartDate = startDate;
   return streak;
 }
 
@@ -1300,13 +1302,10 @@ function renderMain() {
     var d = new Date(ds+'T12:00:00');
     return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+d.getDate();
   }
-  // DEBUG PANEL
-  var _dbgDates = [];
-  if (Array.isArray(ch.choresDates)) _dbgDates = _dbgDates.concat(ch.choresDates);
-  if (ch.weeklyLog) { Object.keys(ch.weeklyLog).forEach(function(wk){ var e=ch.weeklyLog[wk]; if(e&&e.daysSeen) Object.keys(e.daysSeen).forEach(function(d){ if(_dbgDates.indexOf(d)===-1) _dbgDates.push(d); }); }); }
-  var _dbgStr = _dbgDates.sort().slice(-7).join(' | ') || 'none';
+  var _streak = calcStreak(ch);
+  var _dbgStr = (ch._dbgActiveDays||'?');
   document.getElementById('mainContent').innerHTML =
-    '<div style="background:#1a1a2e;color:#0f0;font-size:.7rem;padding:8px 12px;font-family:monospace;word-break:break-all;margin-bottom:8px">dates: '+_dbgStr+'<br>streak: '+calcStreak(ch)+'<br>today: '+todayStr()+'</div>' +
+    '<div style="background:#1a1a2e;color:#0f0;font-size:.7rem;padding:8px 12px;font-family:monospace;word-break:break-all;margin-bottom:8px">activeDays(last5): '+_dbgStr+'<br>startDate: '+(ch._dbgStartDate||'?')+' | breakAt: '+(ch._dbgBreak||'none')+'<br>streak: '+_streak+'</div>' +
     // SAVINGS RING — split panel
     '<div class="jar-section">' +
     // Title
