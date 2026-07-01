@@ -435,7 +435,9 @@ function applyResets(s) {
     if (ch.weekStart !== ws) { ch.weekStart=ws; ch.weekEarned=0; ch.weekPenalties=0; }
     if (!Array.isArray(ch.earningChores)) ch.earningChores = [];
     ch.earningChores.forEach(function(c) { if (!c.lastDone) c.lastDone=''; if (c.lastDone !== td) c.done=false; });
-    if (ch.lastExpectedDate !== td) { ch.expectedDone={}; ch.lastExpectedDate=td; }
+    if (ch.lastExpectedDate !== td) {
+      ch.expectedDone = {}; ch.lastExpectedDate = td;
+    }
     if (!ch.goalName)   ch.goalName   = 'My Savings Goal';
     if (!ch.goalTarget) ch.goalTarget = 10;
     if (!Array.isArray(ch.expectedTasks) || !ch.expectedTasks.length) {
@@ -726,7 +728,7 @@ function badgeCabinetHTML(ch) {
 function recordWeeklyActivity(ch, type, overrideDate) {
   var td = overrideDate || todayStr();
   var wk = isoWeek(td);
-  // Track date in choresDates for reliable streak calculation
+  // Track in choresDates for streak (all dates including retro)
   if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
   if (ch.choresDates.indexOf(td) === -1) ch.choresDates.push(td);
   if (!ch.weeklyLog) ch.weeklyLog = {};
@@ -854,49 +856,50 @@ function recordActivity(ch, type, overrideDate) { recordWeeklyActivity(ch, type,
 function calcStreak(ch) {
   if (typeof ch.manualStreak === 'number') return ch.manualStreak;
 
-  function localDateStr(d) {
+  function localStr(d) {
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
 
   var now = new Date();
-  var today = localDateStr(now);
-  var yestD = new Date(now); yestD.setDate(now.getDate()-1);
-  var yesterday = localDateStr(yestD);
+  var today = localStr(now);
+  var yestDate = new Date(now); yestDate.setDate(now.getDate()-1);
+  var yesterday = localStr(yestDate);
 
-  // Build active days from all sources
-  var activeDays = {};
-
-  // 1. choresDates — written every time a chore is ticked, most reliable
+  // Build done set from choresDates (all ticks: today, retro, past)
+  var done = {};
   if (Array.isArray(ch.choresDates)) {
-    ch.choresDates.forEach(function(d) { activeDays[d] = true; });
+    ch.choresDates.forEach(function(d) { done[d] = true; });
   }
 
-  // 2. daysSeen from weeklyLog — historical fallback
+  // Also include daysSeen as fallback for data before choresDates existed
   if (ch.weeklyLog) {
     Object.keys(ch.weeklyLog).forEach(function(wk) {
       var entry = ch.weeklyLog[wk];
       if (entry && entry.daysSeen) {
-        Object.keys(entry.daysSeen).forEach(function(d) { activeDays[d] = true; });
+        Object.keys(entry.daysSeen).forEach(function(d) { done[d] = true; });
       }
     });
   }
 
-  // 3. expectedDone — catches today's in-memory ticks not yet in choresDates
-  if (ch.expectedDone && Object.keys(ch.expectedDone).some(function(k){return ch.expectedDone[k];})) {
-    activeDays[today] = true;
+  // TODAY: also count if expectedDone has ticked items (in-memory, not yet in choresDates)
+  if (ch.expectedDone && Object.keys(ch.expectedDone).some(function(k){ return ch.expectedDone[k]; })) {
+    done[today] = true;
+  }
+  // If nothing ticked today AND today not in choresDates from a retro tick, remove it
+  var todayInChoresDates = Array.isArray(ch.choresDates) && ch.choresDates.indexOf(today) > -1;
+  var todayTicked = ch.expectedDone && Object.keys(ch.expectedDone).some(function(k){ return ch.expectedDone[k]; });
+  if (!todayTicked && !todayInChoresDates) {
+    delete done[today];
   }
 
-  // Streak must be anchored to today or yesterday
-  if (!activeDays[today] && !activeDays[yesterday]) return 0;
+  // Must be anchored to today or yesterday
+  if (!done[today] && !done[yesterday]) return 0;
 
-  var startDate = activeDays[today] ? today : yesterday;
-
-  // Count consecutive days back
+  var start = done[today] ? today : yesterday;
   var streak = 0;
-  var d = new Date(startDate + 'T12:00:00');
+  var d = new Date(start + 'T12:00:00');
   while (streak < 365) {
-    var key = localDateStr(d);
-    if (!activeDays[key]) break;
+    if (!done[localStr(d)]) break;
     streak++;
     d.setDate(d.getDate() - 1);
   }
