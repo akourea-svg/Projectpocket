@@ -852,11 +852,7 @@ function recordActivity(ch, type, overrideDate) { recordWeeklyActivity(ch, type,
 
 // Streak: count consecutive days with any activity using daysSeen across all weeks
 function calcStreak(ch) {
-  if (typeof ch.manualStreak === 'number') {
-    ch._dbgActiveDays = 'MANUAL:'+ch.manualStreak;
-    ch._dbgStartDate = 'manual'; ch._dbgBreak = 'n/a';
-    return ch.manualStreak;
-  }
+  if (typeof ch.manualStreak === 'number') return ch.manualStreak;
 
   function localDateStr(d) {
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -891,11 +887,7 @@ function calcStreak(ch) {
   }
 
   // Streak must be anchored to today or yesterday
-  if (!activeDays[today] && !activeDays[yesterday]) {
-    ch._dbgActiveDays = 'EARLY_RETURN:'+Object.keys(activeDays).sort().slice(-5).join(',');
-    ch._dbgStartDate = 'none'; ch._dbgBreak = 'n/a';
-    return 0;
-  }
+  if (!activeDays[today] && !activeDays[yesterday]) return 0;
 
   var startDate = activeDays[today] ? today : yesterday;
 
@@ -904,12 +896,10 @@ function calcStreak(ch) {
   var d = new Date(startDate + 'T12:00:00');
   while (streak < 365) {
     var key = localDateStr(d);
-    if (!activeDays[key]) { ch._dbgBreak = key; break; }
+    if (!activeDays[key]) break;
     streak++;
     d.setDate(d.getDate() - 1);
   }
-  ch._dbgActiveDays = Object.keys(activeDays).sort().slice(-5).join(',');
-  ch._dbgStartDate = startDate;
   return streak;
 }
 
@@ -1311,10 +1301,7 @@ function renderMain() {
     var d = new Date(ds+'T12:00:00');
     return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+d.getDate();
   }
-  var _streak = calcStreak(ch);
-  var _dbgStr = (ch._dbgActiveDays||'?');
   document.getElementById('mainContent').innerHTML =
-    '<div style="background:#1a1a2e;color:#0f0;font-size:.7rem;padding:8px 12px;font-family:monospace;word-break:break-all;margin-bottom:8px">activeDays(last5): '+_dbgStr+'<br>startDate: '+(ch._dbgStartDate||'?')+' | breakAt: '+(ch._dbgBreak||'none')+'<br>streak: '+_streak+'</div>' +
     // SAVINGS RING — split panel
     '<div class="jar-section">' +
     // Title
