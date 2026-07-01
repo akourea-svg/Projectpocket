@@ -451,6 +451,7 @@ function applyResets(s) {
     // Restore Ada's minimum saved amount if wiped
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
+    if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
     // Reset weekSaved on new week
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
     // Reset weekSaved if saved on a different date than today
@@ -852,10 +853,12 @@ function calcStreak(ch) {
     }
   });
 
-  var allDays = Object.keys(activeDays).sort();
-  if (!allDays.length) return 0;
-
   var now = new Date();
+  var today = localDateStr(now);
+  var yest = new Date(now); yest.setDate(now.getDate()-1);
+  var yesterday = localDateStr(yest);
+
+  var allDays = Object.keys(activeDays).sort();
   var today = localDateStr(now);
   var yest = new Date(now); yest.setDate(now.getDate()-1);
   var yesterday = localDateStr(yest);
@@ -2629,7 +2632,38 @@ function initApp() {
           try {
             if (res&&res.data&&res.data.state) {
               var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
-              if (s&&s.children) { state=seedWeeklyLog(applyResets(s)); saveLocal(); render(); }
+              if (s&&s.children) {
+                // Merge remote weeklyLog into local to preserve any in-memory ticks
+                var local = loadLocal();
+                if (local && local.children) {
+                  s.children.forEach(function(remCh, i) {
+                    var locCh = local.children[i];
+                    if (!locCh || !locCh.weeklyLog) return;
+                    if (!remCh.weeklyLog) remCh.weeklyLog = {};
+                    // Merge each week's daysSeen from local into remote
+                    Object.keys(locCh.weeklyLog).forEach(function(wk) {
+                      if (!remCh.weeklyLog[wk]) remCh.weeklyLog[wk] = locCh.weeklyLog[wk];
+                      else {
+                        var locDs = locCh.weeklyLog[wk].daysSeen || {};
+                        var remDs = remCh.weeklyLog[wk].daysSeen || {};
+                        Object.keys(locDs).forEach(function(d) {
+                          if (!remDs[d]) {
+                            remDs[d] = true;
+                            remCh.weeklyLog[wk].daysSeen = remDs;
+                            // Also merge dayCounts
+                            if (locCh.weeklyLog[wk].dayCounts && locCh.weeklyLog[wk].dayCounts[d]) {
+                              if (!remCh.weeklyLog[wk].dayCounts) remCh.weeklyLog[wk].dayCounts = {};
+                              remCh.weeklyLog[wk].dayCounts[d] = locCh.weeklyLog[wk].dayCounts[d];
+                            }
+                          }
+                        });
+                        remCh.weeklyLog[wk].days = Object.keys(remCh.weeklyLog[wk].daysSeen||{}).length;
+                      }
+                    });
+                  });
+                }
+                state=seedWeeklyLog(applyResets(s)); saveLocal(); render();
+              }
             }
           } catch(e) {}
           try {
@@ -2699,4 +2733,3 @@ document.addEventListener('visibilitychange', function() {
 </script>
 </body>
 </html>
- 
