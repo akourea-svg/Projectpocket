@@ -451,6 +451,7 @@ function applyResets(s) {
     // Restore Ada's minimum saved amount if wiped
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
+    delete ch.manualStreak; // never let Supabase restore a stale manual override
     if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
     // Backfill choresDates from daysSeen so streak works even without explicit ticks
     if (ch.weeklyLog) {
