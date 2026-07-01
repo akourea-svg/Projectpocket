@@ -714,6 +714,9 @@ function badgeCabinetHTML(ch) {
 function recordWeeklyActivity(ch, type, overrideDate) {
   var td = overrideDate || todayStr();
   var wk = isoWeek(td);
+  // Track date in choresDates for reliable streak calculation
+  if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
+  if (ch.choresDates.indexOf(td) === -1) ch.choresDates.push(td);
   if (!ch.weeklyLog) ch.weeklyLog = {};
   if (!ch.weeklyLog[wk]) ch.weeklyLog[wk] = {daily:0, special:0, days:0, daysSeen:{}, dayCounts:{}};
   var entry = ch.weeklyLog[wk];
@@ -838,39 +841,45 @@ function recordActivity(ch, type, overrideDate) { recordWeeklyActivity(ch, type,
 // Streak: count consecutive days with any activity using daysSeen across all weeks
 function calcStreak(ch) {
   if (typeof ch.manualStreak === 'number') return ch.manualStreak;
-  if (!ch.weeklyLog) return 0;
 
   function localDateStr(d) {
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
 
-  // Build set of all active days from daysSeen
-  var activeDays = {};
-  Object.keys(ch.weeklyLog).forEach(function(wk) {
-    var entry = ch.weeklyLog[wk];
-    if (entry && entry.daysSeen) {
-      Object.keys(entry.daysSeen).forEach(function(d) { activeDays[d] = true; });
-    }
-  });
-
   var now = new Date();
   var today = localDateStr(now);
-  var yest = new Date(now); yest.setDate(now.getDate()-1);
-  var yesterday = localDateStr(yest);
+  var yestD = new Date(now); yestD.setDate(now.getDate()-1);
+  var yesterday = localDateStr(yestD);
 
-  var allDays = Object.keys(activeDays).sort();
-  var today = localDateStr(now);
-  var yest = new Date(now); yest.setDate(now.getDate()-1);
-  var yesterday = localDateStr(yest);
+  // Build active days from all sources
+  var activeDays = {};
 
-  // Start from most recent active day
-  var startDate = allDays[allDays.length - 1];
+  // 1. choresDates — written every time a chore is ticked, most reliable
+  if (Array.isArray(ch.choresDates)) {
+    ch.choresDates.forEach(function(d) { activeDays[d] = true; });
+  }
 
-  // Streak is only "live" if active today or yesterday
-  // If last activity was older, streak has broken — return 0
-  if (startDate !== today && startDate !== yesterday) return 0;
+  // 2. daysSeen from weeklyLog — historical fallback
+  if (ch.weeklyLog) {
+    Object.keys(ch.weeklyLog).forEach(function(wk) {
+      var entry = ch.weeklyLog[wk];
+      if (entry && entry.daysSeen) {
+        Object.keys(entry.daysSeen).forEach(function(d) { activeDays[d] = true; });
+      }
+    });
+  }
 
-  // Count consecutive days back from startDate
+  // 3. expectedDone — catches today's in-memory ticks not yet in choresDates
+  if (ch.expectedDone && Object.values(ch.expectedDone).some(function(v){return v;})) {
+    activeDays[today] = true;
+  }
+
+  // Streak must be anchored to today or yesterday
+  if (!activeDays[today] && !activeDays[yesterday]) return 0;
+
+  var startDate = activeDays[today] ? today : yesterday;
+
+  // Count consecutive days back
   var streak = 0;
   var d = new Date(startDate + 'T12:00:00');
   while (streak < 365) {
