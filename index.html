@@ -10,193 +10,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ProjectPocket">
 <meta name="theme-color" content="#9775fa">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --purple:#9775fa;--yellow:#ffd43b;--green:#40c057;--red:#ff4757;--orange:#ff922b;--special:#2ec4b6;
-  --text-dark:#1a1a2e;--text-mid:#888;
-  --radius:20px;--radius-sm:12px;
-  --shadow:0 4px 20px rgba(0,0,0,.1);--shadow-sm:0 2px 12px rgba(0,0,0,.06);
-  --c-accent1:#9775fa;
-}
-html,body{min-height:100vh}
-body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100vh;color:var(--text-dark);overflow-x:hidden;padding-bottom:90px;transition:background .4s ease}
-
-/* ── PIN ── */
-#pin-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#f0ecff 0%,#e8e0ff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
-.pin-logo{font-size:4rem;margin-bottom:8px;line-height:1;filter:drop-shadow(0 4px 8px rgba(151,117,250,.3))}
-.pin-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2.4rem;color:var(--purple);margin-bottom:4px;line-height:1}
-.pin-subtitle{font-size:.9rem;font-weight:600;color:var(--text-mid);margin-bottom:36px}
-.pin-dots{display:flex;gap:16px;margin-bottom:32px}
-.pin-dot{width:20px;height:20px;border-radius:50%;background:#e0d8f8;border:2px solid #c4b4f0;transition:all .2s}
-.pin-dot.filled{background:var(--purple);border-color:var(--purple);transform:scale(1.1)}
-.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:290px}
-.pin-key{background:#fff;border:none;border-radius:18px;padding:20px 10px;font-family:'Fredoka One',Arial,sans-serif;font-size:1.6rem;color:var(--text-dark);box-shadow:0 4px 12px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;user-select:none}
-.pin-key:active{background:#ede5ff;transform:scale(.9);box-shadow:0 2px 6px rgba(0,0,0,.06)}
-.pin-key.del{font-size:1.3rem;color:var(--text-mid)}
-.pin-key.empty{background:transparent;box-shadow:none;cursor:default;pointer-events:none}
-.pin-error{margin-top:18px;color:var(--red);font-weight:700;font-size:.9rem;min-height:22px;text-align:center}
-.pin-hint{margin-top:12px;font-size:.75rem;color:#bbb;font-weight:600}
-
-/* ── HEADER ── */
-
-.app-header{padding:18px 20px 4px;text-align:center}
-.app-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2rem;background:linear-gradient(135deg,#9775fa,#f59f00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:.5px;filter:drop-shadow(0 2px 4px rgba(151,117,250,.2))}
-/* ── PARENT BAR ── */
-
-.parent-bar{display:flex;justify-content:space-around;align-items:center;padding:10px 0 16px;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.08);z-index:100;padding-bottom:calc(16px + env(safe-area-inset-bottom));transform:translateZ(0);-webkit-transform:translateZ(0)}
-.parent-bar-btn{background:none;border:none;color:var(--text-mid);font-family:'Nunito',system-ui,sans-serif;font-size:.58rem;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 16px}
-.parent-bar-btn.active{color:var(--purple)}.parent-bar-btn .nav-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin:2px auto 0}.parent-bar-btn.active .nav-dot{background:var(--purple)}
-
-/* ── TABS ── */
-.child-tabs{display:flex;padding:16px 16px 0;gap:12px}
-.child-tab{flex:1;background:#fff;border:none;border-radius:24px;padding:18px 8px 14px;cursor:pointer;transition:all .2s;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06)}
-.child-tab.active{box-shadow:0 8px 24px rgba(0,0,0,.15);transform:translateY(-3px)}
-.tab-avatar{font-size:3rem;display:block;line-height:1;transition:transform .3s cubic-bezier(.34,1.56,.64,1);margin-bottom:6px}
-.tab-name{font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;color:var(--text-mid);display:block}
-.child-tab.active .tab-name{color:#fff}
-.child-tab.active .tab-avatar{transform:scale(1.15)}
-
-/* ── MAIN ── */
-.main-content{padding:16px}
-
-/* ── WEEK / THIS WEEK CARD ── */
-.week-card{border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px rgba(0,0,0,.15);position:relative;overflow:hidden}
-.week-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
-.week-label{font-family:'Fredoka One',Arial,sans-serif;color:rgba(255,255,255,.8);font-size:.82rem}
-.week-amount{font-family:'Fredoka One',Arial,sans-serif;font-size:3.2rem;color:#fff;line-height:1;text-shadow:0 3px 12px rgba(0,0,0,.2)}
-.week-right{text-align:right}
-.week-saved-label{font-size:.68rem;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
-.week-saved-val{font-family:'Fredoka One',Arial,sans-serif;font-size:1.5rem;color:#fff}
-.week-bar-track{background:rgba(255,255,255,.2);border-radius:50px;height:8px;overflow:hidden}
-.week-bar-fill{height:100%;border-radius:50px;background:rgba(255,255,255,.9);transition:width .6s ease}
-.week-row-label{font-size:.72rem;font-weight:800;color:rgba(255,255,255,.75);margin-bottom:4px;margin-top:12px}
-.week-bar-ends{display:flex;justify-content:space-between;margin-top:3px}
-.week-bar-ends span{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.6)}
-
-/* ── SAVINGS RING ── */
-.jar-section{background:#fff;border-radius:24px;padding:20px 16px;margin-bottom:16px;box-shadow:var(--shadow-sm);text-align:center;display:flex;flex-direction:column;align-items:center}
-.jar-title{font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;color:var(--text-dark);margin-bottom:4px}
-.jar-goal-label{font-size:.75rem;font-weight:700;color:var(--text-mid);margin-bottom:12px}
-.jar-svg-wrap{position:relative;width:110px;height:140px}
-.jar-save-btn{display:block;width:100%;background:var(--c-accent1,#9775fa);color:#fff;border:none;border-radius:16px;padding:15px;font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;cursor:pointer;transition:all .15s;box-shadow:0 4px 12px rgba(0,0,0,.15);-webkit-tap-highlight-color:transparent}
-.jar-save-btn:active{transform:translateY(2px);box-shadow:0 2px 6px rgba(0,0,0,.1)}
-.jar-save-btn.armed{background:#e67700}
-
-/* ── SECTION HEADING ── */
-.section-heading{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:1.1rem;margin:16px 0 10px 2px;display:flex;align-items:center;gap:8px}
-
-/* ── DAILY QUESTS ── */
-.expected-section{background:#fff;border-radius:24px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm)}
-.expected-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.expected-title{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:1.1rem}
-.expected-badge{font-family:'Fredoka One',Arial,sans-serif;font-size:.78rem;background:var(--yellow);color:#664d03;border-radius:20px;padding:4px 12px}
-.expected-subtitle{font-size:.76rem;color:var(--text-mid);font-weight:600;margin-bottom:12px}
-.expected-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.expected-card{background:#fafafa;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none;border:2px solid transparent;text-align:center}
-.expected-card:active{transform:scale(.95)}
-.expected-card.done{background:#f0faf3;border-color:#c8f0d4}
-.expected-emoji{font-size:1.6rem}
-.expected-name{font-weight:700;color:var(--text-dark);font-size:.68rem;line-height:1.2}
-.expected-card.done .expected-name{text-decoration:line-through;color:var(--text-mid)}
-.expected-check{width:22px;height:22px;border-radius:50%;border:2.5px solid #dee2e6;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;transition:all .2s;background:#fff}
-.expected-card.done .expected-check{background:var(--green);border-color:var(--green);color:#fff}
-
-/* ── SPECIAL QUESTS ── */
-.chores-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.chore-card{background:#fafafa;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .15s;border:2px solid transparent;text-align:center;box-shadow:none}
-.chore-card.done{background:#f0faf3;border-color:#b8ecc8}
-.chore-card.done-locked{opacity:.35;cursor:default}
-.chore-card:not(.done-locked):active{transform:scale(.95)}
-.chore-emoji{font-size:1.6rem;line-height:1}
-.chore-info{width:100%}
-.chore-name{font-weight:700;font-size:.68rem;color:var(--text-dark);line-height:1.2;text-align:center}
-.chore-card.done .chore-name{text-decoration:line-through;color:#aaa}
-.chore-checkbox{width:22px;height:22px;border-radius:50%;border:2.5px solid #dee2e6;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .2s;background:#fff;color:transparent}
-.chore-card.done .chore-checkbox{background:var(--green);border-color:var(--green);color:#fff}
-.chore-edit-btns{display:flex;gap:6px;flex-shrink:0}
-.icon-btn{width:32px;height:32px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:transform .15s}
-.icon-btn:active{transform:scale(.85)}
-.btn-edit{background:#e7f5ff}
-.btn-del{background:#fff0f0}
-
-/* ── PARENT CONTROLS ── */
-.deduction-section{background:linear-gradient(135deg,#fff8e1,#fff3cd);border-radius:20px;padding:16px 18px;margin-top:16px;box-shadow:var(--shadow-sm)}
-.deduction-label{font-family:'Fredoka One',Arial,sans-serif;color:#664d03;font-size:1rem;margin-bottom:2px}
-.deduction-sub{font-size:.75rem;font-weight:700;color:#997404;margin-bottom:12px}
-.deduction-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.deduction-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:14px;padding:13px 20px;cursor:pointer;transition:transform .12s,box-shadow .12s,filter .12s;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 0 rgba(0,0,0,.15)}
-.deduction-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.15);filter:brightness(.9)}
-.deduction-btn:disabled{opacity:.3;cursor:default}
-.deduction-btn-icon{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}
-.deduction-btn-label{font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;color:#fff}
-
-/* ── PARENT PANEL ── */
-.parent-panel{background:#fff;border-radius:20px;padding:18px;margin-top:16px;box-shadow:var(--shadow-sm)}
-.parent-panel h3{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:1rem;margin-bottom:14px}
-.panel-section{background:#f8f8fc;border-radius:14px;padding:12px 14px;margin-bottom:10px}
-.panel-label{color:var(--text-dark);font-size:.88rem;font-weight:700;margin-bottom:8px}
-.btn-action{width:100%;padding:13px;border:none;border-radius:14px;font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;cursor:pointer;margin-bottom:8px;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
-.btn-action:active{opacity:.8}
-.btn-reset{background:#f0f0f5;color:var(--text-mid)}
-.btn-danger{background:#fff0f0;color:var(--red)}
-.goal-edit-row{display:flex;gap:8px}
-.form-input{background:#f8f8fc;border:2px solid #eee;border-radius:12px;padding:10px 12px;font-family:'Nunito',system-ui,sans-serif;font-size:16px;font-weight:700;color:var(--text-dark);width:100%;outline:none;transition:border-color .15s}
-.form-input:focus{border-color:var(--purple);background:#fff}
-.btn-save{background:var(--purple);color:#fff;border:none;border-radius:12px;padding:10px 18px;font-family:'Fredoka One',Arial,sans-serif;font-size:.9rem;cursor:pointer;white-space:nowrap;box-shadow:0 4px 10px rgba(151,117,250,.3)}
-.add-chore-section{background:#f8f8fc;border-radius:20px;padding:16px;margin-top:12px}
-.add-chore-section h4{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:.95rem;margin-bottom:10px}
-.btn-primary{display:block;width:100%;background:var(--purple);color:#fff;border:none;border-radius:14px;padding:13px;font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;cursor:pointer;box-shadow:0 4px 12px rgba(151,117,250,.3)}
-
-/* ── MODALS ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal-sheet{background:#fff;border-radius:26px;padding:24px;width:100%;max-width:440px;transform:translateY(40px);transition:transform .28s cubic-bezier(.34,1.3,.64,1)}
-.modal-overlay.open .modal-sheet{transform:translateY(0)}
-.modal-title{font-family:'Fredoka One',Arial,sans-serif;font-size:1.4rem;color:var(--text-dark);margin-bottom:16px}
-.modal-field{margin-bottom:12px}
-.modal-field label{display:block;font-weight:700;font-size:.82rem;color:var(--text-mid);margin-bottom:4px}
-.modal-actions{display:flex;gap:10px;margin-top:18px}
-.btn-secondary{flex:1;background:#f0f0f5;color:var(--text-dark);border:none;border-radius:14px;padding:13px;font-family:'Fredoka One',Arial,sans-serif;font-size:.95rem;cursor:pointer}
-.modal-actions .btn-primary{flex:2}
-
-/* ── STREAK ── */
-.streak-section{background:#fff;border-radius:24px;padding:16px 18px;margin-top:16px;box-shadow:var(--shadow-sm);background:linear-gradient(135deg,#fff8f0,#fff3e8)}
-.streak-inner{display:flex;align-items:center;gap:14px}
-.streak-flame{font-size:3.2rem;line-height:1;filter:drop-shadow(0 2px 8px rgba(255,146,43,.5));animation:flamePulse 2s ease-in-out infinite}
-.streak-count{font-family:'Fredoka One',Arial,sans-serif;font-size:2.2rem;color:#e67700;line-height:1}
-.streak-label{font-size:.76rem;font-weight:700;color:#997404;margin-top:3px}
-
-/* ── CHART ── */
-.chart-section{background:#fff;border-radius:24px;padding:16px 18px;margin-top:16px;box-shadow:var(--shadow-sm)}
-.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.chart-title{font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;color:var(--text-dark)}
-.chart-sub{font-size:.75rem;font-weight:600;color:var(--text-mid)}
-
-/* ── MISC ── */
-.week-notice{text-align:center;color:var(--text-mid);font-size:.72rem;font-weight:600;margin-top:12px}
-.jar-amounts{text-align:left}
-.jar-saved{font-family:'Fredoka One',Arial,sans-serif;font-size:2rem;color:var(--c-accent1,#9775fa);line-height:1}
-.jar-target{font-size:.8rem;font-weight:700;color:var(--text-mid);margin-top:2px}
-.jar-pct{font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;color:var(--text-mid);margin-top:4px}
-.jar-wrap{display:flex;align-items:flex-end;justify-content:center;gap:20px;margin-bottom:16px}
-
-#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9995;width:100%;height:100%}
-.coin-drop{position:fixed;pointer-events:none;z-index:500;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe566,#f59f00 55%,#c87800);box-shadow:0 2px 5px rgba(0,0,0,.2);animation:coinRain var(--dur,1.2s) linear forwards}
-.coin-particle{position:fixed;pointer-events:none;z-index:200;width:24px;height:24px;display:flex;align-items:center;justify-content:center;animation:coin-fly .85s ease-out forwards;transform-origin:center}
-@keyframes coinRain{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
-@keyframes coin-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.1);opacity:0}}
-@keyframes flamePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-@keyframes avatarBounce{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.9)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
-@keyframes jarShake{0%,100%{transform:translateX(0) rotate(0)}15%{transform:translateX(-6px) rotate(-3deg)}30%{transform:translateX(6px) rotate(3deg)}45%{transform:translateX(-4px) rotate(-2deg)}60%{transform:translateX(4px) rotate(2deg)}75%{transform:translateX(-2px) rotate(-1deg)}}
-.jar-fill-ripple{position:absolute;bottom:0;left:0;right:0;height:8px;background:rgba(255,255,255,.4);border-radius:50%;animation:ripple .8s ease-out forwards}
-@keyframes miniBurstAnim{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot));opacity:0}}
-@keyframes ripple{0%{transform:scaleX(1.15) scaleY(.85);opacity:.7}50%{transform:scaleX(.92) scaleY(1.08);opacity:.5}100%{transform:scaleX(1) scaleY(1);opacity:0}}
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-.float-switcher{position:fixed;top:12px;right:12px;z-index:50;display:flex;flex-direction:row;gap:6px;opacity:0;pointer-events:none;transition:opacity .2s}.float-switcher.visible{opacity:1;pointer-events:all}
-.float-child-btn{width:36px;height:36px;border-radius:50%;border:2.5px solid transparent;background:rgba(255,255,255,.9);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:1.3rem;padding:0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.float-child-btn.active{box-shadow:0 3px 14px rgba(0,0,0,.3);transform:scale(1.1)}
+<style>@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}:root{--purple:#9775fa;--yellow:#ffd43b;--green:#40c057;--red:#ff4757;--orange:#ff922b;--special:#2ec4b6;--text-dark:#1a1a2e;--text-mid:#888;--radius:20px;--radius-sm:12px;--shadow:0 4px 20px rgba(0,0,0,.1);--shadow-sm:0 2px 12px rgba(0,0,0,.06);--c-accent1:#9775fa;}html,body{min-height:100vh}body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100vh;color:var(--text-dark);overflow-x:hidden;padding-bottom:90px;transition:background .4s ease}#pin-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(160deg,#f0ecff 0%,#e8e0ff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}.pin-logo{font-size:4rem;margin-bottom:8px;line-height:1;filter:drop-shadow(0 4px 8px rgba(151,117,250,.3))}.pin-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2.4rem;color:var(--purple);margin-bottom:4px;line-height:1}.pin-subtitle{font-size:.9rem;font-weight:600;color:var(--text-mid);margin-bottom:36px}.pin-dots{display:flex;gap:16px;margin-bottom:32px}.pin-dot{width:20px;height:20px;border-radius:50%;background:#e0d8f8;border:2px solid #c4b4f0;transition:all .2s}.pin-dot.filled{background:var(--purple);border-color:var(--purple);transform:scale(1.1)}.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:290px}.pin-key{background:#fff;border:none;border-radius:18px;padding:20px 10px;font-family:'Fredoka One',Arial,sans-serif;font-size:1.6rem;color:var(--text-dark);box-shadow:0 4px 12px rgba(0,0,0,.08),0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:all .12s;-webkit-tap-highlight-color:transparent;user-select:none}.pin-key:active{background:#ede5ff;transform:scale(.9);box-shadow:0 2px 6px rgba(0,0,0,.06)}.pin-key.del{font-size:1.3rem;color:var(--text-mid)}.pin-key.empty{background:transparent;box-shadow:none;cursor:default;pointer-events:none}.pin-error{margin-top:18px;color:var(--red);font-weight:700;font-size:.9rem;min-height:22px;text-align:center}.pin-hint{margin-top:12px;font-size:.75rem;color:#bbb;font-weight:600}.app-header{padding:18px 20px 4px;text-align:center}.app-title{font-family:'Fredoka One',Arial,sans-serif;font-size:2rem;background:linear-gradient(135deg,#9775fa,#f59f00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;letter-spacing:.5px;filter:drop-shadow(0 2px 4px rgba(151,117,250,.2))}.parent-bar{display:flex;justify-content:space-around;align-items:center;padding:10px 0 16px;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid rgba(0,0,0,.08);z-index:100;padding-bottom:calc(16px+env(safe-area-inset-bottom));transform:translateZ(0);-webkit-transform:translateZ(0)}.parent-bar-btn{background:none;border:none;color:var(--text-mid);font-family:'Nunito',system-ui,sans-serif;font-size:.58rem;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 16px}.parent-bar-btn.active{color:var(--purple)}.parent-bar-btn .nav-dot{width:4px;height:4px;border-radius:50%;background:transparent;margin:2px auto 0}.parent-bar-btn.active .nav-dot{background:var(--purple)}.child-tabs{display:flex;padding:16px 16px 0;gap:12px}.child-tab{flex:1;background:#fff;border:none;border-radius:24px;padding:18px 8px 14px;cursor:pointer;transition:all .2s;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.06)}.child-tab.active{box-shadow:0 8px 24px rgba(0,0,0,.15);transform:translateY(-3px)}.tab-avatar{font-size:3rem;display:block;line-height:1;transition:transform .3s cubic-bezier(.34,1.56,.64,1);margin-bottom:6px}.tab-name{font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;color:var(--text-mid);display:block}.child-tab.active .tab-name{color:#fff}.child-tab.active .tab-avatar{transform:scale(1.15)}.main-content{padding:16px}.week-card{border-radius:24px;padding:20px;margin-bottom:16px;box-shadow:0 8px 30px rgba(0,0,0,.15);position:relative;overflow:hidden}.week-card-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}.week-label{font-family:'Fredoka One',Arial,sans-serif;color:rgba(255,255,255,.8);font-size:.82rem}.week-amount{font-family:'Fredoka One',Arial,sans-serif;font-size:3.2rem;color:#fff;line-height:1;text-shadow:0 3px 12px rgba(0,0,0,.2)}.week-right{text-align:right}.week-saved-label{font-size:.68rem;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;letter-spacing:.5px}.week-saved-val{font-family:'Fredoka One',Arial,sans-serif;font-size:1.5rem;color:#fff}.week-bar-track{background:rgba(255,255,255,.2);border-radius:50px;height:8px;overflow:hidden}.week-bar-fill{height:100%;border-radius:50px;background:rgba(255,255,255,.9);transition:width .6s ease}.week-row-label{font-size:.72rem;font-weight:800;color:rgba(255,255,255,.75);margin-bottom:4px;margin-top:12px}.week-bar-ends{display:flex;justify-content:space-between;margin-top:3px}.week-bar-ends span{font-size:.68rem;font-weight:700;color:rgba(255,255,255,.6)}.jar-section{background:#fff;border-radius:24px;padding:20px 16px;margin-bottom:16px;box-shadow:var(--shadow-sm);text-align:center;display:flex;flex-direction:column;align-items:center}.jar-title{font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;color:var(--text-dark);margin-bottom:4px}.jar-goal-label{font-size:.75rem;font-weight:700;color:var(--text-mid);margin-bottom:12px}.jar-svg-wrap{position:relative;width:110px;height:140px}.jar-save-btn{display:block;width:100%;background:var(--c-accent1,#9775fa);color:#fff;border:none;border-radius:16px;padding:15px;font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;cursor:pointer;transition:all .15s;box-shadow:0 4px 12px rgba(0,0,0,.15);-webkit-tap-highlight-color:transparent}.jar-save-btn:active{transform:translateY(2px);box-shadow:0 2px 6px rgba(0,0,0,.1)}.jar-save-btn.armed{background:#e67700}.section-heading{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:1.1rem;margin:16px 0 10px 2px;display:flex;align-items:center;gap:8px}.expected-section{background:#fff;border-radius:24px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm)}.expected-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.expected-title{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:1.1rem}.expected-badge{font-family:'Fredoka One',Arial,sans-serif;font-size:.78rem;background:var(--yellow);color:#664d03;border-radius:20px;padding:4px 12px}.expected-subtitle{font-size:.76rem;color:var(--text-mid);font-weight:600;margin-bottom:12px}.expected-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.expected-card{background:#fafafa;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;user-select:none;border:2px solid transparent;text-align:center}.expected-card:active{transform:scale(.95)}.expected-card.done{background:#f0faf3;border-color:#c8f0d4}.expected-emoji{font-size:1.6rem}.expected-name{font-weight:700;color:var(--text-dark);font-size:.68rem;line-height:1.2}.expected-card.done .expected-name{text-decoration:line-through;color:var(--text-mid)}.expected-check{width:22px;height:22px;border-radius:50%;border:2.5px solid #dee2e6;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;transition:all .2s;background:#fff}.expected-card.done .expected-check{background:var(--green);border-color:var(--green);color:#fff}.chores-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.chore-card{background:#fafafa;border-radius:14px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;transition:all .15s;border:2px solid transparent;text-align:center;box-shadow:none}.chore-card.done{background:#f0faf3;border-color:#b8ecc8}.chore-card.done-locked{opacity:.35;cursor:default}.chore-card:not(.done-locked):active{transform:scale(.95)}.chore-emoji{font-size:1.6rem;line-height:1}.chore-info{width:100%}.chore-name{font-weight:700;font-size:.68rem;color:var(--text-dark);line-height:1.2;text-align:center}.chore-card.done .chore-name{text-decoration:line-through;color:#aaa}.chore-checkbox{width:22px;height:22px;border-radius:50%;border:2.5px solid #dee2e6;display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .2s;background:#fff;color:transparent}.chore-card.done .chore-checkbox{background:var(--green);border-color:var(--green);color:#fff}.chore-edit-btns{display:flex;gap:6px;flex-shrink:0}.icon-btn{width:32px;height:32px;border-radius:10px;border:none;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:transform .15s}.icon-btn:active{transform:scale(.85)}.btn-edit{background:#e7f5ff}.btn-del{background:#fff0f0}.deduction-section{background:linear-gradient(135deg,#fff8e1,#fff3cd);border-radius:20px;padding:16px 18px;margin-top:16px;box-shadow:var(--shadow-sm)}.deduction-label{font-family:'Fredoka One',Arial,sans-serif;color:#664d03;font-size:1rem;margin-bottom:2px}.deduction-sub{font-size:.75rem;font-weight:700;color:#997404;margin-bottom:12px}.deduction-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.deduction-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:14px;padding:13px 20px;cursor:pointer;transition:transform .12s,box-shadow .12s,filter .12s;-webkit-tap-highlight-color:transparent;box-shadow:0 4px 0 rgba(0,0,0,.15)}.deduction-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.15);filter:brightness(.9)}.deduction-btn:disabled{opacity:.3;cursor:default}.deduction-btn-icon{font-size:1.5rem;font-weight:900;color:#fff;line-height:1}.deduction-btn-label{font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;color:#fff}.parent-panel{background:#fff;border-radius:20px;padding:18px;margin-top:16px;box-shadow:var(--shadow-sm)}.parent-panel h3{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:1rem;margin-bottom:14px}.panel-section{background:#f8f8fc;border-radius:14px;padding:12px 14px;margin-bottom:10px}.panel-label{color:var(--text-dark);font-size:.88rem;font-weight:700;margin-bottom:8px}.btn-action{width:100%;padding:13px;border:none;border-radius:14px;font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;cursor:pointer;margin-bottom:8px;transition:opacity .15s;-webkit-tap-highlight-color:transparent}.btn-action:active{opacity:.8}.btn-reset{background:#f0f0f5;color:var(--text-mid)}.btn-danger{background:#fff0f0;color:var(--red)}.goal-edit-row{display:flex;gap:8px}.form-input{background:#f8f8fc;border:2px solid #eee;border-radius:12px;padding:10px 12px;font-family:'Nunito',system-ui,sans-serif;font-size:16px;font-weight:700;color:var(--text-dark);width:100%;outline:none;transition:border-color .15s}.form-input:focus{border-color:var(--purple);background:#fff}.btn-save{background:var(--purple);color:#fff;border:none;border-radius:12px;padding:10px 18px;font-family:'Fredoka One',Arial,sans-serif;font-size:.9rem;cursor:pointer;white-space:nowrap;box-shadow:0 4px 10px rgba(151,117,250,.3)}.add-chore-section{background:#f8f8fc;border-radius:20px;padding:16px;margin-top:12px}.add-chore-section h4{font-family:'Fredoka One',Arial,sans-serif;color:var(--text-dark);font-size:.95rem;margin-bottom:10px}.btn-primary{display:block;width:100%;background:var(--purple);color:#fff;border:none;border-radius:14px;padding:13px;font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;cursor:pointer;box-shadow:0 4px 12px rgba(151,117,250,.3)}.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px}.modal-overlay.open{opacity:1;pointer-events:all}.modal-sheet{background:#fff;border-radius:26px;padding:24px;width:100%;max-width:440px;transform:translateY(40px);transition:transform .28s cubic-bezier(.34,1.3,.64,1)}.modal-overlay.open .modal-sheet{transform:translateY(0)}.modal-title{font-family:'Fredoka One',Arial,sans-serif;font-size:1.4rem;color:var(--text-dark);margin-bottom:16px}.modal-field{margin-bottom:12px}.modal-field label{display:block;font-weight:700;font-size:.82rem;color:var(--text-mid);margin-bottom:4px}.modal-actions{display:flex;gap:10px;margin-top:18px}.btn-secondary{flex:1;background:#f0f0f5;color:var(--text-dark);border:none;border-radius:14px;padding:13px;font-family:'Fredoka One',Arial,sans-serif;font-size:.95rem;cursor:pointer}.modal-actions .btn-primary{flex:2}.streak-section{background:#fff;border-radius:24px;padding:16px 18px;margin-top:16px;box-shadow:var(--shadow-sm);background:linear-gradient(135deg,#fff8f0,#fff3e8)}.streak-inner{display:flex;align-items:center;gap:14px}.streak-flame{font-size:3.2rem;line-height:1;filter:drop-shadow(0 2px 8px rgba(255,146,43,.5));animation:flamePulse 2s ease-in-out infinite}.streak-count{font-family:'Fredoka One',Arial,sans-serif;font-size:2.2rem;color:#e67700;line-height:1}.streak-label{font-size:.76rem;font-weight:700;color:#997404;margin-top:3px}.chart-section{background:#fff;border-radius:24px;padding:16px 18px;margin-top:16px;box-shadow:var(--shadow-sm)}.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.chart-title{font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;color:var(--text-dark)}.chart-sub{font-size:.75rem;font-weight:600;color:var(--text-mid)}.week-notice{text-align:center;color:var(--text-mid);font-size:.72rem;font-weight:600;margin-top:12px}.jar-amounts{text-align:left}.jar-saved{font-family:'Fredoka One',Arial,sans-serif;font-size:2rem;color:var(--c-accent1,#9775fa);line-height:1}.jar-target{font-size:.8rem;font-weight:700;color:var(--text-mid);margin-top:2px}.jar-pct{font-family:'Fredoka One',Arial,sans-serif;font-size:1rem;color:var(--text-mid);margin-top:4px}.jar-wrap{display:flex;align-items:flex-end;justify-content:center;gap:20px;margin-bottom:16px}#confetti-canvas{position:fixed;inset:0;pointer-events:none;z-index:9995;width:100%;height:100%}.coin-drop{position:fixed;pointer-events:none;z-index:500;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffe566,#f59f00 55%,#c87800);box-shadow:0 2px 5px rgba(0,0,0,.2);animation:coinRain var(--dur,1.2s) linear forwards}.coin-particle{position:fixed;pointer-events:none;z-index:200;width:24px;height:24px;display:flex;align-items:center;justify-content:center;animation:coin-fly .85s ease-out forwards;transform-origin:center}@keyframes coinRain{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}@keyframes coin-fly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(.1);opacity:0}}@keyframes flamePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}@keyframes avatarBounce{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.9)}80%{transform:scale(1.1)}100%{transform:scale(1)}}@keyframes jarShake{0%,100%{transform:translateX(0) rotate(0)}15%{transform:translateX(-6px) rotate(-3deg)}30%{transform:translateX(6px) rotate(3deg)}45%{transform:translateX(-4px) rotate(-2deg)}60%{transform:translateX(4px) rotate(2deg)}75%{transform:translateX(-2px) rotate(-1deg)}}.jar-fill-ripple{position:absolute;bottom:0;left:0;right:0;height:8px;background:rgba(255,255,255,.4);border-radius:50%;animation:ripple .8s ease-out forwards}@keyframes miniBurstAnim{0%{transform:translate(0,0) rotate(0deg);opacity:1}100%{transform:translate(var(--tx),var(--ty)) rotate(var(--rot));opacity:0}}@keyframes ripple{0%{transform:scaleX(1.15) scaleY(.85);opacity:.7}50%{transform:scaleX(.92) scaleY(1.08);opacity:.5}100%{transform:scaleX(1) scaleY(1);opacity:0}}@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}.float-switcher{position:fixed;top:12px;right:12px;z-index:50;display:flex;flex-direction:row;gap:6px;opacity:0;pointer-events:none;transition:opacity .2s}.float-switcher.visible{opacity:1;pointer-events:all}.float-child-btn{width:36px;height:36px;border-radius:50%;border:2.5px solid transparent;background:rgba(255,255,255,.9);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:1.3rem;padding:0;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.float-child-btn.active{box-shadow:0 3px 14px rgba(0,0,0,.3);transform:scale(1.1)}
+.p-section{margin-bottom:8px}
+.p-label{font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px}
+.p-grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
+.p-grid2-3{display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px}
+.sec-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.inline-flex{display:inline-flex}
+.jar-title{font-family:'Fredoka One',Arial,sans-serif;font-size:1.1rem;color:var(--text-dark);font-weight:400}
 </style>
 </head>
 <body>
@@ -268,11 +89,9 @@ body{font-family:'Nunito',system-ui,sans-serif;font-style:normal;min-height:100v
 </div>
 
 <script>
-// ── CONFIG ───────────────────────────────────────────────
 var SUPABASE_URL      = 'https://qmeovpiwuxoewwniatmd.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtZW92cGl3dXhvZXd3bmlhdG1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyODEzNjcsImV4cCI6MjA5Njg1NzM2N30.yHWc82OFVCAaE6l8zDZvDkkSeP4_aQhNvwpqTsBDM5c';
 
-// ── CONSTANTS ────────────────────────────────────────────
 var WEEKLY_BASE    = 2.00;
 var BONUS_CAP      = 5.00;
 var PENALTY_AMOUNT = 0.25;
@@ -298,7 +117,6 @@ var DEFAULT_CHORES = [
   {id:'p6',emoji:'✨',name:'Other'}
 ];
 
-// ── HELPERS ──────────────────────────────────────────────
 function showMsg(text, color) {
   var el = document.getElementById('appMsg');
   if (!el) {
@@ -317,7 +135,6 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── PIN ──────────────────────────────────────────────────
 var PIN_KEY = 'cq_pin';
 function getPin() { try { return localStorage.getItem(PIN_KEY) || '1234'; } catch(e) { return '1234'; } }
 function updatePinHint() {
@@ -351,7 +168,6 @@ function pinDel() {
 }
 updatePinHint();
 
-// ── DATE ─────────────────────────────────────────────────
 function todayStr() {
   var d = new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
@@ -365,18 +181,17 @@ function weekStart() {
 var _testSaturday = false;
 var _testSnapshot = null;
 var _testMode = false;
-var _lastSaveTime = 0; // timestamp of last local save
+var _lastSaveTime = 0;
 var _testModeSnapshot = null;
-var _testModeState = null; // separate demo state
+var _testModeState = null;
 function isSaturday() { return _testSaturday || new Date().getDay() === 6; }
 
-// ── STATE ────────────────────────────────────────────────
 function makeChild(id, name, avatar, offset) {
   return {id:id, name:name, avatar:avatar,
     totalSaved:0, goalSaved:0, totalBanked:0, goalName:'My Savings Goal', goalTarget:10,
     weekStart:weekStart(), weekEarned:0, weekPenalties:0,
     weekSaved:false,
-    weeklyLog:{}, // {'2026-W25': {daily:2, special:1, days:3}} — keyed by ISO week
+    weeklyLog:{},
     earningChores:DEFAULT_CHORES.map(function(c,i) {
       return {id:'p'+(offset+i), emoji:c.emoji, name:c.name, done:false, lastDone:''};
     }),
@@ -385,7 +200,7 @@ function makeChild(id, name, avatar, offset) {
   };
 }
 function freshDemoState() {
-  // A realistic demo state showing mid-week progress
+
   var s = {children:[
     {id:'c1', name:'Ada', avatar:'🦁',
      totalSaved:0, goalSaved:7.50, totalBanked:5.00, goalName:'New Toy', goalTarget:10,
@@ -425,7 +240,7 @@ function freshDemoState() {
 
 function freshState() {
   var s = seedWeeklyLog({children:[makeChild('c1','Ada','🦁',1), makeChild('c2','Riley','🐷',4)]});
-  s.children[0].totalSaved = 2.50; // Ada's saved amount
+  s.children[0].totalSaved = 2.50;
   return s;
 }
 function applyResets(s) {
@@ -449,29 +264,29 @@ function applyResets(s) {
     if (typeof ch.totalSaved !== 'number') ch.totalSaved = 0;
     if (typeof ch.goalSaved   !== 'number') ch.goalSaved   = 0;
     if (typeof ch.totalBanked !== 'number') ch.totalBanked = 0;
-    // Seed £5 saved for both children (2x £2.50 Saturday banks)
+
     if (ch.goalSaved === 0 && ch.totalBanked === 0) ch.goalSaved = 5.00;
-    // Restore Ada's minimum saved amount if wiped
+
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
-    delete ch.manualStreak; // never let Supabase restore a stale manual override
+    delete ch.manualStreak;
     if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
-    // Reset weekSaved on new week
+
     if (ch.weekStart !== weekStart()) ch.weekSaved = false;
-    // Reset weekSaved if saved on a different date than today
+
     if (ch.weekSaved && ch.weekSavedDate && ch.weekSavedDate !== todayStr()) ch.weekSaved = false;
-    // ONE-TIME FIX: force clear weekSaved if weekSavedDate is missing (old corrupt state)
+
     if (ch.weekSaved && !ch.weekSavedDate) ch.weekSaved = false;
-    // Clean up old activityLog if present
+
     delete ch.activityLog;
-    // Audit badges — remove any that don't meet criteria
+
     if (ch.badges) {
-      // firstsave / save100 only if totalBanked > 0
+
       if (ch.badges.firstsave && !(ch.totalBanked > 0)) delete ch.badges.firstsave;
       if (ch.badges.save100   && !(ch.totalBanked > 0)) delete ch.badges.save100;
-      // save25/50/75 are progress badges — keep once earned even if goal resets
+
     }
-    // Seed historical data only if not already present — never overwrite real data
+
     if (!ch.weeklyLog['2026-W24'] || !ch.weeklyLog['2026-W24'].daysSeen) {
       ch.weeklyLog['2026-W24'] = {daily:2, special:1, days:2, daysSeen:{'2026-06-13':true,'2026-06-14':true}, dayCounts:{'2026-06-13':{daily:3,special:1},'2026-06-14':{daily:4,special:0}}};
     }
@@ -492,10 +307,10 @@ function applyResets(s) {
   });
   return s;
 }
-// Get ISO week key e.g. '2026-W25'
+
 function isoWeek(dateStr) {
   var d = new Date(dateStr + 'T12:00:00');
-  // Thursday in current week determines year
+
   var thursday = new Date(d);
   thursday.setDate(d.getDate() - ((d.getDay()+6)%7) + 3);
   var firstThursday = new Date(thursday.getFullYear(),0,4);
@@ -504,24 +319,23 @@ function isoWeek(dateStr) {
   return thursday.getFullYear() + '-W' + (week < 10 ? '0'+week : week);
 }
 
-
 var BADGES = [
-  // Streak
+
   {id:'streak3',   emoji:'🔥', name:'On Fire!',        desc:'3 day streak',           cat:'streak'},
   {id:'streak7',   emoji:'🔥', name:'Week Warrior',     desc:'7 day streak',           cat:'streak'},
   {id:'streak14',  emoji:'💥', name:'Unstoppable',      desc:'14 day streak',          cat:'streak'},
   {id:'streak30',  emoji:'🌟', name:'Legend',           desc:'30 day streak',          cat:'streak'},
-  // Special quests
+
   {id:'special3',  emoji:'⚡', name:'Quest Master',     desc:'3 special quests in a week', cat:'special'},
-  // Savings
+
   {id:'save25',    emoji:'💰', name:'Saver',            desc:'25% of your goal saved', cat:'savings'},
   {id:'save50',    emoji:'💰', name:'Halfway There',    desc:'50% of your goal saved', cat:'savings'},
   {id:'save75',    emoji:'💎', name:'Almost There',     desc:'75% of your goal saved', cat:'savings'},
   {id:'save100',   emoji:'🏆', name:'Goal Reached',     desc:'Banked a full savings goal!', cat:'savings'},
   {id:'firstsave', emoji:'🎉', name:'First Bank',       desc:'Banked your first savings goal!', cat:'savings'},
-  // Bonus
+
   {id:'bonus1',    emoji:'🚀', name:'Bonus Earned',     desc:'Earned a bonus this week', cat:'bonus'},
-  // Totals
+
   {id:'chores50',  emoji:'⭐', name:'Super Helper',     desc:'50 chores completed',    cat:'total'},
   {id:'chores100', emoji:'🏅', name:'Champion',         desc:'100 chores completed',   cat:'total'},
   {id:'teamwork',  emoji:'🤝', name:'Team Work!',       desc:'Both did a special quest on the same day', cat:'team'},
@@ -540,12 +354,10 @@ function logPastActivity(ch, dateStr, dailyCount, specialCount) {
   var newDaily   = Math.max(0, parseInt(dailyCount)   || 0);
   var newSpecial = Math.max(0, parseInt(specialCount) || 0);
 
-  // Update totals by removing old and adding new
   entry.daily   = Math.max(0, (entry.daily||0)   - prev.daily   + newDaily);
   entry.special = Math.max(0, (entry.special||0) - prev.special + newSpecial);
   entry.totalChores = (entry.totalChores||0) - (prev.daily + prev.special) + (newDaily + newSpecial);
 
-  // Update totalChores on child
   ch.totalChores = Math.max(0, (ch.totalChores||0) - (prev.daily + prev.special) + (newDaily + newSpecial));
 
   if (newDaily > 0 || newSpecial > 0) {
@@ -578,7 +390,6 @@ function checkBadges(ch, allChildren) {
   var streak = calcStreak(ch);
   var savedPct = ch.goalTarget > 0 ? ((ch.goalSaved||0) / ch.goalTarget * 100) : 0;
 
-  // Streak badges — reset if streak has dropped below threshold
   if (streak < 3)  { delete ch.badges.streak3; }
   if (streak < 7)  { delete ch.badges.streak7; }
   if (streak < 14) { delete ch.badges.streak14; }
@@ -588,33 +399,27 @@ function checkBadges(ch, allChildren) {
   if (streak >= 14 && !ch.badges.streak14) { ch.badges.streak14 = true; newBadges.push('streak14'); }
   if (streak >= 30 && !ch.badges.streak30) { ch.badges.streak30 = true; newBadges.push('streak30'); }
 
-  // Special quests this week
   var wk = isoWeek(todayStr());
   var weekEntry = ch.weeklyLog && ch.weeklyLog[wk];
   if (weekEntry && (weekEntry.special || 0) >= 3 && !ch.badges.special3) {
     ch.badges.special3 = true; newBadges.push('special3');
   }
 
-  // Savings progress badges — fire on goalSaved progress, accumulate forever
   if (savedPct >= 25  && !ch.badges.save25)  { ch.badges.save25  = true; newBadges.push('save25'); }
   if (savedPct >= 50  && !ch.badges.save50)  { ch.badges.save50  = true; newBadges.push('save50'); }
   if (savedPct >= 75  && !ch.badges.save75)  { ch.badges.save75  = true; newBadges.push('save75'); }
-  // save100 and firstsave only when Bank It is pressed (handled in showJarFullCelebration)
-  // bonus1 is awarded in addBonus() directly, not here passively
 
-  // Total chores
   if ((ch.totalChores||0) >= 50  && !ch.badges.chores50)  { ch.badges.chores50  = true; newBadges.push('chores50'); }
   if ((ch.totalChores||0) >= 100 && !ch.badges.chores100) { ch.badges.chores100 = true; newBadges.push('chores100'); }
 
-  // Teamwork — both children did a special quest on the same day
   if (!ch.badges.teamwork && allChildren && allChildren.length >= 2) {
-    // Build set of days this child did a special quest
+
     var mySpecialDays = {};
     Object.keys(ch.weeklyLog||{}).forEach(function(wk) {
       var dc = ch.weeklyLog[wk].dayCounts || {};
       Object.keys(dc).forEach(function(d) { if (dc[d].special > 0) mySpecialDays[d] = true; });
     });
-    // Check if any other child shares a special quest day
+
     var otherChildren = allChildren.filter(function(x){return x.id !== ch.id;});
     var teamworkFound = otherChildren.some(function(other) {
       return Object.keys(other.weeklyLog||{}).some(function(wk) {
@@ -628,26 +433,23 @@ function checkBadges(ch, allChildren) {
   return newBadges;
 }
 
-
-// Badge queue — shows badges only when no other overlays are active
 var _badgeQueue = [];
 function queueBadge(badgeId) {
   _badgeQueue.push(badgeId);
   drainBadgeQueue();
 }
 function isOverlayActive() {
-  // Check if any modal/confirmation overlay is currently visible
-  var overlays = document.querySelectorAll('[id$="Overlay"],[id="bankNowInner"],[id="goalReachedOverlay"]');
-  for (var i=0; i<overlays.length; i++) {
-    var el = overlays[i];
-    var style = el.closest ? el.closest('[style*="opacity"]') : null;
-    if (el && el.offsetParent !== null && getComputedStyle(el).opacity !== '0') return true;
+  var ids = ['jarFullOverlay','goalReachedOverlay','amazing-banner'];
+  for (var i=0; i<ids.length; i++) {
+    var el = document.getElementById(ids[i]);
+    if (el && getComputedStyle(el).opacity !== '0' && getComputedStyle(el).display !== 'none') return true;
   }
-  // Also check for any fixed overlay divs that are visible
-  var fixed = document.querySelectorAll('div[style*="position:fixed"][style*="z-index:999"]');
+  var fixed = document.querySelectorAll('div[style*="position:fixed"]');
   for (var j=0; j<fixed.length; j++) {
     var f = fixed[j];
-    if (f.id !== 'demoModeBanner' && getComputedStyle(f).opacity !== '0' && getComputedStyle(f).pointerEvents !== 'none') return true;
+    var zi = parseInt(getComputedStyle(f).zIndex)||0;
+    if (zi >= 9989 && f.id !== 'demoModeBanner' && f.id !== 'floatSwitcher' &&
+        getComputedStyle(f).opacity !== '0' && getComputedStyle(f).pointerEvents !== 'none') return true;
   }
   return false;
 }
@@ -659,7 +461,7 @@ function drainBadgeQueue() {
   }
   var badgeId = _badgeQueue.shift();
   showBadgeUnlock(badgeId);
-  // If more in queue, show next after badge dismisses (3s + fade)
+
   if (_badgeQueue.length) setTimeout(drainBadgeQueue, 3500);
 }
 
@@ -667,6 +469,7 @@ function showBadgeUnlock(badge) {
   var b = BADGES.find(function(x){return x.id===badge;});
   if (!b) return;
   var el = document.createElement('div');
+  el.id = 'badgeUnlockOverlay';
   el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.5);z-index:9989;background:#fff;border-radius:24px;padding:28px 32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;min-width:220px';
   el.innerHTML = '<div style="font-size:3.5rem;margin-bottom:8px">'+b.emoji+'</div>' +
     '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:4px">Badge Unlocked!</div>' +
@@ -722,7 +525,7 @@ function badgeCabinetHTML(ch) {
 function recordWeeklyActivity(ch, type, overrideDate) {
   var td = overrideDate || todayStr();
   var wk = isoWeek(td);
-  // Track in choresDates for streak (all dates including retro)
+
   if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
   if (ch.choresDates.indexOf(td) === -1) ch.choresDates.push(td);
   if (!ch.weeklyLog) ch.weeklyLog = {};
@@ -734,7 +537,7 @@ function recordWeeklyActivity(ch, type, overrideDate) {
     entry.daysSeen[td] = true;
     entry.days = Object.keys(entry.daysSeen).length;
   }
-  // Track per-day counts: dayCounts[date] = {daily:N, special:N}
+
   if (!entry.dayCounts[td]) entry.dayCounts[td] = {daily:0, special:0};
   if (type === 'daily')   { entry.daily++; entry.dayCounts[td].daily++; }
   if (type === 'special') { entry.special++; entry.dayCounts[td].special++; }
@@ -746,15 +549,11 @@ function seedWeeklyLog(s) {
     if (!ch) return;
     if (!ch.weeklyLog) ch.weeklyLog = {};
 
-    // W24 seeded in applyResets
-
-    // Seed W25 — merge in the known historical days, don't overwrite days already recorded
     if (!ch.weeklyLog['2026-W25']) ch.weeklyLog['2026-W25'] = {daily:0, special:0, days:0, daysSeen:{}, dayCounts:{}};
     var w25 = ch.weeklyLog['2026-W25'];
     if (!w25.daysSeen) w25.daysSeen = {};
     if (!w25.dayCounts) w25.dayCounts = {};
 
-    // Seed each historical day only if not already present
     var historicalDays = {
       '2026-06-15': {daily:2, special:0},
       '2026-06-16': {daily:2, special:1},
@@ -779,14 +578,14 @@ function seedWeeklyLog(s) {
 }
 
 function loadLocal() {
-  // Clear old storage versions to prevent corrupted state
+
   try { ['cq_v4','cq_v5','cq_v6'].forEach(function(k){ localStorage.removeItem(k); }); } catch(e) {}
   try {
     var r = localStorage.getItem('cq_v7');
     if (!r) return freshState();
     var parsed = JSON.parse(r);
     var result = seedWeeklyLog(applyResets(parsed));
-    // Final sanity check
+
     if (!result || !result.children || result.children.length < 2) return freshState();
     return result;
   }
@@ -794,7 +593,6 @@ function loadLocal() {
 }
 function saveLocal() { if (_testMode) return; try { localStorage.setItem('cq_v7', JSON.stringify(state)); } catch(e) {} }
 
-// ── SUPABASE ─────────────────────────────────────────────
 var _sb = null;
 function getSb() {
   if (_sb) return _sb;
@@ -814,13 +612,13 @@ function loadSupabaseLib() {
   });
 }
 function save() {
-  if (_testMode) { return; } // don't save anything during demo mode
+  if (_testMode) { return; }
   _lastSaveTime = Date.now();
   saveLocal();
   try {
     var client = getSb();
     if (!client) return;
-    // Serialise to plain JSON to avoid any object reference issues
+
     var cleanState = JSON.parse(JSON.stringify(state));
     client.from('app_state')
       .upsert({id:1, state:cleanState, updated_at:new Date().toISOString()})
@@ -837,17 +635,14 @@ function save() {
   } catch(e) { showMsg('Save error: ' + e.message, '#e03131'); }
 }
 
-// ── APP STATE ────────────────────────────────────────────
 var state    = freshState();
 var activeIdx = 0;
 var editMode  = false;
 var editingChore = null;
 var editingExpTask = null;
 
-// recordActivity now delegates to recordWeeklyActivity
 function recordActivity(ch, type, overrideDate) { recordWeeklyActivity(ch, type, overrideDate); }
 
-// Streak: count consecutive days with any activity using daysSeen across all weeks
 function calcStreak(ch) {
   if (typeof ch.manualStreak === 'number') return ch.manualStreak;
 
@@ -860,8 +655,6 @@ function calcStreak(ch) {
   var yestD = new Date(now); yestD.setDate(now.getDate()-1);
   var yesterday = localStr(yestD);
 
-  // Build done set directly from dayCounts in weeklyLog
-  // dayCounts is the same source as the week grid — always accurate
   var done = {};
   if (ch.weeklyLog) {
     Object.keys(ch.weeklyLog).forEach(function(wk) {
@@ -874,12 +667,10 @@ function calcStreak(ch) {
     });
   }
 
-  // Today: also check expectedDone (ticks not yet flushed to dayCounts)
   if (ch.expectedDone && Object.keys(ch.expectedDone).some(function(k){ return ch.expectedDone[k]; })) {
     done[today] = true;
   }
 
-  // Must anchor to today or yesterday
   if (!done[today] && !done[yesterday]) return 0;
 
   var start = done[today] ? today : yesterday;
@@ -893,8 +684,6 @@ function calcStreak(ch) {
   return streak;
 }
 
-
-// This week daily view — fractional fill based on chore counts
 function thisWeekHTML(ch) {
   if (!ch || !ch.weeklyLog) return '';
   var today = new Date();
@@ -903,11 +692,9 @@ function thisWeekHTML(ch) {
   var DAILY_TOTAL = (ch.expectedTasks || []).length || 7;
   var SPECIAL_TOTAL = (ch.earningChores || []).length || 5;
 
-  // Get Sunday of this display week
   var sun = new Date(today);
   sun.setDate(today.getDate() - today.getDay());
 
-  // Merge dayCounts from all weeks
   var dayCounts = {};
   Object.keys(ch.weeklyLog).forEach(function(wk) {
     var entry = ch.weeklyLog[wk];
@@ -916,7 +703,7 @@ function thisWeekHTML(ch) {
         dayCounts[d] = entry.dayCounts[d];
       });
     }
-    // Fallback: if daysSeen but no dayCounts, mark as partial
+
     if (entry && entry.daysSeen && !entry.dayCounts) {
       Object.keys(entry.daysSeen).forEach(function(d) {
         if (!dayCounts[d]) dayCounts[d] = {daily:1, special:0};
@@ -940,10 +727,8 @@ function thisWeekHTML(ch) {
     var specialPct = Math.min(1, counts.special / SPECIAL_TOTAL);
     var hasAny = counts.daily > 0 || counts.special > 0;
 
-    // Build stacked fill: daily from bottom, special on top
-    // Total height = 100%, daily fills proportionally, special stacks above
     var dailyH   = Math.round(dailyPct * 100);
-    var specialH = Math.round(specialPct * 40); // special is max 40% of height
+    var specialH = Math.round(specialPct * 40);
 
     var borderStyle = isFuture
       ? '2px dashed #e0e0e0'
@@ -955,13 +740,13 @@ function thisWeekHTML(ch) {
 
     html += '<div style="text-align:center">' +
       '<div style="font-size:.58rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">' + (isToday ? 'Today' : DAY_SHORT[i]) + '</div>' +
-      // Square with fractional fill
+
       '<div style="position:relative;width:100%;padding-top:100%;border-radius:10px;background:'+bg+';border:'+borderStyle+';overflow:hidden">' +
-        // Daily fill from bottom
+
         (dailyH > 0 ? '<div style="position:absolute;bottom:0;left:0;right:0;height:'+dailyH+'%;background:'+accent+';opacity:0.85;transition:height .4s ease"></div>' : '') +
-        // Special fill on top of daily (different colour, smaller)
+
         (specialH > 0 ? '<div style="position:absolute;bottom:'+(dailyH)+'%;left:0;right:0;height:'+specialH+'%;background:'+special+';opacity:0.9;transition:height .4s ease"></div>' : '') +
-        // Today dot
+
         (isToday && !hasAny ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1rem">·</div>' : '') +
       '</div>' +
       '<div style="font-size:.52rem;color:var(--text-mid);margin-top:2px">' + d.getDate() + '</div>' +
@@ -969,7 +754,6 @@ function thisWeekHTML(ch) {
   }
   html += '</div>';
 
-  // Legend
   html += '<div style="display:flex;gap:12px;margin-top:8px;justify-content:center">' +
     '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+accent+'"></div><span style="font-size:.68rem;font-weight:700;color:var(--text-mid)">Daily</span></div>' +
     '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+special+'"></div><span style="font-size:.68rem;font-weight:700;color:var(--text-mid)">Special</span></div>' +
@@ -977,7 +761,6 @@ function thisWeekHTML(ch) {
   return html;
 }
 
-// Weekly bar chart — shows last N weeks
 function weeklyChartHTML(ch, numWeeks) {
   if (!ch || !ch.weeklyLog) return '';
   var today = new Date();
@@ -985,13 +768,12 @@ function weeklyChartHTML(ch, numWeeks) {
   var accent = 'var(--c-accent1,#9775fa)';
   var special = 'var(--special,#5b9bd5)';
 
-  // Build list of weeks oldest to newest
   var weeks = [];
   for (var i = numWeeks-1; i >= 0; i--) {
     var d = new Date(today);
     d.setDate(today.getDate() - i*7);
     var wk = isoWeek(d.toISOString().slice(0,10));
-    // Get monday of that week for label
+
     var mon = new Date(d);
     mon.setDate(d.getDate() - ((d.getDay()+6)%7));
     var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1001,16 +783,14 @@ function weeklyChartHTML(ch, numWeeks) {
     weeks.push({wk:wk, label:label, isCurrent:isCurrent, days:entry.days||0, daily:entry.daily||0, special:entry.special||0});
   }
 
-  // Max chores per week = 7 days * (daily + special tasks)
   var DAILY_T = (state.children[activeIdx].expectedTasks||[]).length || 7;
   var SPECIAL_T = (state.children[activeIdx].earningChores||[]).length || 5;
   var maxChores = 7 * (DAILY_T + SPECIAL_T);
   var BAR_MAX_HEIGHT = 60;
 
-  // Find actual max for this child to scale bars nicely
   var actualMax = 0;
   weeks.forEach(function(w) { if (w.daily+w.special > actualMax) actualMax = w.daily+w.special; });
-  var scaleMax = Math.max(actualMax, Math.round(maxChores * 0.5)); // at least 50% of max
+  var scaleMax = Math.max(actualMax, Math.round(maxChores * 0.5));
 
   var html = '<div style="display:flex;align-items:flex-end;gap:6px;height:'+(BAR_MAX_HEIGHT+36)+'px">';
   weeks.forEach(function(w) {
@@ -1036,7 +816,6 @@ function weeklyChartHTML(ch, numWeeks) {
   });
   html += '</div>';
 
-  // Legend
   html += '<div style="display:flex;gap:12px;margin-top:10px;justify-content:center">' +
     '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+accent+'"></div><span style="font-size:.7rem;font-weight:700;color:var(--text-mid)">Daily</span></div>' +
     '<div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:3px;background:'+special+'"></div><span style="font-size:.7rem;font-weight:700;color:var(--text-mid)">Special</span></div>' +
@@ -1052,13 +831,11 @@ function jarSVG(pct, accent, ripple) {
   var dash = circ * p / 100;
   var gap  = circ - dash;
 
-  // Pulse animation when full
   var pulseAnim = p >= 100 ?
     '<animate attributeName="r" values="48;51;48" dur="1.2s" repeatCount="indefinite"/>' : '';
   var trackPulse = p >= 100 ?
     '<animate attributeName="r" values="48;51;48" dur="1.2s" repeatCount="indefinite"/>' : '';
 
-  // Ripple ring on save
   var rippleAnim = ripple ?
     '<circle cx="'+cx+'" cy="'+cy+'" r="48" fill="none" stroke="'+accent+'" stroke-width="6" opacity="0.6">' +
     '<animate attributeName="r" from="48" to="72" dur="0.8s" begin="0s" fill="freeze"/>' +
@@ -1066,11 +843,11 @@ function jarSVG(pct, accent, ripple) {
     '</circle>' : '';
 
   return '<svg viewBox="0 0 120 120" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">' +
-    // Outer glow ring (subtle)
+
     '<circle cx="'+cx+'" cy="'+cy+'" r="54" fill="'+accent+'" opacity="0.08"/>' +
-    // Track (background ring)
+
     '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+accent+'" stroke-width="10" opacity="0.15"/>' +
-    // Progress arc
+
     '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none"' +
     ' stroke="'+accent+'" stroke-width="10" stroke-linecap="round"' +
     ' stroke-dasharray="'+dash+' '+gap+'"' +
@@ -1078,18 +855,17 @@ function jarSVG(pct, accent, ripple) {
     ' transform="rotate(-90 '+cx+' '+cy+')">' +
     (ripple ? '<animate attributeName="stroke-dasharray" from="0 '+circ+'" to="'+dash+' '+gap+'" dur="0.8s" begin="0s"/>' : '') +
     '</circle>' +
-    // Ripple effect
+
     rippleAnim +
-    // Inner white circle (clean background)
+
     '<circle cx="'+cx+'" cy="'+cy+'" r="36" fill="#fff" opacity="0.9"/>' +
-    // Full sparkles
+
     (p >= 100 ?
       '<text x="30" y="28" font-size="14">✨</text>' +
       '<text x="80" y="22" font-size="12">⭐</text>' +
       '<text x="90" y="80" font-size="10">💫</text>' : '') +
     '</svg>';
 }
-
 
 function startWaveAnimation(accent) {
   var canvas = document.getElementById('waveCanvas');
@@ -1098,7 +874,6 @@ function startWaveAnimation(accent) {
   var W = 60, H = 20;
   canvas.width = W; canvas.height = H;
 
-  // Parse accent colour to rgb
   var tmp = document.createElement('div');
   tmp.style.color = accent;
   document.body.appendChild(tmp);
@@ -1119,12 +894,11 @@ function startWaveAnimation(accent) {
   function draw() {
     var elapsed = Date.now() - startTime;
     var progress = Math.min(elapsed / duration, 1);
-    // Ease out — waves calm down over time
+
     var decay = 1 - Math.pow(progress, 0.6);
 
     ctx.clearRect(0, 0, W, H);
 
-    // Draw wave surface
     ctx.beginPath();
     ctx.moveTo(0, H);
     for (var x = 0; x <= W; x++) {
@@ -1141,7 +915,6 @@ function startWaveAnimation(accent) {
     ctx.fillStyle = 'rgba('+r+','+g+','+b+',0.55)';
     ctx.fill();
 
-    // Highlight shimmer on wave top
     ctx.beginPath();
     for (var x2 = 0; x2 <= W; x2++) {
       var y2 = H / 2;
@@ -1166,7 +939,6 @@ function startWaveAnimation(accent) {
   draw();
 }
 
-
 function weekNet(ch) {
   if (!ch) return 0;
   return +(Math.max(0, WEEKLY_BASE - (ch.weekPenalties||0)) + Math.min(BONUS_CAP, (ch.weekEarned||0))).toFixed(2);
@@ -1178,7 +950,7 @@ function expCount(ch) { return (ch.expectedTasks||[]).filter(function(e) { retur
 function render() {
   state = seedWeeklyLog(state);
   renderTabs(); renderMain();
-  // Show demo mode banner
+
   var banner = document.getElementById('demoModeBanner');
   if (_testMode) {
     if (!banner) {
@@ -1188,7 +960,7 @@ function render() {
       banner.textContent = '🎭 DEMO MODE — no data will be saved';
       document.body.appendChild(banner);
     }
-    // Offset content so banner doesn't cover it
+
     document.getElementById('app').style.paddingTop = '24px';
   } else {
     if (banner) { banner.remove(); document.getElementById('app').style.paddingTop = ''; }
@@ -1208,7 +980,7 @@ function renderTabs() {
   });
   document.getElementById('childTabs').innerHTML = html;
 }
-  // Float switcher
+
   var fs = document.getElementById('floatSwitcher');
   if (fs) {
     fs.innerHTML = state.children.map(function(kid, i) {
@@ -1244,7 +1016,7 @@ function renderMain() {
   var expectedHTML = (ch.expectedTasks||[]).map(function(e) {
     var done;
     if (_retroDate) {
-      // Check _retroTicked first (current session), then dayCounts (persisted)
+
       var inSession = !!(_retroTicked[_retroDate] && _retroTicked[_retroDate][ch.id+'_'+e.id]);
       done = inSession;
     } else {
@@ -1276,8 +1048,6 @@ function renderMain() {
       '</div>';
   }).join('');
 
-  // Main content
-  // Week card emoji and message based on earnings
   var weekEmoji, weekMsg;
   if (net >= WEEKLY_BASE + BONUS_CAP * 0.8) { weekEmoji = '🤩'; weekMsg = 'Incredible week!'; }
   else if (net >= WEEKLY_BASE + BONUS_CAP * 0.4) { weekEmoji = '🚀'; weekMsg = 'Amazing work!'; }
@@ -1285,7 +1055,6 @@ function renderMain() {
   else if (ch.weekPenalties > 0) { weekEmoji = '😬'; weekMsg = 'Room to improve!'; }
   else { weekEmoji = '🌟'; weekMsg = 'Keep going!'; }
 
-  // Build retro date picker
   var today = todayStr();
   var yest = (function(){ var d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
   function fmtRetro(ds) {
@@ -1293,11 +1062,11 @@ function renderMain() {
     return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+d.getDate();
   }
   document.getElementById('mainContent').innerHTML =
-    // SAVINGS RING — split panel
+
     '<div class="jar-section">' +
-    // Title
+
     '<div class="jar-title" style="margin-bottom:16px">💰 '+esc(ch.goalName)+'</div>' +
-    // Big ring centred
+
     '<div style="position:relative;width:160px;height:160px;margin:0 auto 16px">' +
     '<div id="jarSvgWrap" style="width:160px;height:160px">'+jarSVG(savedPct, col.accent1, false)+'</div>' +
     '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;gap:2px">' +
@@ -1305,17 +1074,16 @@ function renderMain() {
     '<div style="font-size:.7rem;font-weight:700;color:var(--text-mid)">of £'+ch.goalTarget.toFixed(2)+'</div>' +
     '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1rem;color:var(--c-accent1,#9775fa);margin-top:2px">'+(savedPct>=100?'🎉':savedPct+'%')+'</div>' +
     '</div></div>' +
-    // Single action line
+
     (ch.weekSaved && isSaturday()
       ? '<div style="text-align:center;font-size:.9rem;font-weight:700;color:var(--green);margin-bottom:12px">✅ All saved this week!</div>'
       : net > 0 && isSaturday()
       ? '<button class="jar-save-btn" id="jarSaveBtn" style="margin-bottom:12px">💰 Save this week\'s £'+net.toFixed(2)+'!</button>'
       : '<div style="text-align:center;font-size:.82rem;font-weight:700;color:var(--text-mid);margin-bottom:12px">'+(net>0?'💰 £'+net.toFixed(2)+' ready to save on Saturday':'Nothing to save yet this week')+'</div>') +
-    // Bank it now - very subtle
+
     '<button id="bankNowBtn" style="width:100%;background:#f8f8fc;border:1.5px solid #e0e0e0;border-radius:10px;padding:9px;font-family:Fredoka One,Arial,sans-serif;font-size:.85rem;color:#bbb;cursor:pointer;margin-top:6px">Bank it Now</button>' +
     '</div>' +
 
-    // THIS WEEK PANEL
     '<div class="week-card" style="background:'+(activeIdx===0 ? 'linear-gradient(135deg, #9775fa 0%, #e066cc 40%, #ff7043 100%)' : 'linear-gradient(135deg, #f59f00 0%, #ff6b9d 40%, #9775fa 100%)')+';margin-bottom:14px">' +
     '<div style="display:flex;align-items:center;justify-content:space-between">' +
     '<div>' +
@@ -1345,13 +1113,6 @@ function renderMain() {
     '<div class="section-heading">⚡ Special Quests</div>' +
     '<div class="chores-list" id="choresList">'+earningHTML+'</div>' +
 
-
-
-
-
-
-
-    // STREAK
     '<div class="streak-section" style="margin-top:14px">' +
     '<div class="streak-inner">' +
     '<div class="streak-flame">🔥</div>' +
@@ -1360,28 +1121,25 @@ function renderMain() {
     '<div class="streak-label">consecutive days with a quest completed</div>' +
     '</div></div></div>' +
 
-    // BADGES
     '<div class="chart-section" style="margin-top:14px">' +
     '<div class="chart-header"><div class="chart-title">🏅 Badges</div></div>' +
     badgeCabinetHTML(ch) +
     '</div>' +
 
-    // Bonus/deduct moved to parent tab
     '';
 
-  // Parent controls — only rendered when in parent tab via renderParentOnly
   var pc = document.getElementById('parentControls');
-  if (false) { // disabled — parent panel now in own tab
+  if (false) {
     pc.style.display = 'block';
     pc.innerHTML =
       '<div class="add-chore-section">' +
       '<h4>➕ Add Daily Quest for '+ch.name+'</h4>' +
-      '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+      '<div class="p-grid2-3">' +
       '<input class="form-input" id="newExpEmoji" maxlength="4" value="⭐" style="text-align:center;font-size:1.3rem">' +
       '<input class="form-input" id="newExpName" placeholder="Quest name…"></div>' +
       '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Daily Quest ✨</button>' +
       '<h4>➕ Add Special Quest for '+ch.name+'</h4>' +
-      '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+      '<div class="p-grid2-3">' +
       '<input class="form-input" id="newEmoji" maxlength="4" value="🧹" style="text-align:center;font-size:1.3rem">' +
       '<input class="form-input" id="newName" placeholder="Quest name…"></div>' +
       '<button class="btn-primary" id="addChoreBtn" style="margin-bottom:4px">Add Special Quest ✨</button></div>' +
@@ -1391,15 +1149,15 @@ function renderMain() {
       '<input class="form-input" id="goalName_'+ch.id+'" value="'+esc(ch.goalName)+'">' +
       '<input class="form-input" id="goalAmt_'+ch.id+'" type="number" step="1" min="1" value="'+ch.goalTarget.toFixed(2)+'" style="max-width:80px">' +
       '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
-      
+
     '<div class="panel-section" style="margin-bottom:8px">' +
     '<div class="panel-label">📅 Log Past Activity</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div class="p-grid2">' +
     '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Date</div>' +
     '<input class="form-input" id="pastDate" type="date" value="'+new Date(Date.now()-86400000).toISOString().slice(0,10)+'"></div>' +
     '<div></div>' +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div class="p-grid2">' +
     '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Daily quests</div>' +
     '<input class="form-input" id="pastDaily" type="number" min="0" max="'+((ch.expectedTasks||[]).length||7)+'" placeholder="0" style="text-align:center"></div>' +
     '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Special quests</div>' +
@@ -1409,19 +1167,19 @@ function renderMain() {
     '</div>' +
     '<div class="panel-section" style="margin-bottom:8px">' +
     '<div class="panel-label">🔧 Manual Override</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Goal saved (£)</div>' +
+    '<div class="p-grid2">' +
+    '<div><div class="p-label">Goal saved (£)</div>' +
     '<input class="form-input" id="overrideGoalSaved" type="number" step="0.01" min="0" value="'+(ch.goalSaved||0).toFixed(2)+'" style="text-align:center"></div>' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Total banked (£)</div>' +
+    '<div><div class="p-label">Total banked (£)</div>' +
     '<input class="form-input" id="overrideTotalBanked" type="number" step="0.01" min="0" value="'+(ch.totalBanked||0).toFixed(2)+'" style="text-align:center"></div>' +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Weekly earnings (£)</div>' +
+    '<div class="p-grid2">' +
+    '<div><div class="p-label">Weekly earnings (£)</div>' +
     '<input class="form-input" id="overrideWeekEarned" type="number" step="0.01" min="0" value="'+(ch.weekEarned||0).toFixed(2)+'" style="text-align:center"></div>' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Deductions (£)</div>' +
+    '<div><div class="p-label">Deductions (£)</div>' +
     '<input class="form-input" id="overrideWeekPenalties" type="number" step="0.01" min="0" value="'+(ch.weekPenalties||0).toFixed(2)+'" style="text-align:center"></div>' +
     '</div>' +
-    '<div style="margin-bottom:7px"><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Streak days (manual)</div>' +
+    '<div style="margin-bottom:7px"><div class="p-label">Streak days (manual)</div>' +
     '<input class="form-input" id="overrideStreak" type="number" step="1" min="0" placeholder="Leave blank to auto-calculate" style="text-align:center"></div>' +
     '<button class="btn-save" id="applyOverrideBtn" style="width:100%">Apply Changes</button>' +
     '</div>' +
@@ -1436,29 +1194,28 @@ function renderMain() {
       '<div id="pinChangeMsg" style="font-size:.8rem;font-weight:700;min-height:18px;margin-bottom:7px"></div>' +
       '<button class="btn-save" id="changePinBtn" style="width:100%">Update PIN</button></div></div>';
 
-    // Bind parent control events
     bindBtn('addExpBtn',      function() { addExpectedTask(ch.id); });
     bindBtn('addChoreBtn',    function() { addChore(ch.id); });
     bindBtn('saveGoalBtn',    function() { saveGoal(ch.id); });
     bindBtn('testModeBtn', function() {
       if (!_testMode) {
-        // Enter demo mode — deep snapshot of real state including all savings fields
+
         _testModeSnapshot = JSON.parse(JSON.stringify(state));
-        // Also preserve exact savings values separately for safety
+
         _testModeSnapshot._savedGoalSaved = state.children.map(function(ch){return ch.goalSaved||0;});
         _testModeSnapshot._savedTotalBanked = state.children.map(function(ch){return ch.totalBanked||0;});
         _testMode = true;
-        editMode = false; // exit parent edit mode so chores are interactive
+        editMode = false;
         document.getElementById('editToggleBtn').textContent = '⚙️ Parent';
         document.getElementById('editToggleBtn').classList.remove('active');
         state = freshDemoState();
         showMsg('🎭 Demo mode ON — real data safe', '#9775fa');
       } else {
-        // Exit demo mode — restore real state exactly
+
         _testMode = false;
         if (_testModeSnapshot) {
           var restored = JSON.parse(JSON.stringify(_testModeSnapshot));
-          // Restore exact savings values
+
           if (restored._savedGoalSaved) {
             restored.children.forEach(function(ch, i) {
               ch.goalSaved = restored._savedGoalSaved[i];
@@ -1469,8 +1226,8 @@ function renderMain() {
           delete restored._savedTotalBanked;
           state = applyResets(restored);
           _testModeSnapshot = null;
-          saveLocal(); // write real state back to localStorage
-          // Push real state back to Supabase to override any demo contamination
+          saveLocal();
+
           try {
             var cl = getSb();
             if (cl) cl.from('app_state').upsert({id:1, state:JSON.parse(JSON.stringify(state)), updated_at:new Date().toISOString()}).catch(function(){});
@@ -1483,13 +1240,13 @@ function renderMain() {
 
     bindBtn('testSatBtn', function() {
       if (!_testSaturday) {
-        // Enabling test mode — snapshot current state
+
         _testSnapshot = JSON.parse(JSON.stringify(state));
         _testSaturday = true;
-        // Temporarily mark weekSaved as false so save button appears
+
         state.children.forEach(function(ch) { ch.weekSaved = false; });
       } else {
-        // Disabling test mode — restore snapshot
+
         _testSaturday = false;
         if (_testSnapshot) {
           state = applyResets(JSON.parse(JSON.stringify(_testSnapshot)));
@@ -1546,8 +1303,6 @@ function renderMain() {
     pc.innerHTML = '';
   }
 
-  // Bind main content events (fresh each render — these elements are recreated)
-  // Day toggle buttons
   var _yestStr = (function(){ var d=new Date(); d.setDate(d.getDate()-1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
   bindBtn('logYestBtn', function() { _retroDate = null; render(); });
   bindBtn('logYestBtn2', function() { _retroDate = _yestStr; render(); });
@@ -1561,23 +1316,20 @@ function renderMain() {
     var btn = document.getElementById('bonusBtn');
     if (btn) { btn.style.filter='brightness(.75)'; setTimeout(function(){btn.style.filter='';},200); }
 
-    // 1. Scroll to top slowly so kids can see the card
     window.scrollTo({top:0, behavior:'smooth'});
 
-    // 2. After scroll arrives (~600ms), animate the counter up in pennies
     setTimeout(function() {
       var oldNet = weekNet(ch);
-      // Add the bonus to state
+
       addBonus(ch.id);
       var newNet = weekNet(ch);
-      var diff = newNet - oldNet; // should be 0.50
-      var steps = 50; // count up in 1p steps
+      var diff = newNet - oldNet;
+      var steps = 50;
       var stepVal = diff / steps;
-      var stepDuration = 600 / steps; // total 600ms counter
+      var stepDuration = 600 / steps;
       var current = oldNet;
       var step = 0;
 
-      // Find and animate the week-amount element
       function animateCounter() {
         step++;
         current = parseFloat((oldNet + stepVal * step).toFixed(2));
@@ -1586,7 +1338,7 @@ function renderMain() {
         if (step < steps) {
           setTimeout(animateCounter, stepDuration);
         } else {
-          // Counter done — burst hearts
+
           var cx = innerWidth / 2;
           var cy = innerHeight / 2;
           var symbols = ['❤️','💖','💜','💛','💕','❤️','💗','💜','💖','❤️'];
@@ -1599,7 +1351,7 @@ function renderMain() {
                     setTimeout(function() {
                       var el2 = document.createElement('div');
                       var size = 40 + Math.random()*26;
-                      // Position centred: offset by half the emoji size
+
                       var offset = size / 2;
                       el2.style.cssText = 'position:fixed;pointer-events:none;z-index:9998;' +
                         'font-size:'+size+'px;' +
@@ -1620,14 +1372,14 @@ function renderMain() {
               }, w*180);
             })(wave);
           }
-          // Re-render properly so all values sync
+
           setTimeout(render, 400);
         }
       }
       animateCounter();
     }, 700);
   });
-  // Badge cabinet click delegation
+
   var badgeSection = document.querySelector('[data-badge]');
   if (badgeSection && badgeSection.parentElement) {
     badgeSection.parentElement.addEventListener('click', function(e) {
@@ -1637,7 +1389,7 @@ function renderMain() {
   }
   bindBtn('bankNowBtn', function() {
     if ((ch.goalSaved||0) <= 0) { showMsg('Nothing saved yet to bank!', '#e03131'); return; }
-    // Warning if they haven't hit goal yet
+
     var atGoal = (ch.goalSaved||0) >= ch.goalTarget;
     if (!atGoal) {
       var ov = document.createElement('div');
@@ -1657,7 +1409,7 @@ function renderMain() {
         document.getElementById('bankNowInner').style.transform = 'scale(1)';
       });
       document.getElementById('bankNowCancel').addEventListener('click', function() {
-        // Hearts burst for keeping saving
+
         var cx = innerWidth/2, cy = innerHeight/2;
         var symbols = ['❤️','💜','💛','💖','💕','❤️','💗'];
         for (var wi=0; wi<3; wi++) {
@@ -1705,7 +1457,6 @@ function renderMain() {
     }
   });
 
-  // Delegate expected list clicks
   var el = document.getElementById('expectedList');
   if (el) el.addEventListener('click', function(e) {
     var ab = e.target.closest('[data-action="editexp"],[data-action="delexp"]');
@@ -1729,7 +1480,7 @@ function renderMain() {
     if (!child) return;
 
     if (_retroDate) {
-      // RETRO MODE: toggle via _retroTicked, never touch expectedDone
+
       if (!_retroTicked[_retroDate]) _retroTicked[_retroDate] = {};
       var retroKey = child.id+'_'+card.dataset.eid;
       var alreadyTicked = !!_retroTicked[_retroDate][retroKey];
@@ -1756,7 +1507,7 @@ function renderMain() {
       }
       save(); playTick(); render();
     } else {
-      // TODAY MODE: normal toggle via expectedDone
+
       var wasChecked = !!child.expectedDone[card.dataset.eid];
       child.expectedDone[card.dataset.eid] = !wasChecked;
       child.lastExpectedDate = todayStr();
@@ -1788,7 +1539,6 @@ function renderMain() {
     }
   });
 
-  // Delegate chore list clicks
   var cl = document.getElementById('choresList');
   if (cl) cl.addEventListener('click', function(e) {
     var btn = e.target.closest('[data-action="edit"],[data-action="del"]');
@@ -1805,7 +1555,6 @@ function renderMain() {
   });
 }
 
-// ── HELPERS ──────────────────────────────────────────────
 function bindBtn(id, fn) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('click', fn);
@@ -1822,12 +1571,11 @@ function setupDoubleTab(id, action) {
   });
 }
 
-// ── ACTIONS ──────────────────────────────────────────────
 function switchChild(i) {
   activeIdx = i;
   document.documentElement.style.setProperty('--child-bg', COLORS[i].bg);
   document.body.style.background = COLORS[i].bg;
-  // Immediately update float switcher so active state is correct
+
   var fs2 = document.getElementById('floatSwitcher');
   if (fs2) {
     Array.from(fs2.querySelectorAll('[data-fidx]')).forEach(function(btn) {
@@ -1840,7 +1588,7 @@ function switchChild(i) {
       btn.style.transform = isAct ? 'scale(1.1)' : 'scale(1)';
     });
   }
-  // Re-render the correct panel for whichever tab is active
+
   if (activeTab === 'parent') {
     renderTabs();
     var pc = document.getElementById('parentControls');
@@ -1853,7 +1601,7 @@ function switchChild(i) {
   } else {
     render();
   }
-  // Bounce the active avatar
+
   var tabs = document.querySelectorAll('.child-tab');
   if (tabs[i]) {
     var av = tabs[i].querySelector('.tab-avatar');
@@ -1865,14 +1613,13 @@ function switchChild(i) {
   }
 }
 
-// Tab state
 var activeTab = 'home';
-var _retroDate = null; // null = today, else 'YYYY-MM-DD'
-var _retroTicked = {}; // {date: {childId_taskId: true}} tracks ticks in retro session
+var _retroDate = null;
+var _retroTicked = {};
 
 function switchTab(tab) {
   activeTab = tab;
-  // Blur any focused input to prevent iOS zoom persisting between tabs
+
   if (document.activeElement) document.activeElement.blur();
   window.scrollTo(0, 0);
   var mc = document.getElementById('mainContent');
@@ -1882,7 +1629,6 @@ function switchTab(tab) {
   var histBtn = document.getElementById('historyTabBtn');
   var parentBtn = document.getElementById('editToggleBtn');
 
-  // Reset all
   [homeBtn, histBtn, parentBtn].forEach(function(b) { if(b) b.classList.remove('active'); });
 
   if (tab === 'home') {
@@ -1936,11 +1682,11 @@ function renderParentOnly() {
     '<button class="btn-save" id="saveGoalBtn">Save</button></div></div>' +
     '<div class="panel-section" style="margin-bottom:8px">' +
     '<div class="panel-label">\uD83D\uDCC5 Log Past Activity</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div class="p-grid2">' +
     '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Date</div>' +
     '<input class="form-input" id="pastDate" type="date" value="'+new Date(Date.now()-86400000).toISOString().slice(0,10)+'"></div>' +
     '<div></div></div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
+    '<div class="p-grid2">' +
     '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Daily quests</div>' +
     '<input class="form-input" id="pastDaily" type="number" min="0" max="'+((ch.expectedTasks||[]).length||7)+'" placeholder="0" style="text-align:center"></div>' +
     '<div><div style="font-size:.72rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Special quests</div>' +
@@ -1948,19 +1694,19 @@ function renderParentOnly() {
     '</div>' +
     '<button class="btn-save" id="logPastBtn" style="width:100%">Log Activity</button></div>' +
     '<div class="panel-section" style="margin-bottom:8px"><div class="panel-label">\uD83D\uDD27 Manual Override</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Goal saved (\u00a3)</div>' +
+    '<div class="p-grid2">' +
+    '<div><div class="p-label">Goal saved (\u00a3)</div>' +
     '<input class="form-input" id="overrideGoalSaved" type="number" step="0.01" min="0" value="'+(ch.goalSaved||0).toFixed(2)+'" style="text-align:center"></div>' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Total banked (\u00a3)</div>' +
+    '<div><div class="p-label">Total banked (\u00a3)</div>' +
     '<input class="form-input" id="overrideTotalBanked" type="number" step="0.01" min="0" value="'+(ch.totalBanked||0).toFixed(2)+'" style="text-align:center"></div>' +
     '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px">' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Weekly earnings (\u00a3)</div>' +
+    '<div class="p-grid2">' +
+    '<div><div class="p-label">Weekly earnings (\u00a3)</div>' +
     '<input class="form-input" id="overrideWeekEarned" type="number" step="0.01" min="0" value="'+(ch.weekEarned||0).toFixed(2)+'" style="text-align:center"></div>' +
-    '<div><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Deductions (\u00a3)</div>' +
+    '<div><div class="p-label">Deductions (\u00a3)</div>' +
     '<input class="form-input" id="overrideWeekPenalties" type="number" step="0.01" min="0" value="'+(ch.weekPenalties||0).toFixed(2)+'" style="text-align:center"></div>' +
     '</div>' +
-    '<div style="margin-bottom:7px"><div style="font-size:.7rem;font-weight:700;color:var(--text-mid);margin-bottom:3px">Streak days (manual)</div>' +
+    '<div style="margin-bottom:7px"><div class="p-label">Streak days (manual)</div>' +
     '<input class="form-input" id="overrideStreak" type="number" step="1" min="0" placeholder="Leave blank to auto-calculate" style="text-align:center"></div>' +
     '<button class="btn-save" id="applyOverrideBtn" style="width:100%">Apply Changes</button></div>' +
     '<button class="btn-action btn-reset" id="resetBonusBtn">\u21A9\uFE0F Reset bonus to zero</button>' +
@@ -1970,12 +1716,12 @@ function renderParentOnly() {
     '<button class="btn-action '+(_testMode?'active':'btn-reset')+'" id="testModeBtn" style="'+(_testMode?'background:#9775fa;color:#fff':'')+'">\uD83C\uDFAD '+(_testMode?'\uD83D\uDFE2 Demo mode ON \u2014 tap to exit':'Run demo mode')+'</button>' +
     '<div class="add-chore-section">' +
     '<h4>\u2795 Add Daily Quest for '+ch.name+'</h4>' +
-    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+    '<div class="p-grid2-3">' +
     '<input class="form-input" id="newExpEmoji" maxlength="4" value="\u2b50" style="text-align:center;font-size:1.3rem">' +
     '<input class="form-input" id="newExpName" placeholder="Quest name\u2026"></div>' +
     '<button class="btn-primary" id="addExpBtn" style="margin-bottom:12px">Add Daily Quest \u2728</button>' +
     '<h4>\u2795 Add Special Quest for '+ch.name+'</h4>' +
-    '<div style="display:grid;grid-template-columns:56px 1fr;gap:7px;margin-bottom:8px">' +
+    '<div class="p-grid2-3">' +
     '<input class="form-input" id="newEmoji" maxlength="4" value="\uD83E\uDDF9" style="text-align:center;font-size:1.3rem">' +
     '<input class="form-input" id="newName" placeholder="Quest name\u2026"></div>' +
     '<button class="btn-primary" id="addChoreBtn" style="margin-bottom:4px">Add Special Quest \u2728</button></div>' +
@@ -2063,9 +1809,9 @@ function renderParentOnly() {
       state.children.forEach(function(ch){ch.weekSaved=false;});
     } else {
       _testSaturday = false;
-      // Only restore snapshot if NOT in demo mode — in demo, just clear the flag
+
       if (_testSnapshot && !_testMode) { state=applyResets(JSON.parse(JSON.stringify(_testSnapshot))); _testSnapshot=null; saveLocal(); }
-      else { _testSnapshot=null; } // discard demo-era snapshot
+      else { _testSnapshot=null; }
     }
     renderParentOnly();
   });
@@ -2114,29 +1860,24 @@ function renderHistory() {
   var col = COLORS[activeIdx];
   var accent = col.accent1;
 
-  // Weekly bar chart
   var html = '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.1rem;color:var(--text-dark);margin-bottom:14px">📊 '+ch.name+' History</div>';
 
-  // This week grid
   html += '<div style="background:#fff;border-radius:20px;padding:14px;margin-bottom:12px">';
   html += '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;color:var(--text-dark);margin-bottom:10px">This week</div>';
   html += thisWeekHTML(ch);
   html += '</div>';
 
-  // Weekly bars
   html += '<div style="background:#fff;border-radius:20px;padding:14px;margin-bottom:12px">';
   html += '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;color:var(--text-dark);margin-bottom:12px">📅 Weekly Activity</div>';
   html += weeklyChartHTML(ch, 8);
   html += '</div>';
 
-  // Streak
   html += '<div style="background:linear-gradient(135deg,#fff8f0,#fff3e8);border-radius:20px;padding:14px;margin-bottom:12px;display:flex;align-items:center;gap:14px">';
   html += '<div style="font-size:2.5rem;filter:drop-shadow(0 2px 6px rgba(255,146,43,.4))">🔥</div>';
   html += '<div><div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.8rem;color:#e67700">'+calcStreak(ch)+' day streak</div>';
   html += '<div style="font-size:.75rem;font-weight:700;color:#997404">consecutive days with a quest</div></div>';
   html += '</div>';
 
-  // Badges
   html += '<div style="background:#fff;border-radius:20px;padding:14px">';
   html += '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:.95rem;color:var(--text-dark);margin-bottom:10px">🏅 Badges</div>';
   html += badgeCabinetHTML(ch);
@@ -2171,7 +1912,7 @@ function toggleChore(childId, choreId, e) {
     save(); playTick(); render();
   } else {
     chore.done=false; chore.lastDone='';
-    // Decrement weekly log counts for today
+
     var wkU = isoWeek(todayStr());
     var entryU = ch.weeklyLog && ch.weeklyLog[wkU];
     if (entryU) {
@@ -2180,7 +1921,7 @@ function toggleChore(childId, choreId, e) {
       if (entryU.dayCounts && entryU.dayCounts[tdU] && entryU.dayCounts[tdU].special > 0) {
         entryU.dayCounts[tdU].special--;
       }
-      // If no activity left today, remove from daysSeen
+
       if (entryU.dayCounts && entryU.dayCounts[tdU]) {
         var dc = entryU.dayCounts[tdU];
         if (dc.daily === 0 && dc.special === 0) {
@@ -2205,22 +1946,13 @@ function addBonus(childId) {
   var ch = state.children.find(function(c){return c.id===childId;});
   if ((ch.weekEarned||0) >= BONUS_CAP) return;
   ch.weekEarned = +((ch.weekEarned||0) + BONUS_AMOUNT).toFixed(2);
-  // Award bonus badge on first bonus
+
   if (!ch.badges) ch.badges = {};
   var isNewBadge = !ch.badges.bonus1;
   if (isNewBadge) ch.badges.bonus1 = true;
   save(); render();
   if (isNewBadge) setTimeout(function(){queueBadge('bonus1');}, 2800);
 }
-
-
-// ── BANKING FLOW ─────────────────────────────────────────────────────────────
-// Single source of truth: bankAndSetGoal(ch, amountBanked)
-//   1. totalBanked += amountBanked
-//   2. goalSaved = 0
-//   3. save
-//   4. show new goal screen
-// ─────────────────────────────────────────────────────────────────────────────
 
 function bankAndSetGoal(ch, amountBanked) {
   ch.totalBanked = +((ch.totalBanked||0) + amountBanked).toFixed(2);
@@ -2275,65 +2007,6 @@ function showNewGoalScreen(ch, amountBanked) {
   });
 }
 
-function doSaveToJar(childId) {
-  var ch  = state.children.find(function(c){return c.id===childId;});
-  var net = weekNet(ch);
-  if (net <= 0) { showMsg('Nothing to save yet!', '#e03131'); return; }
-  if (!isSaturday()) { showMsg('Savings day is Saturday! Come back then &#x1F4C5;', '#e67700'); return; }
-  var numCoins = 30;
-  for (var i=0; i<numCoins; i++) {
-    (function(idx) {
-      setTimeout(function() {
-        var coin = document.createElement('div');
-        coin.className = 'coin-drop';
-        coin.style.left = Math.random()*100+'vw';
-        coin.style.top  = '-24px';
-        coin.style.setProperty('--dur', (0.8+Math.random()*0.8).toFixed(2)+'s');
-        document.body.appendChild(coin);
-        setTimeout(function(){ coin.remove(); }, 1800);
-      }, idx*60);
-    })(i);
-  }
-  setTimeout(function() {
-    ch.goalSaved     = +((ch.goalSaved||0) + net).toFixed(2);
-    ch.weekEarned    = 0; ch.weekPenalties = 0;
-    ch.weekStart     = weekStart(); ch.weekSaved = true; ch.weekSavedDate = todayStr();
-    ch.earningChores.forEach(function(c){ c.done=false; c.lastDone=''; });
-    ch.expectedDone  = {};
-    var nbSat = checkSavingsBadges(ch);
-    if (nbSat.length) setTimeout(function(){ queueBadge(nbSat[0]); }, 2800);
-    save(); render();
-    if (ch.goalSaved >= ch.goalTarget) {
-      var bonus = 0.50;
-      var amountToBank = +((ch.goalSaved + bonus)).toFixed(2);
-      launchConfetti();
-      var bonusEl = document.createElement('div');
-      bonusEl.id = 'goalReachedOverlay';
-      bonusEl.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9991;padding:16px 16px 30px;opacity:0;transition:opacity .3s,transform .4s cubic-bezier(.34,1.2,.64,1);transform:translateY(100%);pointer-events:none';
-      bonusEl.innerHTML =
-        '<div style="background:#fff;border-radius:24px 24px 20px 20px;padding:24px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,.2)">' +
-        '<div style="font-size:2.8rem;margin-bottom:6px">&#x1F3C6;</div>' +
-        '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
-        '<div style="font-size:.9rem;font-weight:700;color:#555;margin-bottom:6px">Amazing work '+ch.name+'!</div>' +
-        '<div style="background:linear-gradient(135deg,#f59f00,#e67700);border-radius:12px;padding:10px 16px;margin-bottom:14px;color:#fff;font-family:Fredoka One,Arial,sans-serif;font-size:1rem">&#x1F389; Bonus 50p! Banking &#xa3;'+amountToBank.toFixed(2)+'</div>' +
-        '<button id="goalBankBtn" style="display:block;width:100%;background:linear-gradient(135deg,#9775fa,#7c52f5);color:#fff;border:none;border-radius:14px;padding:13px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer">&#x1F3AF; Bank it &amp; set new goal!</button>' +
-        '</div>';
-      document.body.appendChild(bonusEl);
-      bonusEl.style.pointerEvents = 'all';
-      requestAnimationFrame(function() { bonusEl.style.opacity='1'; bonusEl.style.transform='translateY(0)'; });
-      setTimeout(launchConfetti, 600);
-      document.getElementById('goalBankBtn').addEventListener('click', function() {
-        bonusEl.style.opacity = '0';
-        setTimeout(function() { bonusEl.style.pointerEvents='none'; bonusEl.remove(); }, 300);
-        setTimeout(function() { bankAndSetGoal(ch, amountToBank); }, 350);
-      });
-    } else {
-      var nb3 = checkBadges(ch, state.children);
-      if (nb3.length) setTimeout(function(){ queueBadge(nb3[0]); }, 2800);
-    }
-  }, numCoins*60+900);
-}
-
 function doBankNow(ch) {
   var amount = +(ch.goalSaved||0).toFixed(2);
   if (amount <= 0) { showMsg('Nothing saved yet!', '#e03131'); return; }
@@ -2350,34 +2023,12 @@ function doBankNow(ch) {
   }
   animateBank();
 }
-
-
-
-function doBankNow(ch) {
-  var amount = +(ch.goalSaved||0).toFixed(2);
-  if (amount <= 0) { showMsg('Nothing saved yet!', '#e03131'); return; }
-  var fromSaved = amount, fromBanked = ch.totalBanked||0, steps = 60, step = 0;
-  function animateBank() {
-    step++;
-    var ease = 1 - Math.pow(1 - step/steps, 3);
-    var ringEl = document.querySelector('#jarSvgWrap + div div:first-child');
-    if (ringEl) ringEl.textContent = '\u00a3'+(fromSaved*(1-ease)).toFixed(2);
-    var bankedEl = document.querySelector('.week-saved-val');
-    if (bankedEl) bankedEl.textContent = '\u00a3'+(fromBanked+amount*ease).toFixed(2);
-    if (step < steps) setTimeout(animateBank, 20);
-    else setTimeout(function() { bankAndSetGoal(ch, amount); }, 200);
-  }
-  animateBank();
-}
-
-
 
 function doSaveToJar(childId) {
   var ch  = state.children.find(function(c){return c.id===childId;});
   var net = weekNet(ch);
   if (net <= 0) { showMsg('Nothing to save yet!', '#e03131'); return; }
   if (!isSaturday()) { showMsg('Savings day is Saturday! Come back then 📅', '#e67700'); return; }
-
 
   var numCoins = 30;
   for (var i=0;i<numCoins;i++) {
@@ -2400,11 +2051,11 @@ function doSaveToJar(childId) {
     ch.weekSavedDate=todayStr();
     ch.earningChores.forEach(function(c){c.done=false;c.lastDone=''});
     ch.expectedDone={};
-    // Check savings progress badges now that goalSaved has increased
+
     var nbSat = checkSavingsBadges(ch);
     if (nbSat.length) { setTimeout(function(){queueBadge(nbSat[0]);}, 2800); }
     save(); render();
-    // Trigger ripple at new fill level after render
+
     setTimeout(function() {
       var jarWrap2 = document.getElementById('jarSvgWrap');
       if (jarWrap2) {
@@ -2414,12 +2065,12 @@ function doSaveToJar(childId) {
         setTimeout(function() { startWaveAnimation(col2.accent1); }, 30);
       }
     }, 50);
-    // Check if jar is now full
+
     if (ch.goalSaved >= ch.goalTarget) {
-      // Auto 50p bonus for reaching goal — added to goalSaved so they bank £10.50
+
       ch.goalSaved = +((ch.goalSaved||0) + 0.50).toFixed(2);
       save();
-      // Suppress badge popups — goal celebration takes priority
+
       setTimeout(function() { showGoalReachedCelebration(ch); }, 200);
     } else {
       var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){queueBadge(nb3[0]);},2800); }
@@ -2466,7 +2117,6 @@ function saveGoal(childId) {
   save(); render();
 }
 
-// ── MODALS ───────────────────────────────────────────────
 function openModal(childId, choreId) {
   var ch    = state.children.find(function(c){return c.id===childId;});
   var chore = ch.earningChores.find(function(c){return c.id===choreId;});
@@ -2509,7 +2159,6 @@ document.getElementById('expModalSaveBtn').addEventListener('click', function() 
   save(); closeExpModal(); render();
 });
 
-// ── ANIMATIONS ───────────────────────────────────────────
 function showAmazingBanner(name) {
   var el = document.getElementById('amazing-banner');
   if (!el) {
@@ -2544,7 +2193,7 @@ function showAmazingBanner(name) {
 }
 
 function miniBurst(x, y, accent) {
-  // Small localised confetti burst from tap point
+
   var COLS = [accent, '#ffd43b', '#fff', '#ff922b', accent];
   for (var i = 0; i < 18; i++) {
     (function(idx) {
@@ -2567,7 +2216,7 @@ function miniBurst(x, y, accent) {
       }, idx * 20);
     })(i);
   }
-  // Also spawn emoji sparks
+
   var sparks = ['⭐','✨','💫'];
   for (var j = 0; j < 3; j++) {
     (function(idx) {
@@ -2594,10 +2243,10 @@ function spawnCoins(e) {
   var x = (e&&e.clientX)||innerWidth/2, y = (e&&e.clientY)||innerHeight/2;
   var col = COLORS[activeIdx];
   var accent = col ? col.accent1 : '#9775fa';
-  // Mix of accent colour dots and fun emojis
+
   var emojis = ['⭐','✨','💫','🌟'];
   var numDots = 6, numEmoji = 3;
-  // Coloured dot particles
+
   for (var i=0;i<numDots;i++) {
     (function(idx) {
       var el = document.createElement('div');
@@ -2610,7 +2259,7 @@ function spawnCoins(e) {
       setTimeout(function(){el.remove();},900);
     })(i);
   }
-  // Emoji sparks
+
   for (var j=0;j<numEmoji;j++) {
     (function(idx) {
       var el = document.createElement('div');
@@ -2643,29 +2292,27 @@ function playTick(){
   try{if(!_ac)_ac=new(window.AudioContext||window.webkitAudioContext)();var o=_ac.createOscillator(),g=_ac.createGain();o.connect(g);g.connect(_ac.destination);o.type='sine';o.frequency.setValueAtTime(880,_ac.currentTime);o.frequency.exponentialRampToValueAtTime(1200,_ac.currentTime+.1);g.gain.setValueAtTime(.12,_ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,_ac.currentTime+.3);o.start(_ac.currentTime);o.stop(_ac.currentTime+.3);}catch(e){}
 }
 
-// ── INIT ─────────────────────────────────────────────────
 function initApp() {
   try { state = loadLocal(); } catch(e) { state = freshState(); }
   render();
   document.body.style.background = COLORS[activeIdx].bg;
   document.documentElement.style.setProperty('--child-bg', COLORS[activeIdx].bg);
 
-
 function mergeLocalIntoRemote(s) {
-  // Merge local data into remote to preserve weeklyLog and choresDates
+
   var local = loadLocal();
   if (!local || !local.children) return s;
   s.children.forEach(function(remCh, i) {
     var locCh = local.children[i];
     if (!locCh) return;
-    // Merge choresDates
+
     if (Array.isArray(locCh.choresDates)) {
       if (!Array.isArray(remCh.choresDates)) remCh.choresDates = [];
       locCh.choresDates.forEach(function(d) {
         if (remCh.choresDates.indexOf(d) === -1) remCh.choresDates.push(d);
       });
     }
-    // Merge weeklyLog dayCounts and daysSeen
+
     if (locCh.weeklyLog) {
       if (!remCh.weeklyLog) remCh.weeklyLog = {};
       Object.keys(locCh.weeklyLog).forEach(function(wk) {
@@ -2689,7 +2336,6 @@ function mergeLocalIntoRemote(s) {
   return s;
 }
 
-  // Supabase in background
   try {
     loadSupabaseLib().then(function() {
       try {
@@ -2700,13 +2346,13 @@ function mergeLocalIntoRemote(s) {
             if (res&&res.data&&res.data.state) {
               var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
               if (s&&s.children) {
-                // Merge remote weeklyLog into local to preserve any in-memory ticks
+
                 var local = loadLocal();
                 if (local && local.children) {
                   s.children.forEach(function(remCh, i) {
                     var locCh = local.children[i];
                     if (!locCh) return;
-                    // Merge choresDates from local into remote
+
                     if (locCh.choresDates && locCh.choresDates.length) {
                       if (!Array.isArray(remCh.choresDates)) remCh.choresDates = [];
                       locCh.choresDates.forEach(function(d) {
@@ -2715,7 +2361,7 @@ function mergeLocalIntoRemote(s) {
                     }
                     if (!locCh.weeklyLog) return;
                     if (!remCh.weeklyLog) remCh.weeklyLog = {};
-                    // Merge each week's daysSeen from local into remote
+
                     Object.keys(locCh.weeklyLog).forEach(function(wk) {
                       if (!remCh.weeklyLog[wk]) remCh.weeklyLog[wk] = locCh.weeklyLog[wk];
                       else {
@@ -2725,7 +2371,7 @@ function mergeLocalIntoRemote(s) {
                           if (!remDs[d]) {
                             remDs[d] = true;
                             remCh.weeklyLog[wk].daysSeen = remDs;
-                            // Also merge dayCounts
+
                             if (locCh.weeklyLog[wk].dayCounts && locCh.weeklyLog[wk].dayCounts[d]) {
                               if (!remCh.weeklyLog[wk].dayCounts) remCh.weeklyLog[wk].dayCounts = {};
                               remCh.weeklyLog[wk].dayCounts[d] = locCh.weeklyLog[wk].dayCounts[d];
@@ -2747,7 +2393,7 @@ function mergeLocalIntoRemote(s) {
               try {
                 var s = typeof p.new.state==='string'?JSON.parse(p.new.state):p.new.state;
                 if (s&&s.children) {
-                  // Skip if this is an echo of our own save (within 5s)
+
                   if (Date.now() - _lastSaveTime < 5000) return;
                   s = mergeLocalIntoRemote(s);
                   state=seedWeeklyLog(applyResets(s)); saveLocal(); render();
@@ -2755,7 +2401,6 @@ function mergeLocalIntoRemote(s) {
               } catch(e) {}
             }).subscribe();
           } catch(e) {}
-
 
         }).catch(function(){});
       } catch(e) {}
@@ -2765,10 +2410,8 @@ function mergeLocalIntoRemote(s) {
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function(){});
 
-// Suppress cross-origin "Script error." from Supabase CDN on iOS Safari
 window.addEventListener('unhandledrejection', function(e) { e.preventDefault(); });
 
-// Show float switcher only after scrolling past the title area
 window.addEventListener('scroll', function() {
   var fs = document.getElementById('floatSwitcher');
   if (!fs) return;
@@ -2777,7 +2420,6 @@ window.addEventListener('scroll', function() {
 }, {passive: true});
 window.addEventListener('error', function(e) { if (e.message === 'Script error.') e.preventDefault(); });
 
-// Re-fetch from Supabase when app comes back into focus (iOS suspends WebSockets)
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
     try {
