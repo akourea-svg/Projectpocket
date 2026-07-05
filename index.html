@@ -2632,6 +2632,52 @@ function initApp() {
   document.body.style.background = COLORS[activeIdx].bg;
   document.documentElement.style.setProperty('--child-bg', COLORS[activeIdx].bg);
 
+
+function mergeLocalIntoRemote(s) {
+  var local = loadLocal();
+  if (!local || !local.children) return s;
+  s.children.forEach(function(remCh, i) {
+    var locCh = local.children[i];
+    if (!locCh) return;
+    // Always take higher totalBanked
+    if ((locCh.totalBanked||0) > (remCh.totalBanked||0)) remCh.totalBanked = locCh.totalBanked;
+    // Keep local goalSaved if it was just reset (lower than remote)
+    if ((locCh.goalSaved||0) < (remCh.goalSaved||0)) {
+      remCh.goalSaved = locCh.goalSaved;
+      remCh.goalTarget = locCh.goalTarget;
+      remCh.goalName = locCh.goalName;
+    }
+    // Merge choresDates
+    if (locCh.choresDates && locCh.choresDates.length) {
+      if (!Array.isArray(remCh.choresDates)) remCh.choresDates = [];
+      locCh.choresDates.forEach(function(d) {
+        if (remCh.choresDates.indexOf(d) === -1) remCh.choresDates.push(d);
+      });
+    }
+    // Merge weeklyLog daysSeen
+    if (locCh.weeklyLog) {
+      if (!remCh.weeklyLog) remCh.weeklyLog = {};
+      Object.keys(locCh.weeklyLog).forEach(function(wk) {
+        if (!remCh.weeklyLog[wk]) { remCh.weeklyLog[wk] = locCh.weeklyLog[wk]; return; }
+        var locDs = locCh.weeklyLog[wk].daysSeen || {};
+        var remDs = remCh.weeklyLog[wk].daysSeen || {};
+        Object.keys(locDs).forEach(function(d) {
+          if (!remDs[d]) {
+            remDs[d] = true;
+            remCh.weeklyLog[wk].daysSeen = remDs;
+            if (locCh.weeklyLog[wk].dayCounts && locCh.weeklyLog[wk].dayCounts[d]) {
+              if (!remCh.weeklyLog[wk].dayCounts) remCh.weeklyLog[wk].dayCounts = {};
+              remCh.weeklyLog[wk].dayCounts[d] = locCh.weeklyLog[wk].dayCounts[d];
+            }
+          }
+        });
+        remCh.weeklyLog[wk].days = Object.keys(remCh.weeklyLog[wk].daysSeen||{}).length;
+      });
+    }
+  });
+  return s;
+}
+
   // Supabase in background
   try {
     loadSupabaseLib().then(function() {
@@ -2690,20 +2736,7 @@ function initApp() {
               try {
                 var s = typeof p.new.state==='string'?JSON.parse(p.new.state):p.new.state;
                 if (s&&s.children) {
-                  // Merge activityLogs so neither phone loses history
-                  s.children.forEach(function(remCh, i) {
-                    var locCh = state.children[i];
-                    if (locCh && locCh.activityLog && remCh) {
-                      Object.keys(locCh.activityLog).forEach(function(k) {
-                        if (!remCh.activityLog) remCh.activityLog = {};
-                        if (!remCh.activityLog[k]) remCh.activityLog[k] = locCh.activityLog[k];
-                        else if (typeof remCh.activityLog[k] === 'object' && typeof locCh.activityLog[k] === 'object') {
-                          remCh.activityLog[k].daily   = remCh.activityLog[k].daily   || locCh.activityLog[k].daily;
-                          remCh.activityLog[k].special = remCh.activityLog[k].special || locCh.activityLog[k].special;
-                        }
-                      });
-                    }
-                  });
+                  s = mergeLocalIntoRemote(s);
                   state=seedWeeklyLog(applyResets(s)); saveLocal(); render();
                 }
               } catch(e) {}
@@ -2742,18 +2775,7 @@ document.addEventListener('visibilitychange', function() {
           if (res&&res.data&&res.data.state) {
             var s = typeof res.data.state==='string'?JSON.parse(res.data.state):res.data.state;
             if (s&&s.children) {
-              // Merge local choresDates into remote before replacing state
-              var locState = loadLocal();
-              if (locState && locState.children) {
-                s.children.forEach(function(remCh, i) {
-                  var locCh = locState.children[i];
-                  if (!locCh || !locCh.choresDates) return;
-                  if (!Array.isArray(remCh.choresDates)) remCh.choresDates = [];
-                  locCh.choresDates.forEach(function(d) {
-                    if (remCh.choresDates.indexOf(d) === -1) remCh.choresDates.push(d);
-                  });
-                });
-              }
+              s = mergeLocalIntoRemote(s);
               state=seedWeeklyLog(applyResets(s)); saveLocal(); render(); }
           }
         } catch(e) {}
