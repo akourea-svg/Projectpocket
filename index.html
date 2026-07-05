@@ -365,6 +365,7 @@ function weekStart() {
 var _testSaturday = false;
 var _testSnapshot = null;
 var _testMode = false;
+var _lastSaveTime = 0; // timestamp of last local save
 var _testModeSnapshot = null;
 var _testModeState = null; // separate demo state
 function isSaturday() { return _testSaturday || new Date().getDay() === 6; }
@@ -814,6 +815,7 @@ function loadSupabaseLib() {
 }
 function save() {
   if (_testMode) { return; } // don't save anything during demo mode
+  _lastSaveTime = Date.now();
   saveLocal();
   try {
     var client = getSb();
@@ -1327,7 +1329,6 @@ function renderMain() {
     '<div style="text-align:right">' +
     '<div class="week-saved-label">Total banked</div>' +
     '<div class="week-saved-val">£'+(ch.totalBanked||0).toFixed(2)+'</div>' +
-    (bon > 0 ? '<div style="font-size:.72rem;font-weight:700;color:rgba(255,255,255,.75);margin-top:3px">+£'+bon.toFixed(2)+' bonus 🎉</div>' : '') +
     (ch.weekPenalties > 0 ? '<div style="font-size:.72rem;font-weight:700;color:rgba(255,255,255,.75);margin-top:3px">−£'+ch.weekPenalties.toFixed(2)+' deducted</div>' : '') +
     '</div>' +
     '</div>' +
@@ -2212,93 +2213,29 @@ function addBonus(childId) {
   if (isNewBadge) setTimeout(function(){queueBadge('bonus1');}, 2800);
 }
 
-function doBankNow(ch) {
-  var amount = ch.goalSaved || 0;
-  var fromSaved = amount;
-  var fromBanked = ch.totalBanked || 0;
-  var toSaved = 0;
-  var toBanked = +((fromBanked + amount).toFixed(2));
-  var duration = 1200;
-  var steps = 60;
-  var stepDuration = duration / steps;
 
-  ch.totalBanked = toBanked;
-  ch.goalSaved = 0;
-  save(); render();
+// ── BANKING FLOW ─────────────────────────────────────────────────────────────
+// Single source of truth: bankAndSetGoal(ch, amountBanked)
+//   1. totalBanked += amountBanked
+//   2. goalSaved = 0
+//   3. save
+//   4. show new goal screen
+// ─────────────────────────────────────────────────────────────────────────────
 
-  // Animate goalSaved counting down and totalBanked counting up
-  var step = 0;
-  function animateBank() {
-    step++;
-    var progress = step / steps;
-    var ease = 1 - Math.pow(1 - progress, 3);
-    var curSaved  = fromSaved  - (fromSaved  * ease);
-    var curBanked = fromBanked + (toBanked - fromBanked) * ease;
-
-    // Update ring amount display
-    var ringEl = document.querySelector('#jarSvgWrap + div div:first-child');
-    if (ringEl) ringEl.textContent = '£' + curSaved.toFixed(2);
-
-    // Update total banked in week card
-    var bankedEl = document.querySelector('.week-saved-val');
-    if (bankedEl) bankedEl.textContent = '£' + curBanked.toFixed(2);
-
-    // Update ring arc
-    var circle = document.querySelector('#jarSvgWrap circle:nth-child(2)');
-    if (circle) {
-      var col2 = COLORS[state.children.indexOf(ch)];
-      var pct2 = Math.min(100, Math.round(curSaved / ch.goalTarget * 100));
-      var r = 48, circ = 2*Math.PI*r;
-      var dash = circ * pct2 / 100;
-      circle.setAttribute('stroke-dasharray', dash + ' ' + (circ-dash));
-    }
-
-    if (step < steps) setTimeout(animateBank, stepDuration);
-    else showMsg('£'+amount.toFixed(2)+' banked! Keep saving 💪', '#2f9e44');
-  }
-  animateBank();
+function bankAndSetGoal(ch, amountBanked) {
+  ch.totalBanked = +((ch.totalBanked||0) + amountBanked).toFixed(2);
+  ch.goalSaved   = 0;
+  if (!ch.badges) ch.badges = {};
+  var newBankBadges = [];
+  if (!ch.badges.firstsave) { ch.badges.firstsave = true; newBankBadges.push('firstsave'); }
+  if (ch.totalBanked >= 100 && !ch.badges.save100) { ch.badges.save100 = true; newBankBadges.push('save100'); }
+  if (newBankBadges.length) setTimeout(function(){ queueBadge(newBankBadges[0]); }, 2500);
+  save();
+  showNewGoalScreen(ch, amountBanked);
 }
 
-function showGoalReachedCelebration(ch) {
+function showNewGoalScreen(ch, amountBanked) {
   launchConfetti();
-  // Re-render so week card shows the updated 50p bonus before popup appears
-  render();
-  var el = document.createElement('div');
-  el.id = 'goalReachedOverlay';
-  // Slide up from bottom so week card (with updated bonus) is visible above
-  el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9991;padding:16px 16px 30px;background:transparent;opacity:0;transition:opacity .3s,transform .4s cubic-bezier(.34,1.2,.64,1);transform:translateY(100%);pointer-events:none';
-  el.innerHTML =
-    '<div style="background:#fff;border-radius:24px 24px 20px 20px;padding:24px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,.2)">' +
-    '<div style="font-size:2.8rem;margin-bottom:6px">🏆</div>' +
-    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
-    '<div style="font-size:.9rem;font-weight:700;color:#555;margin-bottom:6px">Well done '+ch.name+' on reaching your goal!</div>' +
-    '<div style="background:linear-gradient(135deg,#f59f00,#e67700);border-radius:12px;padding:10px 16px;margin-bottom:14px;color:#fff;font-family:Fredoka One,Arial,sans-serif;font-size:1rem">🎉 You earned a bonus 50p! You will bank £'+ch.goalSaved.toFixed(2)+'</div>' +
-    '<button id="goalBankBtn" style="display:block;width:100%;background:linear-gradient(135deg,#9775fa,#7c52f5);color:#fff;border:none;border-radius:14px;padding:13px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer">🎯 Bank it &amp; set new goal!</button>' +
-    '</div>';
-  document.body.appendChild(el);
-  el.style.pointerEvents = 'all';
-  requestAnimationFrame(function() {
-    el.style.opacity = '1';
-    el.style.transform = 'translateY(0)';
-  });
-  setTimeout(launchConfetti, 600);
-
-  function closeOverlay() {
-    el.style.opacity = '0';
-    setTimeout(function() { el.style.pointerEvents='none'; el.remove(); }, 300);
-  }
-
-  document.getElementById('goalBankBtn').addEventListener('click', function() {
-    closeOverlay();
-    setTimeout(function() { showJarFullCelebration(ch); }, 300);
-  });
-}
-
-function showJarFullCelebration(ch) {
-  // Confetti burst
-  launchConfetti();
-
-  // Show goal complete overlay with new goal options
   var overlay = document.getElementById('jarFullOverlay');
   if (!overlay) {
     overlay = document.createElement('div');
@@ -2308,51 +2245,132 @@ function showJarFullCelebration(ch) {
   }
   overlay.innerHTML =
     '<div id="jarFullInner" style="background:#fff;border-radius:24px;padding:28px 24px;width:100%;max-width:340px;text-align:center;transform:scale(.8);transition:transform .4s cubic-bezier(.34,1.56,.64,1)">' +
-    '<div style="font-size:3rem;margin-bottom:8px">🎉</div>' +
-    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.8rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
-    '<div style="font-size:.9rem;font-weight:700;color:#868e96;margin-bottom:20px">'+ch.name+' saved \u00a3'+(ch.goalSaved||0).toFixed(2)+'! What is the next goal?</div>' +
-    '<button id="jarGoal10" style="display:block;width:100%;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Fredoka One,Arial,sans-serif;font-size:1.1rem;cursor:pointer;margin-bottom:10px">🎯 Save another £10</button>' +
+    '<div style="font-size:3rem;margin-bottom:8px">&#x1F389;</div>' +
+    '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.8rem;color:var(--purple);margin-bottom:6px">Well done '+ch.name+'!</div>' +
+    '<div style="font-size:.9rem;font-weight:700;color:#868e96;margin-bottom:20px">&#xa3;'+amountBanked.toFixed(2)+' banked! What\'s the next goal?</div>' +
+    '<button id="jarGoal10" style="display:block;width:100%;background:var(--purple);color:#fff;border:none;border-radius:12px;padding:14px;font-family:Fredoka One,Arial,sans-serif;font-size:1.1rem;cursor:pointer;margin-bottom:10px">&#x1F3AF; Save another &#xa3;10</button>' +
     '<div style="display:flex;gap:8px;align-items:center">' +
-    '<input id="jarGoalCustom" type="number" min="1" step="1" placeholder="My own amount £" style="flex:1;padding:12px;border:2px solid #dee2e6;border-radius:12px;font-size:1rem;font-weight:700;text-align:center;outline:none">' +
+    '<input id="jarGoalCustom" type="number" min="1" step="1" placeholder="My own amount &#xa3;" style="flex:1;padding:12px;border:2px solid #dee2e6;border-radius:12px;font-size:16px;font-weight:700;text-align:center;outline:none">' +
     '<button id="jarGoalCustomBtn" style="background:#f59f00;color:#fff;border:none;border-radius:12px;padding:14px 16px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer">Set!</button>' +
     '</div></div>';
-
   overlay.style.pointerEvents = 'all';
   requestAnimationFrame(function() {
     overlay.style.opacity = '1';
     var inner = document.getElementById('jarFullInner');
     if (inner) inner.style.transform = 'scale(1)';
   });
-
-  function setNewGoal(amount, name) {
-    ch.totalBanked = +((ch.totalBanked||0) + (ch.goalSaved||0)).toFixed(2);
-    // Award banking badges
-    if (!ch.badges) ch.badges = {};
-    var newBankBadges = [];
-    if (!ch.badges.firstsave) { ch.badges.firstsave = true; newBankBadges.push('firstsave'); }
-    if (!ch.badges.save100)   { ch.badges.save100   = true; newBankBadges.push('save100'); }
-    if (newBankBadges.length) setTimeout(function(){queueBadge(newBankBadges[0]);}, 2500);
-    ch.goalSaved = 0; // Reset goal progress only
-    ch.goalTarget = amount;
-    ch.goalName   = name || 'My Savings Goal';
+  function applyNewGoal(amount) {
+    ch.goalTarget = +amount.toFixed(2);
+    ch.goalName   = 'My Savings Goal';
     save(); render();
     overlay.style.opacity = '0';
-    setTimeout(function() {
-      overlay.style.pointerEvents = 'none';
-      overlay.innerHTML = '';
-    }, 300);
-    showMsg('New goal: £'+amount+'! Go '+ch.name+'! 🌟', '#2f9e44');
+    setTimeout(function() { overlay.style.pointerEvents='none'; overlay.innerHTML=''; }, 300);
+    showMsg('New goal: &#xa3;'+amount+'! Go '+ch.name+'! &#x1F31F;', '#2f9e44');
   }
-
-  document.getElementById('jarGoal10').addEventListener('click', function() {
-    setNewGoal(10, 'My Savings Goal');
-  });
+  document.getElementById('jarGoal10').addEventListener('click', function() { applyNewGoal(10); });
   document.getElementById('jarGoalCustomBtn').addEventListener('click', function() {
     var val = parseFloat(document.getElementById('jarGoalCustom').value);
     if (isNaN(val) || val < 1) { showMsg('Enter a valid amount', '#e03131'); return; }
-    setNewGoal(Math.round(val*100)/100, 'My Savings Goal');
+    applyNewGoal(Math.round(val*100)/100);
   });
 }
+
+function doSaveToJar(childId) {
+  var ch  = state.children.find(function(c){return c.id===childId;});
+  var net = weekNet(ch);
+  if (net <= 0) { showMsg('Nothing to save yet!', '#e03131'); return; }
+  if (!isSaturday()) { showMsg('Savings day is Saturday! Come back then &#x1F4C5;', '#e67700'); return; }
+  var numCoins = 30;
+  for (var i=0; i<numCoins; i++) {
+    (function(idx) {
+      setTimeout(function() {
+        var coin = document.createElement('div');
+        coin.className = 'coin-drop';
+        coin.style.left = Math.random()*100+'vw';
+        coin.style.top  = '-24px';
+        coin.style.setProperty('--dur', (0.8+Math.random()*0.8).toFixed(2)+'s');
+        document.body.appendChild(coin);
+        setTimeout(function(){ coin.remove(); }, 1800);
+      }, idx*60);
+    })(i);
+  }
+  setTimeout(function() {
+    ch.goalSaved     = +((ch.goalSaved||0) + net).toFixed(2);
+    ch.weekEarned    = 0; ch.weekPenalties = 0;
+    ch.weekStart     = weekStart(); ch.weekSaved = true; ch.weekSavedDate = todayStr();
+    ch.earningChores.forEach(function(c){ c.done=false; c.lastDone=''; });
+    ch.expectedDone  = {};
+    var nbSat = checkSavingsBadges(ch);
+    if (nbSat.length) setTimeout(function(){ queueBadge(nbSat[0]); }, 2800);
+    save(); render();
+    if (ch.goalSaved >= ch.goalTarget) {
+      var bonus = 0.50;
+      var amountToBank = +((ch.goalSaved + bonus)).toFixed(2);
+      launchConfetti();
+      var bonusEl = document.createElement('div');
+      bonusEl.id = 'goalReachedOverlay';
+      bonusEl.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9991;padding:16px 16px 30px;opacity:0;transition:opacity .3s,transform .4s cubic-bezier(.34,1.2,.64,1);transform:translateY(100%);pointer-events:none';
+      bonusEl.innerHTML =
+        '<div style="background:#fff;border-radius:24px 24px 20px 20px;padding:24px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,.2)">' +
+        '<div style="font-size:2.8rem;margin-bottom:6px">&#x1F3C6;</div>' +
+        '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
+        '<div style="font-size:.9rem;font-weight:700;color:#555;margin-bottom:6px">Amazing work '+ch.name+'!</div>' +
+        '<div style="background:linear-gradient(135deg,#f59f00,#e67700);border-radius:12px;padding:10px 16px;margin-bottom:14px;color:#fff;font-family:Fredoka One,Arial,sans-serif;font-size:1rem">&#x1F389; Bonus 50p! Banking &#xa3;'+amountToBank.toFixed(2)+'</div>' +
+        '<button id="goalBankBtn" style="display:block;width:100%;background:linear-gradient(135deg,#9775fa,#7c52f5);color:#fff;border:none;border-radius:14px;padding:13px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer">&#x1F3AF; Bank it &amp; set new goal!</button>' +
+        '</div>';
+      document.body.appendChild(bonusEl);
+      bonusEl.style.pointerEvents = 'all';
+      requestAnimationFrame(function() { bonusEl.style.opacity='1'; bonusEl.style.transform='translateY(0)'; });
+      setTimeout(launchConfetti, 600);
+      document.getElementById('goalBankBtn').addEventListener('click', function() {
+        bonusEl.style.opacity = '0';
+        setTimeout(function() { bonusEl.style.pointerEvents='none'; bonusEl.remove(); }, 300);
+        setTimeout(function() { bankAndSetGoal(ch, amountToBank); }, 350);
+      });
+    } else {
+      var nb3 = checkBadges(ch, state.children);
+      if (nb3.length) setTimeout(function(){ queueBadge(nb3[0]); }, 2800);
+    }
+  }, numCoins*60+900);
+}
+
+function doBankNow(ch) {
+  var amount = +(ch.goalSaved||0).toFixed(2);
+  if (amount <= 0) { showMsg('Nothing saved yet!', '#e03131'); return; }
+  var fromSaved = amount, fromBanked = ch.totalBanked||0, steps = 60, step = 0;
+  function animateBank() {
+    step++;
+    var ease = 1 - Math.pow(1 - step/steps, 3);
+    var ringEl = document.querySelector('#jarSvgWrap + div div:first-child');
+    if (ringEl) ringEl.textContent = '\u00a3'+(fromSaved*(1-ease)).toFixed(2);
+    var bankedEl = document.querySelector('.week-saved-val');
+    if (bankedEl) bankedEl.textContent = '\u00a3'+(fromBanked+amount*ease).toFixed(2);
+    if (step < steps) setTimeout(animateBank, 20);
+    else setTimeout(function() { bankAndSetGoal(ch, amount); }, 200);
+  }
+  animateBank();
+}
+
+
+
+function doBankNow(ch) {
+  var amount = +(ch.goalSaved||0).toFixed(2);
+  if (amount <= 0) { showMsg('Nothing saved yet!', '#e03131'); return; }
+  var fromSaved = amount, fromBanked = ch.totalBanked||0, steps = 60, step = 0;
+  function animateBank() {
+    step++;
+    var ease = 1 - Math.pow(1 - step/steps, 3);
+    var ringEl = document.querySelector('#jarSvgWrap + div div:first-child');
+    if (ringEl) ringEl.textContent = '\u00a3'+(fromSaved*(1-ease)).toFixed(2);
+    var bankedEl = document.querySelector('.week-saved-val');
+    if (bankedEl) bankedEl.textContent = '\u00a3'+(fromBanked+amount*ease).toFixed(2);
+    if (step < steps) setTimeout(animateBank, 20);
+    else setTimeout(function() { bankAndSetGoal(ch, amount); }, 200);
+  }
+  animateBank();
+}
+
+
 
 function doSaveToJar(childId) {
   var ch  = state.children.find(function(c){return c.id===childId;});
@@ -2634,27 +2652,20 @@ function initApp() {
 
 
 function mergeLocalIntoRemote(s) {
+  // Merge local data into remote to preserve weeklyLog and choresDates
   var local = loadLocal();
   if (!local || !local.children) return s;
   s.children.forEach(function(remCh, i) {
     var locCh = local.children[i];
     if (!locCh) return;
-    // Always take higher totalBanked
-    if ((locCh.totalBanked||0) > (remCh.totalBanked||0)) remCh.totalBanked = locCh.totalBanked;
-    // Keep local goalSaved if it was just reset (lower than remote)
-    if ((locCh.goalSaved||0) < (remCh.goalSaved||0)) {
-      remCh.goalSaved = locCh.goalSaved;
-      remCh.goalTarget = locCh.goalTarget;
-      remCh.goalName = locCh.goalName;
-    }
     // Merge choresDates
-    if (locCh.choresDates && locCh.choresDates.length) {
+    if (Array.isArray(locCh.choresDates)) {
       if (!Array.isArray(remCh.choresDates)) remCh.choresDates = [];
       locCh.choresDates.forEach(function(d) {
         if (remCh.choresDates.indexOf(d) === -1) remCh.choresDates.push(d);
       });
     }
-    // Merge weeklyLog daysSeen
+    // Merge weeklyLog dayCounts and daysSeen
     if (locCh.weeklyLog) {
       if (!remCh.weeklyLog) remCh.weeklyLog = {};
       Object.keys(locCh.weeklyLog).forEach(function(wk) {
@@ -2736,6 +2747,8 @@ function mergeLocalIntoRemote(s) {
               try {
                 var s = typeof p.new.state==='string'?JSON.parse(p.new.state):p.new.state;
                 if (s&&s.children) {
+                  // Skip if this is an echo of our own save (within 5s)
+                  if (Date.now() - _lastSaveTime < 5000) return;
                   s = mergeLocalIntoRemote(s);
                   state=seedWeeklyLog(applyResets(s)); saveLocal(); render();
                 }
