@@ -187,8 +187,25 @@ var _testModeState = null;
 function isSaturday() { return _testSaturday || new Date().getDay() === 6; }
 function isSaturdayOrLater() {
   if (_testSaturday) return true;
+  // True from Saturday of the current week onwards (until new week starts Monday)
+  // Week runs Mon-Sun, Saturday = day 6, Sunday = day 0
   var day = new Date().getDay();
   return day === 6 || day === 0;
+}
+function savingsDue(ch) {
+  // Button shows if: it's Saturday or later in the week (day 6 or 0)
+  // OR the week has rolled over but they still haven't saved last week's earnings
+  // weekStart changes on Monday — if ch.weekStart is still the previous week's Monday,
+  // they haven't saved yet
+  if (_testSaturday) return true;
+  var day = new Date().getDay();
+  // Saturday or Sunday — current week's save window
+  if (day === 6 || day === 0) return true;
+  // Monday onwards — only show if weekStart is from a previous period
+  // i.e. the save is overdue from a prior Saturday
+  // weekStart resets when doSaveToJar runs, so if weekStart < this Monday it's overdue
+  var thisMonday = weekStart();
+  return ch.weekStart && ch.weekStart < thisMonday;
 }
 
 function makeChild(id, name, avatar, offset) {
@@ -1080,12 +1097,14 @@ function renderMain() {
     '</div></div>' +
 
     (ch.weekSaved
-      ? '<div style="text-align:center;font-size:.9rem;font-weight:700;color:var(--green);margin-bottom:12px">✅ All saved this week!</div>'
-      : net > 0 && isSaturdayOrLater()
-      ? '<button class="jar-save-btn" id="jarSaveBtn" style="margin-bottom:12px">💰 Save this week\'s £'+net.toFixed(2)+'!</button>'
-      : '<div style="text-align:center;font-size:.82rem;font-weight:700;color:var(--text-mid);margin-bottom:12px">'+(net>0?'💰 £'+net.toFixed(2)+' ready to save on Saturday':'Nothing to save yet this week')+'</div>') +
+      ? '<div style="text-align:center;font-size:.9rem;font-weight:700;color:var(--green);margin-bottom:12px">✅ This week\'s earnings added to your pot!</div>'
+      : net > 0 && savingsDue(ch)
+      ? '<button class="jar-save-btn" id="jarSaveBtn" style="margin-bottom:12px">💰 Add this week\'s £'+net.toFixed(2)+' to pot!</button>'
+      : '<div style="text-align:center;font-size:.82rem;font-weight:700;color:var(--text-mid);margin-bottom:12px">'+(net>0?'💰 £'+net.toFixed(2)+' ready to add on Saturday':'Nothing earned yet this week')+'</div>') +
 
-    '<button id="bankNowBtn" style="width:100%;background:#f8f8fc;border:1.5px solid #e0e0e0;border-radius:10px;padding:9px;font-family:Fredoka One,Arial,sans-serif;font-size:.85rem;color:#bbb;cursor:pointer;margin-top:6px">Bank it Now</button>' +
+    ((ch.goalSaved||0) > 0 && ch.weekSaved
+      ? '<button id="bankNowBtn" style="width:100%;background:#f8f8fc;border:1.5px solid #e0e0e0;border-radius:10px;padding:9px;font-family:Fredoka One,Arial,sans-serif;font-size:.85rem;color:#868e96;cursor:pointer;margin-top:6px">Bank it early (£'+(ch.goalSaved||0).toFixed(2)+')</button>'
+      : '') +
     '</div>' +
 
     '<div class="week-card" style="background:'+(activeIdx===0 ? 'linear-gradient(135deg, #9775fa 0%, #e066cc 40%, #ff7043 100%)' : 'linear-gradient(135deg, #f59f00 0%, #ff6b9d 40%, #9775fa 100%)')+';margin-bottom:14px">' +
