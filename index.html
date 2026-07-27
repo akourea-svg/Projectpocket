@@ -193,20 +193,26 @@ function isSaturdayOrLater() {
   return day === 6 || day === 0;
 }
 function savingsDue(ch) {
-  // Button shows if: it's Saturday or later in the week (day 6 or 0)
-  // OR the week has rolled over but they still haven't saved last week's earnings
-  // weekStart changes on Monday — if ch.weekStart is still the previous week's Monday,
-  // they haven't saved yet
   if (_testSaturday) return true;
+  // Show from Saturday of current week onwards, until saved this week
+  // "This week" = the ISO week containing today
+  var todayWeek = isoWeek(todayStr());
+  var savedWeek = ch.weekSavedDate ? isoWeek(ch.weekSavedDate) : '';
+  // Already saved this week
+  if (savedWeek === todayWeek) return false;
+  // Show if today is Saturday (day 6) or any day after Saturday that week
+  // i.e. Saturday has passed in the current or previous week
   var day = new Date().getDay();
-  // Saturday or Sunday — current week's save window
-  if (day === 6 || day === 0) return true;
-  // Monday onwards — only show if weekStart is from a previous period
-  // i.e. the save is overdue from a prior Saturday
-  // weekStart resets when doSaveToJar runs, so if weekStart < this Monday it's overdue
-  var thisMonday = weekStart();
-  return ch.weekStart && ch.weekStart < thisMonday;
+  if (day === 6) return true; // Saturday
+  // Sunday through Friday — check if last Saturday has passed without a save
+  var now = new Date();
+  var lastSat = new Date(now);
+  lastSat.setDate(now.getDate() - (day === 0 ? 1 : day + 1));
+  var lastSatWeek = isoWeek(lastSat.getFullYear()+'-'+String(lastSat.getMonth()+1).padStart(2,'0')+'-'+String(lastSat.getDate()).padStart(2,'0'));
+  return savedWeek < lastSatWeek;
 }
+
+
 
 function makeChild(id, name, avatar, offset) {
   return {id:id, name:name, avatar:avatar,
@@ -270,7 +276,7 @@ function applyResets(s) {
   if (!s || !s.children || !Array.isArray(s.children) || s.children.length < 2) return freshState();
   s.children.forEach(function(ch) {
     if (!ch || typeof ch !== 'object') return;
-    if (ch.weekStart !== ws) { ch.weekStart=ws; ch.weekEarned=0; ch.weekPenalties=0; }
+    if (ch.weekStart !== ws) { ch.weekSaved=false; ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=ws; }
     if (!Array.isArray(ch.earningChores)) ch.earningChores = [];
     ch.earningChores.forEach(function(c) { if (!c.lastDone) c.lastDone=''; if (c.lastDone !== td) c.done=false; });
     if (ch.lastExpectedDate !== td) {
@@ -290,11 +296,12 @@ function applyResets(s) {
     if (ch.goalSaved === 0 && ch.totalBanked === 0) ch.goalSaved = 5.00;
 
     if (typeof ch.weekSaved !== 'boolean') ch.weekSaved = false;
+    if (ch.weekSaved && ch.weekSavedDate && isoWeek(ch.weekSavedDate) !== isoWeek(todayStr())) ch.weekSaved = false;
     if (typeof ch.weeklyLog !== 'object' || !ch.weeklyLog) ch.weeklyLog = {};
     delete ch.manualStreak;
     if (!Array.isArray(ch.choresDates)) ch.choresDates = [];
 
-    if (ch.weekStart !== weekStart()) ch.weekSaved = false;
+
 
 
     if (ch.weekSaved && !ch.weekSavedDate) ch.weekSaved = false;
