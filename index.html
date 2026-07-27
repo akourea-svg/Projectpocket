@@ -2029,7 +2029,7 @@ function doBankNow(ch) {
 }
 
 function doSaveToJar(childId) {
-  var ch  = state.children.find(function(c){return c.id===childId;});
+  var ch = state.children.find(function(c){return c.id===childId;});
   var net = weekNet(ch);
   if (net <= 0) { showMsg('Nothing to save yet!', '#e03131'); return; }
 
@@ -2047,36 +2047,43 @@ function doSaveToJar(childId) {
       }, idx*60);
     })(i);
   }
-  setTimeout(function() {
-    ch.goalSaved = +((ch.goalSaved||0) + net).toFixed(2);
-    ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=weekStart();
-    ch.weekSaved=true;
-    ch.weekSavedDate=todayStr();
-    ch.earningChores.forEach(function(c){c.done=false;c.lastDone=''});
-    ch.expectedDone={};
 
+  setTimeout(function() {
+    ch.goalSaved    = +((ch.goalSaved||0) + net).toFixed(2);
+    ch.weekEarned   = 0; ch.weekPenalties = 0;
+    ch.weekStart    = weekStart();
+    ch.weekSaved    = true; ch.weekSavedDate = todayStr();
+    ch.earningChores.forEach(function(c){c.done=false;c.lastDone='';});
+    ch.expectedDone = {};
     var nbSat = checkSavingsBadges(ch);
-    if (nbSat.length) { setTimeout(function(){queueBadge(nbSat[0]);}, 2800); }
+    if (nbSat.length) setTimeout(function(){queueBadge(nbSat[0]);}, 2800);
     save(); render();
 
-    setTimeout(function() {
-      var jarWrap2 = document.getElementById('jarSvgWrap');
-      if (jarWrap2) {
-        var col2 = COLORS[state.children.indexOf(ch)];
-        var pct2 = Math.min(100, Math.round((ch.goalSaved||0) / ch.goalTarget * 100));
-        jarWrap2.innerHTML = jarSVG(pct2, col2.accent1, true);
-        setTimeout(function() { startWaveAnimation(col2.accent1); }, 30);
-      }
-    }, 50);
-
     if (ch.goalSaved >= ch.goalTarget) {
-
-      ch.goalSaved = +((ch.goalSaved||0) + 0.50).toFixed(2);
-      save();
-
-      setTimeout(function() { showGoalReachedCelebration(ch); }, 200);
+      var amountToBank = +((ch.goalSaved) + 0.50).toFixed(2);
+      launchConfetti();
+      var bonusEl = document.createElement('div');
+      bonusEl.id = 'goalReachedOverlay';
+      bonusEl.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9991;padding:16px 16px 30px;opacity:0;transition:opacity .3s,transform .4s cubic-bezier(.34,1.2,.64,1);transform:translateY(100%);pointer-events:none';
+      bonusEl.innerHTML =
+        '<div style="background:#fff;border-radius:24px 24px 20px 20px;padding:24px;text-align:center;box-shadow:0 -8px 40px rgba(0,0,0,.2)">' +
+        '<div style="font-size:2.8rem;margin-bottom:6px">&#x1F3C6;</div>' +
+        '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1.6rem;color:var(--purple);margin-bottom:6px">Goal reached!</div>' +
+        '<div style="font-size:.9rem;font-weight:700;color:#555;margin-bottom:14px">Amazing work '+ch.name+'! &#x1F389; Bonus 50p! Banking &#xa3;'+amountToBank.toFixed(2)+'</div>' +
+        '<button id="goalBankBtn" style="display:block;width:100%;background:linear-gradient(135deg,#9775fa,#7c52f5);color:#fff;border:none;border-radius:14px;padding:13px;font-family:Fredoka One,Arial,sans-serif;font-size:1rem;cursor:pointer">&#x1F3AF; Bank it &amp; set new goal!</button>' +
+        '</div>';
+      document.body.appendChild(bonusEl);
+      bonusEl.style.pointerEvents = 'all';
+      requestAnimationFrame(function(){ bonusEl.style.opacity='1'; bonusEl.style.transform='translateY(0)'; });
+      setTimeout(launchConfetti, 600);
+      document.getElementById('goalBankBtn').addEventListener('click', function() {
+        bonusEl.style.opacity = '0';
+        setTimeout(function(){ bonusEl.style.pointerEvents='none'; bonusEl.remove(); }, 300);
+        setTimeout(function(){ bankAndSetGoal(ch, amountToBank); }, 350);
+      });
     } else {
-      var nb3 = checkBadges(ch, state.children); if (nb3.length) { setTimeout(function(){queueBadge(nb3[0]);},2800); }
+      var nb3 = checkBadges(ch, state.children);
+      if (nb3.length) setTimeout(function(){queueBadge(nb3[0]);}, 2800);
     }
   }, numCoins*60+900);
 }
