@@ -194,25 +194,10 @@ function isSaturdayOrLater() {
 }
 function savingsDue(ch) {
   if (_testSaturday) return true;
-  var now = new Date();
-  var day = now.getDay(); // 0=Sun, 6=Sat
-  // Saturday — always show
-  if (day === 6) return true;
-  // Sunday — last Saturday was yesterday
-  if (day === 0) {
-    var yest = new Date(now); yest.setDate(now.getDate()-1);
-    var lastSatWeek = isoWeek(yest.getFullYear()+'-'+String(yest.getMonth()+1).padStart(2,'0')+'-'+String(yest.getDate()).padStart(2,'0'));
-    var savedWeek = ch.weekSavedDate ? isoWeek(ch.weekSavedDate) : '';
-    return savedWeek < lastSatWeek;
-  }
-  // Mon-Fri — show if last Saturday's week hasn't been saved
-  var daysToLastSat = day + 1;
-  var lastSat = new Date(now); lastSat.setDate(now.getDate() - daysToLastSat);
-  var lastSatStr = lastSat.getFullYear()+'-'+String(lastSat.getMonth()+1).padStart(2,'0')+'-'+String(lastSat.getDate()).padStart(2,'0');
-  var lastSatWeek2 = isoWeek(lastSatStr);
-  var savedWeek2 = ch.weekSavedDate ? isoWeek(ch.weekSavedDate) : '';
-  return savedWeek2 < lastSatWeek2;
+  return !ch.weekSaved;
 }
+
+
 
 function makeChild(id, name, avatar, offset) {
   return {id:id, name:name, avatar:avatar,
@@ -276,7 +261,8 @@ function applyResets(s) {
   if (!s || !s.children || !Array.isArray(s.children) || s.children.length < 2) return freshState();
   s.children.forEach(function(ch) {
     if (!ch || typeof ch !== 'object') return;
-    if (ch.weekStart !== ws) { ch.weekSaved=false; ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=ws; }
+    if (ch.weekStart !== ws) { ch.weekEarned=0; ch.weekPenalties=0; ch.weekStart=ws; }
+    if (new Date().getDay() === 6) ch.weekSaved = false; // reset every Saturday
     if (!Array.isArray(ch.earningChores)) ch.earningChores = [];
     ch.earningChores.forEach(function(c) { if (!c.lastDone) c.lastDone=''; if (c.lastDone !== td) c.done=false; });
     if (ch.lastExpectedDate !== td) {
