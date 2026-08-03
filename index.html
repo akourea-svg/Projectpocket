@@ -194,25 +194,25 @@ function isSaturdayOrLater() {
 }
 function savingsDue(ch) {
   if (_testSaturday) return true;
-  // Show from Saturday of current week onwards, until saved this week
-  // "This week" = the ISO week containing today
-  var todayWeek = isoWeek(todayStr());
-  var savedWeek = ch.weekSavedDate ? isoWeek(ch.weekSavedDate) : '';
-  // Already saved this week
-  if (savedWeek === todayWeek) return false;
-  // Show if today is Saturday (day 6) or any day after Saturday that week
-  // i.e. Saturday has passed in the current or previous week
-  var day = new Date().getDay();
-  if (day === 6) return true; // Saturday
-  // Sunday through Friday — check if last Saturday has passed without a save
   var now = new Date();
-  var lastSat = new Date(now);
-  lastSat.setDate(now.getDate() - (day === 0 ? 1 : day + 1));
-  var lastSatWeek = isoWeek(lastSat.getFullYear()+'-'+String(lastSat.getMonth()+1).padStart(2,'0')+'-'+String(lastSat.getDate()).padStart(2,'0'));
-  return savedWeek < lastSatWeek;
+  var day = now.getDay(); // 0=Sun, 6=Sat
+  // Saturday — always show
+  if (day === 6) return true;
+  // Sunday — last Saturday was yesterday
+  if (day === 0) {
+    var yest = new Date(now); yest.setDate(now.getDate()-1);
+    var lastSatWeek = isoWeek(yest.getFullYear()+'-'+String(yest.getMonth()+1).padStart(2,'0')+'-'+String(yest.getDate()).padStart(2,'0'));
+    var savedWeek = ch.weekSavedDate ? isoWeek(ch.weekSavedDate) : '';
+    return savedWeek < lastSatWeek;
+  }
+  // Mon-Fri — show if last Saturday's week hasn't been saved
+  var daysToLastSat = day + 1;
+  var lastSat = new Date(now); lastSat.setDate(now.getDate() - daysToLastSat);
+  var lastSatStr = lastSat.getFullYear()+'-'+String(lastSat.getMonth()+1).padStart(2,'0')+'-'+String(lastSat.getDate()).padStart(2,'0');
+  var lastSatWeek2 = isoWeek(lastSatStr);
+  var savedWeek2 = ch.weekSavedDate ? isoWeek(ch.weekSavedDate) : '';
+  return savedWeek2 < lastSatWeek2;
 }
-
-
 
 function makeChild(id, name, avatar, offset) {
   return {id:id, name:name, avatar:avatar,
