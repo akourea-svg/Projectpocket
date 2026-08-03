@@ -1103,10 +1103,10 @@ function renderMain() {
     '<div style="font-family:Fredoka One,Arial,sans-serif;font-size:1rem;color:var(--c-accent1,#9775fa);margin-top:2px">'+(savedPct>=100?'🎉':savedPct+'%')+'</div>' +
     '</div></div>' +
 
-    (ch.weekSaved
-      ? '<div style="text-align:center;font-size:.9rem;font-weight:700;color:var(--green);margin-bottom:12px">✅ This week\'s earnings added to your pot!</div>'
-      : net > 0 && savingsDue(ch)
+    (savingsDue(ch) && net > 0
       ? '<button class="jar-save-btn" id="jarSaveBtn" style="margin-bottom:12px">💰 Add this week\'s £'+net.toFixed(2)+' to pot!</button>'
+      : ch.weekSaved && !savingsDue(ch)
+      ? '<div style="text-align:center;font-size:.9rem;font-weight:700;color:var(--green);margin-bottom:12px">✅ This week\'s earnings added to your pot!</div>'
       : '<div style="text-align:center;font-size:.82rem;font-weight:700;color:var(--text-mid);margin-bottom:12px">'+(net>0?'💰 £'+net.toFixed(2)+' ready to add on Saturday':'Nothing earned yet this week')+'</div>') +
 
     ((ch.goalSaved||0) > 0
